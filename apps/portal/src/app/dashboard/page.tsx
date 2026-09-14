@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getDashboardOverview } from "@/lib/api-client";
+
+export const metadata: Metadata = {
+  title: "Infrastructure Dashboard | GCH Client Portal",
+  description:
+    "Monitor Hostinger provisioning, API route health, new registrations, root tracking, and SEO destination planning.",
+  keywords: [
+    "Hostinger dashboard",
+    "API route health",
+    "registration tracking",
+    "SEO structured data",
+    "search console metadata",
+  ],
+};
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString();
@@ -9,9 +23,27 @@ function formatDate(value: string) {
 export default async function InfrastructureDashboardPage() {
   const session = await getSession();
   const overview = await getDashboardOverview(session?.orgId);
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "GCH Infrastructure Dashboard",
+    description:
+      "Operational dataset for API route health, registrations, and root tracking on Hostinger.",
+    about: [
+      "API health monitoring",
+      "Client registration tracking",
+      "Hostinger root and deployment tracking",
+      "SEO destination planning",
+    ],
+    url: "/dashboard",
+  };
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl text-hearth-ink">
@@ -116,6 +148,57 @@ export default async function InfrastructureDashboardPage() {
             )}
           </ul>
         </article>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl text-hearth-ink">API route health</h2>
+        <p className="mt-1 text-hearth-ink/70">
+          Route-level health for all current API destinations.
+        </p>
+        <ul className="mt-4 grid gap-2">
+          {overview.apiRouteHealth.map((route) => (
+            <li
+              key={`${route.method}:${route.path}`}
+              className="rounded-md border border-ash-stone bg-white px-4 py-3 text-sm"
+            >
+              <p className="font-medium">
+                {route.method} {route.path}
+              </p>
+              <p className="text-hearth-ink/70">
+                {route.status} • {route.detail}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl text-hearth-ink">
+          Page destinations, backlinks, and SEO structure plan
+        </h2>
+        <p className="mt-1 text-hearth-ink/70">
+          Destination mapping for backlink strategy and search-console metadata strengthening.
+        </p>
+        <ul className="mt-4 space-y-2">
+          {overview.pageDestinations.map((destination) => (
+            <li
+              key={destination.path}
+              className="rounded-md border border-ash-stone bg-white px-4 py-3"
+            >
+              <p className="font-medium">{destination.path}</p>
+              <p className="text-sm text-hearth-ink/70">{destination.purpose}</p>
+              <p className="text-sm text-hearth-ink/70">
+                Backlink: {destination.backlinkFocus}
+              </p>
+              <p className="text-sm text-hearth-ink/70">
+                Structured content: {destination.structuredContentType}
+              </p>
+              <p className="text-sm text-hearth-ink/70">
+                Metadata focus: {destination.metadataFocus}
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   );

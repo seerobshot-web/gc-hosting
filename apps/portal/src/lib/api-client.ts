@@ -48,6 +48,19 @@ export interface DashboardOverview {
     updatedAt: string;
     createdAt: string;
   }>;
+  apiRouteHealth: Array<{
+    method: "GET" | "POST" | "PATCH";
+    path: string;
+    status: "healthy" | "degraded";
+    detail: string;
+  }>;
+  pageDestinations: Array<{
+    path: string;
+    purpose: string;
+    backlinkFocus: string;
+    structuredContentType: string;
+    metadataFocus: string;
+  }>;
 }
 
 export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
