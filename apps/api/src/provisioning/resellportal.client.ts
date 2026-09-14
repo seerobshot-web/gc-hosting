@@ -6,7 +6,6 @@ export interface CreateOrderInput {
   clientId: string;
   cpanelUsername: string;
   primaryDomain: string;
-  testMode?: boolean;
 }
 
 export interface ResellPortalService {
@@ -68,7 +67,26 @@ export class ResellPortalClient {
   }
 
   placeOrder(input: CreateOrderInput) {
-    const isDevLikeEnv = this.config.get<string>("NODE_ENV") !== "production";
+    const nodeEnv = this.config.get<string>("NODE_ENV");
+    let testMode = true;
+
+    if (nodeEnv === "production") {
+      const configuredTestMode = this.config.get<string | boolean>(
+        "RESELLPORTAL_TEST_MODE",
+      );
+
+      if (configuredTestMode !== true && configuredTestMode !== false) {
+        if (configuredTestMode === "true") testMode = true;
+        else if (configuredTestMode === "false") testMode = false;
+        else {
+          throw new Error(
+            "RESELLPORTAL_TEST_MODE must be explicitly set to true or false in production.",
+          );
+        }
+      } else {
+        testMode = configuredTestMode;
+      }
+    }
 
     return this.request<{ order_id: string }>("/orders", {
       method: "POST",
@@ -78,7 +96,7 @@ export class ResellPortalClient {
         cpanel_username: input.cpanelUsername,
         primary_domain: input.primaryDomain,
         // Never let a dev/test script place a real wholesale order.
-        test_mode: input.testMode ?? isDevLikeEnv,
+        test_mode: testMode,
       }),
     });
   }

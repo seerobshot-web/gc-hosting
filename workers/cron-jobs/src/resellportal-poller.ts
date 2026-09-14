@@ -14,7 +14,7 @@
  * poll pattern described in the architecture doc, run here as a
  * belt-and-suspenders sweep in addition to the API's own @Cron poller.
  */
-import { prisma } from "@gch/database";
+import { Prisma, prisma } from "@gch/database";
 
 const RESELLPORTAL_BASE_URL = "https://panel.resellportal.com/wp-json/resellportal/v1";
 
@@ -66,13 +66,34 @@ async function main() {
       if (!match) continue;
 
       if (match.deployment_status === "deployed") {
-        await prisma.provisioningOrder.update({
-          where: { id: order.id },
-          data: {
-            status: "deployed",
-            nextBillingDate: match.next_billing_date ? new Date(match.next_billing_date) : null,
-          },
+        const transitioned = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+          // Claim the transition atomically. Another poller may have selected
+          // this order while it was still provisioning, but only one can
+          // change it to deployed and therefore create the audit event.
+          const result = await tx.provisioningOrder.updateMany({
+            where: { id: order.id, status: "provisioning" },
+            data: {
+              status: "deployed",
+              nextBillingDate: match.next_billing_date ? new Date(match.next_billing_date) : null,
+            },
+          });
+
+          if (result.count === 0) return false;
+
+          await tx.auditLog.create({
+            data: {
+              actor: "system:cron-resellportal-poller",
+              action: "order.deployed",
+              targetType: "ProvisioningOrder",
+              targetId: order.id,
+            },
+          });
+
+          return true;
         });
+
+        if (!transitioned) continue;
+
         await triggerWelcomeEmail(order.clientId, order.primaryDomain);
         console.log(`[resellportal-poller] order ${order.id} -> deployed`);
       }

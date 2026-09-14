@@ -6,7 +6,7 @@
     "dev": "tsx watch src/main.ts",
     "build": "pnpm --filter @gch/database run generate && tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "test": "pnpm --filter @gch/database run generate && tsx --test src/**/*.spec.ts",
+    "test": "pnpm --filter @gch/database run generate && node --import tsx --test src/**/*.spec.ts",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },

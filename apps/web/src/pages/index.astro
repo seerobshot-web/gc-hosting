@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import HeroScene from "../components/HeroScene.astro";
+import HeroScene from "../components/HeroScene";
 import PillarCard from "../components/PillarCard.astro";
 import { pillars } from "@gch/ui/tokens";
 
@@ -20,7 +20,7 @@ const pillarHref: Record<(typeof pillars)[number]["key"], string> = {
 ---
 
 <Layout title="Glory Cloud Hosts">
-  <HeroScene />
+  <HeroScene client:visible />
 
   <section class="mx-auto max-w-5xl px-6 py-16">
     <h1 class="font-display text-4xl text-hearth-ink">Glory Cloud Hosts</h1>
