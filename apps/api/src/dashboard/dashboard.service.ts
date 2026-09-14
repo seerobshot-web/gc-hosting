@@ -8,11 +8,18 @@ interface RouteHealth {
   detail: string;
 }
 
+interface QueryResult<T> {
+  ok: boolean;
+  value: T;
+}
+
 @Injectable()
 export class DashboardService {
   private getApiRouteHealth(input: {
     clientsReadable: boolean;
     provisioningReadable: boolean;
+    registrationsReadable: boolean;
+    rootTrackingReadable: boolean;
   }): RouteHealth[] {
     const clientsStatus = input.clientsReadable
       ? { status: "healthy" as const, detail: "read query completed" }
@@ -45,8 +52,20 @@ export class DashboardService {
       {
         method: "GET",
         path: "/dashboard/overview",
-        status: "healthy",
-        detail: "response assembled",
+        status:
+          input.clientsReadable &&
+          input.registrationsReadable &&
+          input.provisioningReadable &&
+          input.rootTrackingReadable
+            ? "healthy"
+            : "degraded",
+        detail:
+          input.clientsReadable &&
+          input.registrationsReadable &&
+          input.provisioningReadable &&
+          input.rootTrackingReadable
+            ? "response assembled from successful reads"
+            : "response assembled with degraded reads",
       },
       {
         method: "GET",
@@ -62,57 +81,135 @@ export class DashboardService {
     const clientWhere = undefined;
     const orderWhere = undefined;
 
+    const registrationFallback: Array<{
+      id: string;
+      email: string;
+      createdAt: Date;
+    }> = [];
+    const rootTrackingFallback: Array<{
+      id: string;
+      primaryDomain: string;
+      cpanelUsername: string;
+      status: string;
+      updatedAt: Date;
+      createdAt: Date;
+    }> = [];
+
     const [
-      totalClients,
-      newRegistrationsLast7Days,
-      totalOrders,
-      provisioningOrders,
-      deployedOrders,
-      failedOrders,
-      recentRegistrations,
-      rootTracking,
+      totalClientsResult,
+      newRegistrationsLast7DaysResult,
+      totalOrdersResult,
+      provisioningOrdersResult,
+      deployedOrdersResult,
+      failedOrdersResult,
+      recentRegistrationsResult,
+      rootTrackingResult,
+    ]: [
+      QueryResult<number>,
+      QueryResult<number>,
+      QueryResult<number>,
+      QueryResult<number>,
+      QueryResult<number>,
+      QueryResult<number>,
+      QueryResult<Array<{ id: string; email: string; createdAt: Date }>>,
+      QueryResult<
+        Array<{
+          id: string;
+          primaryDomain: string;
+          cpanelUsername: string;
+          status: string;
+          updatedAt: Date;
+          createdAt: Date;
+        }>
+      >,
     ] = await Promise.all([
-      prisma.client.count({ where: clientWhere }),
-      prisma.client.count({
-        where: { ...(clientWhere ?? {}), createdAt: { gte: sevenDaysAgo } },
-      }),
-      prisma.provisioningOrder.count({ where: orderWhere }),
-      prisma.provisioningOrder.count({
-        where: { ...(orderWhere ?? {}), status: "provisioning" },
-      }),
-      prisma.provisioningOrder.count({
-        where: { ...(orderWhere ?? {}), status: "deployed" },
-      }),
-      prisma.provisioningOrder.count({
-        where: { ...(orderWhere ?? {}), status: "failed" },
-      }),
-      prisma.client.findMany({
-        where: clientWhere,
-        orderBy: { createdAt: "desc" },
-        take: 10,
-        select: {
-          id: true,
-          email: true,
-          createdAt: true,
-        },
-      }),
-      prisma.provisioningOrder.findMany({
-        where: orderWhere,
-        orderBy: { updatedAt: "desc" },
-        take: 10,
-        select: {
-          id: true,
-          primaryDomain: true,
-          cpanelUsername: true,
-          status: true,
-          updatedAt: true,
-          createdAt: true,
-        },
-      }),
+      prisma.client
+        .count({ where: clientWhere })
+        .then((value) => ({
+        ok: true as const,
+        value,
+      }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.client
+        .count({
+          where: { ...(clientWhere ?? {}), createdAt: { gte: sevenDaysAgo } },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.provisioningOrder
+        .count({ where: orderWhere })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.provisioningOrder
+        .count({
+          where: { ...(orderWhere ?? {}), status: "provisioning" },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.provisioningOrder
+        .count({
+          where: { ...(orderWhere ?? {}), status: "deployed" },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.provisioningOrder
+        .count({
+          where: { ...(orderWhere ?? {}), status: "failed" },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: 0 })),
+      prisma.client
+        .findMany({
+          where: clientWhere,
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            email: true,
+            createdAt: true,
+          },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: registrationFallback })),
+      prisma.provisioningOrder
+        .findMany({
+          where: orderWhere,
+          orderBy: { updatedAt: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            primaryDomain: true,
+            cpanelUsername: true,
+            status: true,
+            updatedAt: true,
+            createdAt: true,
+          },
+        })
+        .then((value) => ({ ok: true as const, value }))
+        .catch(() => ({ ok: false as const, value: rootTrackingFallback })),
     ]);
+
+    const totalClients = totalClientsResult.value;
+    const newRegistrationsLast7Days = newRegistrationsLast7DaysResult.value;
+    const totalOrders = totalOrdersResult.value;
+    const provisioningOrders = provisioningOrdersResult.value;
+    const deployedOrders = deployedOrdersResult.value;
+    const failedOrders = failedOrdersResult.value;
+    const recentRegistrations = recentRegistrationsResult.value;
+    const rootTracking = rootTrackingResult.value;
+
     const apiRouteHealth = this.getApiRouteHealth({
-      clientsReadable: true,
-      provisioningReadable: true,
+      clientsReadable: totalClientsResult.ok,
+      provisioningReadable:
+        totalOrdersResult.ok &&
+        provisioningOrdersResult.ok &&
+        deployedOrdersResult.ok &&
+        failedOrdersResult.ok,
+      registrationsReadable:
+        totalClientsResult.ok &&
+        newRegistrationsLast7DaysResult.ok &&
+        recentRegistrationsResult.ok,
+      rootTrackingReadable: rootTrackingResult.ok,
     });
 
     return {

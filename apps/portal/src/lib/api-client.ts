@@ -6,6 +6,7 @@
  */
 
 const API_BASE_URL = process.env.GCH_API_URL ?? "http://localhost:3333";
+const DASHBOARD_API_KEY = process.env.GCH_DASHBOARD_API_KEY;
 
 export interface GLink {
   id: string;
@@ -77,6 +78,9 @@ export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
 export async function getDashboardOverview(): Promise<DashboardOverview> {
   const res = await fetch(`${API_BASE_URL}/dashboard/overview`, {
     cache: "no-store",
+    headers: DASHBOARD_API_KEY
+      ? { "x-dashboard-key": DASHBOARD_API_KEY }
+      : undefined,
   });
   if (!res.ok) {
     throw new Error(`Failed to load dashboard overview: ${res.status}`);

@@ -22,6 +22,7 @@ function formatDate(value: string) {
 
 export default async function InfrastructureDashboardPage() {
   const overview = await getDashboardOverview();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -34,7 +35,7 @@ export default async function InfrastructureDashboardPage() {
       "Hostinger root and deployment tracking",
       "SEO destination planning",
     ],
-    url: "/dashboard",
+    url: `${siteUrl}/dashboard`,
   };
 
   return (
