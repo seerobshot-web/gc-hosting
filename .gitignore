@@ -9,3 +9,8 @@ dist/
 .DS_Store
 packages/database/prisma/dev.db
 packages/database/prisma/dev.db-journal
+apps/api/deploy-archive/
+apps/api/deploy-standalone/
+apps/api/deploy-archive.zip
+scratch/
+tsconfig.tsbuildinfo

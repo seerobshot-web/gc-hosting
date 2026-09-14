@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { can, getSession } from "@/lib/session";
 import { getDashboardOverview } from "@/lib/api-client";
 
 export const metadata: Metadata = {
@@ -20,6 +21,27 @@ function formatDate(value: string) {
 }
 
 export default async function InfrastructureDashboardPage() {
+  const session = await getSession();
+
+  if (!session?.org) {
+    return (
+      <main className="mx-auto max-w-2xl px-6 py-16">
+        <p className="text-hearth-ink">Sign in to a workspace to view infrastructure health.</p>
+      </main>
+    );
+  }
+
+  if (!can(session, "member:manage")) {
+    return (
+      <main className="mx-auto max-w-2xl px-6 py-16">
+        <h1 className="font-display text-2xl text-hearth-ink">Infrastructure Dashboard</h1>
+        <p className="mt-4 text-hearth-ink/80">
+          Only workspace admins and owners can view infrastructure health for {session.org.name}.
+        </p>
+      </main>
+    );
+  }
+
   const overview = await getDashboardOverview();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
   const structuredData = {
