@@ -1,0 +1,21 @@
+{
+  "name": "@gch/cron-jobs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "poll:resellportal": "tsx src/resellportal-poller.ts",
+    "check:ssl": "tsx src/ssl-expiry-check.ts",
+    "check:audit-integrity": "tsx src/audit-integrity-check.ts",
+    "build": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@gch/database": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
