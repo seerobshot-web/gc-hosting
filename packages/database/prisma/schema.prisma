@@ -1,0 +1,108 @@
+// GCH Prisma schema
+//
+// NOTE ON DATABASE PROVIDER: this scaffold uses SQLite (see .env) so that
+// `prisma migrate dev` can run end-to-end without a live Postgres server.
+// For production, switch the datasource provider to "postgresql" and point
+// DATABASE_URL at the real instance — no model changes should be required
+// for that swap since nothing here relies on SQLite-specific types.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Top-level tenant — a ministry or client organization.
+model Org {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clients Client[]
+  glinks  GLink[]
+}
+
+/// Mirrors the FOSSBilling client record via an external ID field —
+/// billing data itself is never duplicated here, only referenced.
+model Client {
+  id                 String   @id @default(cuid())
+  orgId              String
+  org                Org      @relation(fields: [orgId], references: [id])
+  fossbillingClientId String  @unique
+  email              String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  glinks             GLink[]
+  provisioningOrders ProvisioningOrder[]
+
+  @@index([orgId])
+}
+
+/// Local shadow of a ResellPortal order. ResellPortal is request-only with
+/// no webhooks, so this table is the state a background poller updates —
+/// there is no event to listen for, only a status to keep checking.
+model ProvisioningOrder {
+  id                  String    @id @default(cuid())
+  clientId            String
+  client              Client    @relation(fields: [clientId], references: [id])
+  cpanelUsername      String
+  primaryDomain       String
+  resellPortalOrderId String?
+  status              String    @default("provisioning") // provisioning | deployed | failed
+  nextBillingDate     DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+/// GloryLink's closed six-value module-type enum. Deliberately NOT an open
+/// string field — extending it requires a real migration, which is the
+/// point (every module is pre-vetted for theological/brand appropriateness).
+enum GLinkModuleType {
+  LINK
+  GIVING_EXTERNAL
+  EVENT
+  SERMON_SERIES
+  ANNOUNCEMENT
+  SOCIAL_EMBED
+}
+
+model GLink {
+  id         String          @id @default(cuid())
+  orgId      String
+  org        Org             @relation(fields: [orgId], references: [id])
+  clientId   String
+  client     Client          @relation(fields: [clientId], references: [id])
+  moduleType GLinkModuleType
+  label      String
+  url        String?
+  position   Int             @default(0)
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([orgId])
+  @@index([clientId])
+}
+
+/// Actor, action, target entity, timestamp — the table the future Agent
+/// Plan (GCH Aleph) writes to for every automated action it takes.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actor      String
+  action     String
+  targetType String
+  targetId   String
+  metadata   String? // JSON-encoded string (SQLite has no native JSON type)
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}

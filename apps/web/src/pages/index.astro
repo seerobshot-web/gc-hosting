@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/Layout.astro";
+import HeroScene from "../components/HeroScene.astro";
+import PillarCard from "../components/PillarCard.astro";
+import { pillars } from "@gch/ui/tokens";
+
+const pillarCopy: Record<(typeof pillars)[number]["key"], string> = {
+  hosting: "Managed cPanel hosting, provisioned and billed in one place.",
+  "ai-tools": "AI tooling for ministry teams — content, workflows, and more.",
+  "design-marketing": "Brand identity, content strategy, and SEO for your ministry.",
+  "ministry-education": "GloryLink and other tools built for churches and ministries.",
+};
+
+const pillarHref: Record<(typeof pillars)[number]["key"], string> = {
+  hosting: "/hosting",
+  "ai-tools": "/ai-tools",
+  "design-marketing": "/design-marketing",
+  "ministry-education": "/ministry-education",
+};
+---
+
+<Layout title="Glory Cloud Hosts">
+  <HeroScene />
+
+  <section class="mx-auto max-w-5xl px-6 py-16">
+    <h1 class="font-display text-4xl text-hearth-ink">Glory Cloud Hosts</h1>
+    <p class="mt-2 max-w-2xl text-hearth-ink/70">
+      Hosting, AI tools, design, and ministry-specific software — one client
+      relationship, four pillars.
+    </p>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2">
+      {
+        pillars.map((pillar) => (
+          <PillarCard
+            label={pillar.label}
+            description={pillarCopy[pillar.key]}
+            href={pillarHref[pillar.key]}
+          />
+        ))
+      }
+    </div>
+  </section>
+</Layout>

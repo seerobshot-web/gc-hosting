@@ -1,1 +1,1 @@
-# gc-hosting
+# gc-hosting-platform
