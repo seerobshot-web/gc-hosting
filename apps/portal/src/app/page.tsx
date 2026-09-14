@@ -16,10 +16,22 @@ export default function PortalHome() {
           Go to GloryLink Dashboard
         </Link>
         <Link
+          href="/dashboard/team"
+          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+        >
+          Team
+        </Link>
+        <Link
           href="/dashboard/billing"
           className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
         >
           Billing
+        </Link>
+        <Link
+          href="/dashboard/settings"
+          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+        >
+          Settings
         </Link>
       </div>
     </main>

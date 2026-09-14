@@ -82,7 +82,7 @@ export class ApiError extends Error {
 }
 
 async function api<T>(
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   accessToken: string,
   body?: unknown,
@@ -106,10 +106,133 @@ async function api<T>(
     }
     throw new ApiError(res.status, message);
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
 const apiGet = <T>(path: string, accessToken: string) => api<T>("GET", path, accessToken);
+
+// ---- team / invitations / org settings ------------------------------------
+
+export interface Member {
+  id: string;
+  role: Role;
+  status: string;
+  createdAt: string;
+  user: { id: string; email: string | null; name: string | null };
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  role: Role;
+  status: "PENDING" | "ACCEPTED" | "REVOKED" | "EXPIRED";
+  expiresAt: string;
+  createdAt: string;
+  invitedBy: { id: string; email: string; name: string | null };
+}
+
+export interface InvitationPreview {
+  orgName: string;
+  email: string;
+  role: Role;
+  invitedBy: string;
+  expiresAt: string;
+  hasAccount: boolean;
+}
+
+export interface Org {
+  id: string;
+  name: string;
+  slug: string;
+  autoJoinDomain: string | null;
+}
+
+export interface DomainVerification {
+  id: string;
+  domain: string;
+  verifiedAt: string | null;
+  dns?: { type: string; host: string; value: string };
+}
+
+const org = (orgId: string) => `/orgs/${encodeURIComponent(orgId)}`;
+
+export const getMembers = (orgId: string, t: string) =>
+  apiGet<Member[]>(`${org(orgId)}/memberships`, t);
+export const changeMemberRole = (orgId: string, id: string, role: Role, t: string) =>
+  api<Member>("PATCH", `${org(orgId)}/memberships/${id}`, t, { role });
+export const removeMember = (orgId: string, id: string, t: string) =>
+  api<void>("DELETE", `${org(orgId)}/memberships/${id}`, t);
+
+export const getInvitations = (orgId: string, t: string) =>
+  apiGet<Invitation[]>(`${org(orgId)}/invitations`, t);
+export const createInvitation = (orgId: string, email: string, role: Role, t: string) =>
+  api<Invitation>("POST", `${org(orgId)}/invitations`, t, { email, role });
+export const resendInvitation = (orgId: string, id: string, t: string) =>
+  api<Invitation>("POST", `${org(orgId)}/invitations/${id}/resend`, t);
+export const revokeInvitation = (orgId: string, id: string, t: string) =>
+  api<void>("DELETE", `${org(orgId)}/invitations/${id}`, t);
+
+export const getInvitationPreview = (token: string) =>
+  apiPublic<InvitationPreview>("GET", `/invitations/${encodeURIComponent(token)}`);
+export const acceptInvitation = (
+  token: string,
+  body: { password?: string; name?: string },
+  accessToken?: string,
+) =>
+  apiPublic<{
+    orgId: string;
+    orgSlug: string;
+    role: Role;
+    tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null;
+  }>("POST", `/invitations/${encodeURIComponent(token)}/accept`, body, accessToken);
+
+export const getOrg = (orgId: string, t: string) => apiGet<Org>(org(orgId), t);
+export const updateOrg = (
+  orgId: string,
+  body: { name?: string; autoJoinDomain?: string | null },
+  t: string,
+) => api<Org>("PATCH", org(orgId), t, body);
+export const updateMe = (body: { name?: string }, t: string) =>
+  api<Me>("PATCH", "/users/me", t, body);
+
+export const getDomains = (orgId: string, t: string) =>
+  apiGet<DomainVerification[]>(`${org(orgId)}/domains`, t);
+export const addDomain = (orgId: string, domain: string, t: string) =>
+  api<DomainVerification>("POST", `${org(orgId)}/domains`, t, { domain });
+export const verifyDomain = (orgId: string, id: string, t: string) =>
+  api<DomainVerification>("POST", `${org(orgId)}/domains/${id}/verify`, t);
+export const removeDomain = (orgId: string, id: string, t: string) =>
+  api<void>("DELETE", `${org(orgId)}/domains/${id}`, t);
+
+/** Routes that don't require a session (the invite link is the credential). */
+async function apiPublic<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+  accessToken?: string,
+): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    cache: "no-store",
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    let message = `API ${method} ${path} failed: ${res.status}`;
+    try {
+      const err = (await res.json()) as { message?: string | string[] };
+      if (err.message) message = Array.isArray(err.message) ? err.message.join(", ") : err.message;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(res.status, message);
+  }
+  return res.json();
+}
 
 export function getPlans(accessToken: string): Promise<Plan[]> {
   return apiGet("/billing/plans", accessToken);

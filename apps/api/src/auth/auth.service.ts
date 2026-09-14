@@ -2,11 +2,14 @@ import { randomBytes, createHash } from "crypto";
 import {
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
-import { prisma } from "@gch/database";
+import { prisma, Role } from "@gch/database";
+import { AuditService } from "../audit/audit.service";
+import { BillingService } from "../billing/billing.service";
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -24,9 +27,16 @@ export interface TokenPair {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  private readonly logger = new Logger(AuthService.name);
 
-  async register(email: string, password: string, name?: string) {
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly audit: AuditService,
+    private readonly billing: BillingService,
+  ) {}
+
+  async register(rawEmail: string, password: string, name?: string) {
+    const email = rawEmail.trim().toLowerCase();
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException("An account with that email already exists");
@@ -35,10 +45,12 @@ export class AuthService {
     const user = await prisma.user.create({
       data: { email, passwordHash, name },
     });
+    await this.autoJoinByDomain(user.id, user.email);
     return this.issueTokens(user.id, user.email);
   }
 
-  async login(email: string, password: string) {
+  async login(rawEmail: string, password: string) {
+    const email = rawEmail.trim().toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user?.passwordHash) {
       throw new UnauthorizedException("Invalid email or password");
@@ -50,6 +62,23 @@ export class AuthService {
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
+    });
+    await this.autoJoinByDomain(user.id, user.email);
+    return this.issueTokens(user.id, user.email);
+  }
+
+  /**
+   * For an identity that exists without a password (created by the Stage 1
+   * backfill) and is now claimed through an invitation link.
+   */
+  async setPasswordAndLogin(userId: string, password: string, name?: string) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
+        ...(name ? { name } : {}),
+        lastLoginAt: new Date(),
+      },
     });
     return this.issueTokens(user.id, user.email);
   }
@@ -81,6 +110,44 @@ export class AuthService {
       where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  /**
+   * Org.autoJoinDomain can only ever point at a DNS-verified domain (see
+   * DomainsService), so matching the email's domain is sufficient proof of
+   * affiliation. Never blocks sign-in: a full workspace just means no join.
+   */
+  private async autoJoinByDomain(userId: string, email: string) {
+    const domain = email.split("@")[1];
+    if (!domain) return;
+    const org = await prisma.org.findUnique({ where: { autoJoinDomain: domain } });
+    if (!org) return;
+
+    const existing = await prisma.membership.findUnique({
+      where: { userId_orgId: { userId, orgId: org.id } },
+    });
+    if (existing) return;
+
+    try {
+      await this.billing.assertSeatAvailable(org.id);
+    } catch (err) {
+      this.logger.warn(
+        `Auto-join of ${email} into ${org.slug} skipped: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return;
+    }
+
+    const membership = await prisma.membership.create({
+      data: { userId, orgId: org.id, role: Role.MEMBER },
+    });
+    await this.audit.logAction({
+      actor: "system:auto-join",
+      action: "membership.created",
+      targetType: "Membership",
+      targetId: membership.id,
+      metadata: { orgId: org.id, userId, role: Role.MEMBER, via: "autoJoinDomain", domain },
+    });
+    await this.billing.syncSeats(org.id, "system:auto-join");
   }
 
   private async issueTokens(userId: string, email: string): Promise<TokenPair> {

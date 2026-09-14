@@ -19,14 +19,64 @@ model Org {
   /// URL-safe handle, reserved for per-workspace routing (`/w/[slug]`) even
   /// though v1 has no workspace switcher.
   slug      String   @unique
+  /// When set, a user registering or signing in with an email at this domain
+  /// is auto-added as a MEMBER. May only ever be set to a domain with a
+  /// matching OrgDomainVerification.verifiedAt — the api refuses otherwise.
+  autoJoinDomain String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clients      Client[]
-  glinks       GLink[]
-  memberships  Membership[]
-  subscription Subscription?
-  invoices     Invoice[]
+  clients             Client[]
+  glinks              GLink[]
+  memberships         Membership[]
+  subscription        Subscription?
+  invoices            Invoice[]
+  invitations         Invitation[]
+  domainVerifications OrgDomainVerification[]
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+/// An emailed invitation to join an Org. The raw token goes only into the
+/// email link; the row stores its sha256, same as RefreshToken.
+model Invitation {
+  id              String           @id @default(cuid())
+  orgId           String
+  org             Org              @relation(fields: [orgId], references: [id])
+  email           String
+  role            Role
+  invitedByUserId String
+  invitedBy       User             @relation(fields: [invitedByUserId], references: [id])
+  tokenHash       String           @unique
+  status          InvitationStatus @default(PENDING)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([orgId, status])
+  @@index([email])
+}
+
+/// Proof of domain ownership via a DNS TXT record — the gate in front of
+/// Org.autoJoinDomain. An admin gets a token to publish; verification
+/// resolves the record and stamps verifiedAt only when it matches.
+model OrgDomainVerification {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         Org       @relation(fields: [orgId], references: [id])
+  domain      String
+  dnsTxtToken String    @unique
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([orgId, domain])
+  @@index([domain])
 }
 
 /// A purchasable workspace tier. Mirrors a Stripe Price by id — Stripe
@@ -118,9 +168,10 @@ model User {
   updatedAt    DateTime  @updatedAt
   lastLoginAt  DateTime?
 
-  memberships   Membership[]
-  refreshTokens RefreshToken[]
-  clients       Client[]
+  memberships     Membership[]
+  refreshTokens   RefreshToken[]
+  clients         Client[]
+  sentInvitations Invitation[]
 }
 
 /// The revocable half of the auth pair — access tokens stay short-lived and

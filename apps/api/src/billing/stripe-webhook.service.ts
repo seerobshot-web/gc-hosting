@@ -1,7 +1,10 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { Prisma, prisma } from "@gch/database";
+import { Prisma, prisma, Role } from "@gch/database";
 import type Stripe from "stripe";
 import { AuditService } from "../audit/audit.service";
+import { EmailService } from "../email/email.service";
+import { paymentFailedEmail } from "../email/templates";
+import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 import { StripeService } from "./stripe.service";
 
 const ACTOR = "system:stripe-webhook";
@@ -18,6 +21,7 @@ export class StripeWebhookService {
   constructor(
     private readonly stripe: StripeService,
     private readonly audit: AuditService,
+    private readonly email: EmailService,
   ) {}
 
   async handle(rawBody: Buffer | undefined, signature: string | undefined) {
@@ -175,6 +179,42 @@ export class StripeWebhookService {
       targetId: saved.id,
       metadata: { orgId: sub.orgId, amountDueCents: invoice.amount_due },
     });
+
+    if (type === "invoice.payment_failed") {
+      await this.notifyOwnersOfFailedPayment(sub.orgId, invoice);
+    }
+  }
+
+  /** Billing notices go to every OWNER — they're the only role that can fix it. */
+  private async notifyOwnersOfFailedPayment(orgId: string, invoice: Stripe.Invoice) {
+    const org = await prisma.org.findUnique({
+      where: { id: orgId },
+      include: {
+        memberships: {
+          where: { role: Role.OWNER, status: MEMBERSHIP_ACTIVE },
+          include: { user: { select: { email: true } } },
+        },
+      },
+    });
+    if (!org) return;
+    const billingUrl = `${this.stripe.portalOrigin}/dashboard/billing`;
+    for (const m of org.memberships) {
+      try {
+        await this.email.send(
+          paymentFailedEmail({
+            to: m.user.email,
+            orgName: org.name,
+            amountDueCents: invoice.amount_due,
+            currency: invoice.currency,
+            billingUrl,
+          }),
+        );
+      } catch (err) {
+        this.logger.warn(
+          `Payment-failed email to ${m.user.email} failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
   }
 
   private async resolveOrgId(sub: Stripe.Subscription): Promise<string | null> {

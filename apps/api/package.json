@@ -27,6 +27,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "fastify": "^4.28.1",
+    "nodemailer": "^10.0.9",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.1",
+    "@types/nodemailer": "^8.0.1",
     "@types/passport-jwt": "^4.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

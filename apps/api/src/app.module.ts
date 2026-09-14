@@ -14,13 +14,17 @@ import { RolesGuard } from "./rbac/roles.guard";
 import { UsersModule } from "./users/users.module";
 import { MembershipsModule } from "./memberships/memberships.module";
 import { BillingModule } from "./billing/billing.module";
+import { EmailModule } from "./email/email.module";
+import { InvitationsModule } from "./invitations/invitations.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     TenancyModule,
+    EmailModule,
     AuthModule,
+    InvitationsModule,
     UsersModule,
     MembershipsModule,
     BillingModule,
