@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { ClientsService, CreateClientInput } from "./clients.service";
+import { ClientsService } from "./clients.service";
+import { CreateClientDto } from "./dto";
 
 @ApiTags("clients")
 @Controller("clients")
@@ -8,7 +9,7 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  create(@Body() body: CreateClientInput) {
+  create(@Body() body: CreateClientDto) {
     return this.clientsService.create(body);
   }
 

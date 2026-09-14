@@ -14,7 +14,14 @@ export default async function GLinksDashboardPage() {
     );
   }
 
-  const glinks = await getGLinksForClient(session.clientId);
+  // TODO(Stage 1): resolve the logged-in User to their Client/Org via
+  // Membership once that model exists — a User isn't tied to a specific
+  // clientId yet on its own (see packages/database/prisma/schema.prisma's
+  // Client.userId link and the Membership model).
+  const clientId = null as string | null;
+  const glinks = clientId
+    ? await getGLinksForClient(clientId, session.accessToken)
+    : [];
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">

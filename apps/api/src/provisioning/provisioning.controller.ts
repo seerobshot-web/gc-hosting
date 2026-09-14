@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { ProvisioningService, PlaceOrderInput } from "./provisioning.service";
+import { ProvisioningService } from "./provisioning.service";
+import { PlaceOrderDto } from "./dto";
 
 @ApiTags("provisioning")
 @Controller("provisioning")
@@ -8,7 +9,7 @@ export class ProvisioningController {
   constructor(private readonly provisioningService: ProvisioningService) {}
 
   @Post("orders")
-  placeOrder(@Body() body: PlaceOrderInput) {
+  placeOrder(@Body() body: PlaceOrderDto) {
     return this.provisioningService.placeOrder(body);
   }
 

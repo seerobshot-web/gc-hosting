@@ -19,8 +19,63 @@ model Org {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clients Client[]
-  glinks  GLink[]
+  clients     Client[]
+  glinks      GLink[]
+  memberships Membership[]
+}
+
+/// A portal account — the real identity behind logins, distinct from
+/// `Client` (which mirrors a FOSSBilling record and may predate the person
+/// ever creating a portal account).
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  name         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  clients       Client[]
+}
+
+/// The revocable half of the auth pair — access tokens stay short-lived and
+/// stateless (JWT), refresh tokens are looked up here so "sign out" and
+/// "sign out everywhere" actually work.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+/// Join table making multi-tenant workspaces real: one User, many Orgs, one
+/// role per (user, org) pair.
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id])
+  role      Role
+  status    String   @default("ACTIVE") // ACTIVE | SUSPENDED
+  createdAt DateTime @default(now())
+
+  @@unique([userId, orgId])
+  @@index([orgId])
 }
 
 /// Mirrors the FOSSBilling client record via an external ID field —
@@ -34,10 +89,19 @@ model Client {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
+  /// Links this FOSSBilling-mirrored record to the portal identity that
+  /// owns it, once one exists. Nullable: a Client can predate any portal
+  /// account (e.g. imported from FOSSBilling before the person ever logs
+  /// into the portal). This is a portal-identity link only — it does not
+  /// change what Client itself means or how GLink/ProvisioningOrder use it.
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
   glinks             GLink[]
   provisioningOrders ProvisioningOrder[]
 
   @@index([orgId])
+  @@index([userId])
 }
 
 /// Local shadow of a ResellPortal order. ResellPortal is request-only with

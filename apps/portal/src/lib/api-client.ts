@@ -23,10 +23,16 @@ export interface GLink {
   isActive: boolean;
 }
 
-export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
+export async function getGLinksForClient(
+  clientId: string,
+  accessToken: string,
+): Promise<GLink[]> {
   const res = await fetch(
     `${API_BASE_URL}/glinks?clientId=${encodeURIComponent(clientId)}`,
-    { cache: "no-store" },
+    {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
   );
   if (!res.ok) {
     throw new Error(`Failed to load GLinks: ${res.status}`);

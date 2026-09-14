@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { GlinksService, CreateGLinkInput } from "./glinks.service";
+import { GlinksService } from "./glinks.service";
+import { CreateGLinkDto, ReorderGLinksDto } from "./dto";
 
 @ApiTags("glinks")
 @Controller("glinks")
@@ -8,7 +9,7 @@ export class GlinksController {
   constructor(private readonly glinksService: GlinksService) {}
 
   @Post()
-  create(@Body() body: CreateGLinkInput) {
+  create(@Body() body: CreateGLinkDto) {
     return this.glinksService.create(body);
   }
 
@@ -18,7 +19,7 @@ export class GlinksController {
   }
 
   @Patch("reorder")
-  reorder(@Body() body: { clientId: string; orderedIds: string[] }) {
+  reorder(@Body() body: ReorderGLinksDto) {
     return this.glinksService.reorder(body.clientId, body.orderedIds);
   }
 

@@ -1,30 +1,26 @@
-import { cookies } from "next/headers";
+import { auth } from "./auth";
 
 export interface Session {
-  clientId: string;
-  orgId: string;
+  userId: string;
   email: string;
+  accessToken: string;
+  // orgId/role arrive once Stage 1 (Membership) exists — a logged-in User
+  // isn't necessarily tied to a workspace yet on its own.
 }
 
-const SESSION_COOKIE = "gch_session";
-
 /**
- * Auth scaffold — intentionally NOT wired to a fake/hardcoded user.
- *
- * Structure is in place (cookie read, typed Session shape, a single
- * getSession() call site every route uses) so a real provider (NextAuth,
- * Lucia, or a custom JWT-over-cookie scheme backed by FOSSBilling's client
- * record) can be dropped in here without every calling route changing.
- *
- * Currently returns null always — every route that calls this must handle
- * the unauthenticated case; there is deliberately no bypass.
+ * Real implementation, replacing the earlier hard-stubbed always-null
+ * placeholder. Backed by NextAuth (see ./auth.ts) — the JWT session cookie
+ * carries apps/api's own access/refresh token pair, rotated automatically
+ * in the jwt() callback when the access token expires.
  */
 export async function getSession(): Promise<Session | null> {
-  const store = await cookies();
-  const raw = store.get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
+  const nextAuthSession = await auth();
+  if (!nextAuthSession?.accessToken) return null;
 
-  // TODO: verify + decode the real session token once an auth provider is
-  // wired in. Do not decode unsigned/untrusted cookie contents here.
-  return null;
+  return {
+    userId: nextAuthSession.userId,
+    email: nextAuthSession.user?.email ?? "",
+    accessToken: nextAuthSession.accessToken,
+  };
 }

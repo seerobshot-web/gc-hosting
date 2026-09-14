@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { OrgsService } from "./orgs.service";
+import { CreateOrgDto } from "./dto";
 
 @ApiTags("orgs")
 @Controller("orgs")
@@ -8,8 +9,8 @@ export class OrgsController {
   constructor(private readonly orgsService: OrgsService) {}
 
   @Post()
-  create(@Body("name") name: string) {
-    return this.orgsService.create(name);
+  create(@Body() dto: CreateOrgDto) {
+    return this.orgsService.create(dto.name);
   }
 
   @Get()
