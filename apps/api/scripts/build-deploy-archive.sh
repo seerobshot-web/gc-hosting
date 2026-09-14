@@ -51,4 +51,7 @@ rm -rf "$OUT/vendor-node-modules/@prisma/engines" \
        "$OUT/vendor-node-modules/@prisma/get-platform"
 
 echo "Built $OUT ($(du -sh "$OUT" | cut -f1))"
-echo "Zip it with: cd $OUT && zip -r -q ../api-deploy.zip . -x '.*'"
+echo "Zip it with: cd $OUT && zip -y -r -q ../api-deploy.zip . -x '.*'"
+echo "(-y is required: pnpm's node_modules is full of symlinks, some"
+echo " circular via peer deps — plain zip -r dereferences them and"
+echo " blows up to 10x+ the size, or hangs entirely on a real cycle.)"
