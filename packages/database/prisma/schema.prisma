@@ -1,17 +1,14 @@
 // GCH Prisma schema
 //
-// NOTE ON DATABASE PROVIDER: this scaffold uses SQLite (see .env) so that
-// `prisma migrate dev` can run end-to-end without a live Postgres server.
-// For production, switch the datasource provider to "postgresql" and point
-// DATABASE_URL at the real instance — no model changes should be required
-// for that swap since nothing here relies on SQLite-specific types.
+// NOTE ON DATABASE PROVIDER: production uses the MySQL database provisioned
+// on the Hostinger account. DATABASE_URL points at that instance.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
