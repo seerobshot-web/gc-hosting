@@ -1,72 +1,66 @@
 import { Injectable } from "@nestjs/common";
 import { prisma } from "@gch/database";
 
-interface GetOverviewInput {
-  orgId?: string;
-}
-
 interface RouteHealth {
   method: "GET" | "POST" | "PATCH";
   path: string;
-  status: "healthy" | "degraded";
+  status: "healthy" | "degraded" | "not_probed";
   detail: string;
 }
 
 @Injectable()
 export class DashboardService {
-  private async getApiRouteHealth(orgId?: string): Promise<RouteHealth[]> {
-    const clientWhere = orgId ? { orgId } : undefined;
-    const orderWhere = orgId ? { client: { orgId } } : undefined;
-
-    const checks = await Promise.allSettled([
-      prisma.org.count(),
-      prisma.client.count({ where: clientWhere }),
-      prisma.gLink.count({ where: clientWhere }),
-      prisma.provisioningOrder.count({ where: orderWhere }),
-      prisma.auditLog.findFirst(),
-    ]);
-
-    const mapStatus = (result: PromiseSettledResult<unknown>) =>
-      result.status === "fulfilled"
-        ? { status: "healthy" as const, detail: "check passed" }
-        : { status: "degraded" as const, detail: "check failed" };
-
-    const orgsStatus = mapStatus(checks[0]);
-    const clientsStatus = mapStatus(checks[1]);
-    const glinksStatus = mapStatus(checks[2]);
-    const provisioningStatus = mapStatus(checks[3]);
-    const auditStatus = mapStatus(checks[4]);
-    const dashboardStatus =
-      checks.some((check) => check.status === "rejected")
-        ? { status: "degraded" as const, detail: "dependency degraded" }
-        : { status: "healthy" as const, detail: "all checks passed" };
-
+  private getApiRouteHealth(input: {
+    clientsReadable: boolean;
+    provisioningReadable: boolean;
+  }): RouteHealth[] {
+    const clientsStatus = input.clientsReadable
+      ? { status: "healthy" as const, detail: "read query completed" }
+      : { status: "degraded" as const, detail: "read query failed" };
+    const provisioningStatus = input.provisioningReadable
+      ? { status: "healthy" as const, detail: "read query completed" }
+      : { status: "degraded" as const, detail: "read query failed" };
+    const notProbed = {
+      status: "not_probed" as const,
+      detail: "write route or unexercised read route",
+    };
     return [
-      { method: "GET", path: "/orgs", ...orgsStatus },
-      { method: "POST", path: "/orgs", ...orgsStatus },
-      { method: "GET", path: "/orgs/:id", ...orgsStatus },
+      { method: "GET", path: "/orgs", ...notProbed },
+      { method: "POST", path: "/orgs", ...notProbed },
+      { method: "GET", path: "/orgs/:id", ...notProbed },
       { method: "GET", path: "/clients", ...clientsStatus },
-      { method: "POST", path: "/clients", ...clientsStatus },
-      { method: "GET", path: "/clients/:id", ...clientsStatus },
-      { method: "GET", path: "/glinks", ...glinksStatus },
-      { method: "POST", path: "/glinks", ...glinksStatus },
-      { method: "PATCH", path: "/glinks/reorder", ...glinksStatus },
-      { method: "PATCH", path: "/glinks/:id/deactivate", ...glinksStatus },
-      { method: "GET", path: "/provisioning/orders/:clientId", ...provisioningStatus },
-      { method: "POST", path: "/provisioning/orders", ...provisioningStatus },
-      { method: "GET", path: "/audit", ...auditStatus },
-      { method: "GET", path: "/dashboard/overview", ...dashboardStatus },
-      { method: "GET", path: "/docs", ...dashboardStatus },
+      { method: "POST", path: "/clients", ...notProbed },
+      { method: "GET", path: "/clients/:id", ...notProbed },
+      { method: "GET", path: "/glinks", ...notProbed },
+      { method: "POST", path: "/glinks", ...notProbed },
+      { method: "PATCH", path: "/glinks/reorder", ...notProbed },
+      { method: "PATCH", path: "/glinks/:id/deactivate", ...notProbed },
+      {
+        method: "GET",
+        path: "/provisioning/orders/:clientId",
+        ...provisioningStatus,
+      },
+      { method: "POST", path: "/provisioning/orders", ...notProbed },
+      { method: "GET", path: "/audit", ...notProbed },
+      {
+        method: "GET",
+        path: "/dashboard/overview",
+        status: "healthy",
+        detail: "response assembled",
+      },
+      {
+        method: "GET",
+        path: "/docs",
+        status: "not_probed",
+        detail: "swagger route registration not probed here",
+      },
     ];
   }
 
-  async getOverview(input: GetOverviewInput) {
-    const orgFilter = input.orgId ? { orgId: input.orgId } : undefined;
+  async getOverview() {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const clientWhere = orgFilter ? { orgId: input.orgId } : undefined;
-    const orderWhere = orgFilter
-      ? { client: { orgId: input.orgId } }
-      : undefined;
+    const clientWhere = undefined;
+    const orderWhere = undefined;
 
     const [
       totalClients,
@@ -77,7 +71,6 @@ export class DashboardService {
       failedOrders,
       recentRegistrations,
       rootTracking,
-      apiRouteHealth,
     ] = await Promise.all([
       prisma.client.count({ where: clientWhere }),
       prisma.client.count({
@@ -116,8 +109,11 @@ export class DashboardService {
           createdAt: true,
         },
       }),
-      this.getApiRouteHealth(input.orgId),
     ]);
+    const apiRouteHealth = this.getApiRouteHealth({
+      clientsReadable: true,
+      provisioningReadable: true,
+    });
 
     return {
       infrastructure: {

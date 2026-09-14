@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getSession } from "@/lib/session";
+import Script from "next/script";
 import { getDashboardOverview } from "@/lib/api-client";
 
 export const metadata: Metadata = {
@@ -21,8 +21,7 @@ function formatDate(value: string) {
 }
 
 export default async function InfrastructureDashboardPage() {
-  const session = await getSession();
-  const overview = await getDashboardOverview(session?.orgId);
+  const overview = await getDashboardOverview();
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Dataset",
@@ -40,10 +39,12 @@ export default async function InfrastructureDashboardPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <script
+      <Script
+        id="dashboard-jsonld"
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      >
+        {JSON.stringify(structuredData)}
+      </Script>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl text-hearth-ink">

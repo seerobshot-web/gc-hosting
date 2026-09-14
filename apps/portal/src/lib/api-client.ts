@@ -51,7 +51,7 @@ export interface DashboardOverview {
   apiRouteHealth: Array<{
     method: "GET" | "POST" | "PATCH";
     path: string;
-    status: "healthy" | "degraded";
+    status: "healthy" | "degraded" | "not_probed";
     detail: string;
   }>;
   pageDestinations: Array<{
@@ -74,15 +74,10 @@ export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
   return res.json();
 }
 
-export async function getDashboardOverview(
-  orgId?: string,
-): Promise<DashboardOverview> {
-  const url = new URL(`${API_BASE_URL}/dashboard/overview`);
-  if (orgId) {
-    url.searchParams.set("orgId", orgId);
-  }
-
-  const res = await fetch(url.toString(), { cache: "no-store" });
+export async function getDashboardOverview(): Promise<DashboardOverview> {
+  const res = await fetch(`${API_BASE_URL}/dashboard/overview`, {
+    cache: "no-store",
+  });
   if (!res.ok) {
     throw new Error(`Failed to load dashboard overview: ${res.status}`);
   }
