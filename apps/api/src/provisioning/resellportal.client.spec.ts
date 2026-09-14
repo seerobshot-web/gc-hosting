@@ -1,0 +1,96 @@
+import assert from "node:assert/strict";
+import { afterEach, describe, it } from "node:test";
+import { ConfigService } from "@nestjs/config";
+import {
+  CreateOrderInput,
+  ResellPortalClient,
+} from "./resellportal.client";
+
+const originalFetch = globalThis.fetch;
+
+const order: CreateOrderInput = {
+  productKey: "web_hosting",
+  clientId: "client-1",
+  cpanelUsername: "example",
+  primaryDomain: "example.com",
+};
+
+function clientFor(values: Record<string, string | boolean | undefined>) {
+  const config = {
+    get: (key: string) => values[key],
+  } as ConfigService;
+
+  return new ResellPortalClient(config);
+}
+
+function captureRequestBody() {
+  let body: Record<string, unknown> | undefined;
+
+  globalThis.fetch = async (_input, init) => {
+    body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return new Response(JSON.stringify({ order_id: "order-1" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  return () => body;
+}
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
+
+describe("ResellPortalClient.placeOrder", () => {
+  for (const nodeEnv of ["development", "test", undefined]) {
+    it(`enables test mode when NODE_ENV is ${String(nodeEnv)}`, async () => {
+      const requestBody = captureRequestBody();
+      const client = clientFor({
+        NODE_ENV: nodeEnv,
+        RESELLPORTAL_API_KEY: "api-key",
+      });
+
+      await client.placeOrder(order);
+
+      assert.equal(requestBody()?.test_mode, true);
+    });
+  }
+
+  it("does not allow caller-provided false to disable test mode outside production", async () => {
+    const requestBody = captureRequestBody();
+    const client = clientFor({
+      NODE_ENV: "development",
+      RESELLPORTAL_API_KEY: "api-key",
+    });
+    const untrustedInput = { ...order, testMode: false } as CreateOrderInput;
+
+    await client.placeOrder(untrustedInput);
+
+    assert.equal(requestBody()?.test_mode, true);
+  });
+
+  it("uses an explicit production test-mode setting", async () => {
+    const requestBody = captureRequestBody();
+    const client = clientFor({
+      NODE_ENV: "production",
+      RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_TEST_MODE: "false",
+    });
+
+    await client.placeOrder(order);
+
+    assert.equal(requestBody()?.test_mode, false);
+  });
+
+  it("rejects production orders without an explicit test-mode setting", () => {
+    const client = clientFor({
+      NODE_ENV: "production",
+      RESELLPORTAL_API_KEY: "api-key",
+    });
+
+    assert.throws(
+      () => client.placeOrder(order),
+      /RESELLPORTAL_TEST_MODE must be explicitly set to true or false/,
+    );
+  });
+});
