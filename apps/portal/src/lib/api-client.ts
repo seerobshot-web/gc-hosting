@@ -23,6 +23,33 @@ export interface GLink {
   isActive: boolean;
 }
 
+export interface DashboardOverview {
+  infrastructure: {
+    totalOrders: number;
+    provisioningOrders: number;
+    deployedOrders: number;
+    failedOrders: number;
+  };
+  registrations: {
+    totalClients: number;
+    newLast7Days: number;
+    recent: Array<{
+      id: string;
+      email: string;
+      createdAt: string;
+    }>;
+  };
+  rootTracking: Array<{
+    id: string;
+    primaryDomain: string;
+    cpanelUsername: string;
+    status: string;
+    host: string;
+    updatedAt: string;
+    createdAt: string;
+  }>;
+}
+
 export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
   const res = await fetch(
     `${API_BASE_URL}/glinks?clientId=${encodeURIComponent(clientId)}`,
@@ -30,6 +57,21 @@ export async function getGLinksForClient(clientId: string): Promise<GLink[]> {
   );
   if (!res.ok) {
     throw new Error(`Failed to load GLinks: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function getDashboardOverview(
+  orgId?: string,
+): Promise<DashboardOverview> {
+  const url = new URL(`${API_BASE_URL}/dashboard/overview`);
+  if (orgId) {
+    url.searchParams.set("orgId", orgId);
+  }
+
+  const res = await fetch(url.toString(), { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`Failed to load dashboard overview: ${res.status}`);
   }
   return res.json();
 }

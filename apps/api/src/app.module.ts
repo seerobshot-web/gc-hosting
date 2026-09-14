@@ -6,6 +6,7 @@ import { ClientsModule } from "./clients/clients.module";
 import { GlinksModule } from "./glinks/glinks.module";
 import { AuditModule } from "./audit/audit.module";
 import { ProvisioningModule } from "./provisioning/provisioning.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProvisioningModule } from "./provisioning/provisioning.module";
     GlinksModule,
     AuditModule,
     ProvisioningModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
