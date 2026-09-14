@@ -4,7 +4,12 @@
 // on the Hostinger account. DATABASE_URL points at that instance.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" covers local dev machines; "debian-openssl-1.1.x" is what
+  // Hostinger's actual Node.js hosting runtime needs (confirmed via a real
+  // PrismaClientInitializationError there: client was generated for
+  // debian-openssl-3.0.x but the deployment target is debian-openssl-1.1.x).
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
