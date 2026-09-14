@@ -35,6 +35,9 @@ importers:
       '@gch/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@gch/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@nestjs/common':
         specifier: ^10.4.6
         version: 10.4.22(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -102,6 +105,9 @@ importers:
 
   apps/portal:
     dependencies:
+      '@gch/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@gch/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -232,6 +238,18 @@ importers:
       '@types/three':
         specifier: ^0.170.0
         version: 0.170.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/permissions:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.1
+        version: 22.20.2
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

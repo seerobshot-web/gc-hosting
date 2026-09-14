@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { can, getSession } from "@/lib/session";
 import { getClientsForOrg, getGLinksForClient } from "@/lib/api-client";
 
 export default async function GLinksDashboardPage() {
@@ -40,6 +40,7 @@ export default async function GLinksDashboardPage() {
       <h1 className="font-display text-2xl text-hearth-ink">Your GloryLink</h1>
       <p className="mt-1 text-sm text-hearth-ink/60">
         {session.org.name} · {session.org.role.toLowerCase()}
+        {!can(session, "glink:write") && " · view only"}
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {glinks.map((link) => (

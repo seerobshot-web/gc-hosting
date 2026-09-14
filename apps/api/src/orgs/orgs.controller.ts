@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthenticatedUser } from "../auth/jwt.strategy";
+import { RequirePermission } from "../rbac/require-permission.decorator";
 import { OrgsService } from "./orgs.service";
 import { CreateOrgDto } from "./dto";
 
@@ -21,8 +22,9 @@ export class OrgsController {
     return this.orgsService.findAll(user.userId);
   }
 
-  @Get(":id")
-  findOne(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-    return this.orgsService.findOne(user.userId, id);
+  @Get(":orgId")
+  @RequirePermission("org:read")
+  findOne(@Param("orgId") orgId: string) {
+    return this.orgsService.findOne(orgId);
   }
 }

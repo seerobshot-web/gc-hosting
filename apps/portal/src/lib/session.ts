@@ -1,3 +1,4 @@
+import { can as canWithRole, type Permission } from "@gch/permissions";
 import { auth } from "./auth";
 import { getMe, type Role } from "./api-client";
 
@@ -7,6 +8,15 @@ export interface Session {
   accessToken: string;
   /** Active workspace. Null for a user who belongs to no org yet. */
   org: { id: string; name: string; slug: string; role: Role } | null;
+}
+
+/**
+ * UI-side gate reading the same map apps/api enforces with RolesGuard, so
+ * hidden affordances and rejected requests can never drift apart. Hiding
+ * is a courtesy; the api is still the enforcement point.
+ */
+export function can(session: Session | null, permission: Permission): boolean {
+  return canWithRole(session?.org?.role, permission);
 }
 
 /**

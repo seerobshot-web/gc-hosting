@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthenticatedUser } from "../auth/jwt.strategy";
+import { RequirePermission } from "../rbac/require-permission.decorator";
 import { ClientsService } from "./clients.service";
 import { CreateClientDto } from "./dto";
 
@@ -12,10 +13,13 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateClientDto) {
-    return this.clientsService.create(user.userId, body);
+  @RequirePermission("client:write")
+  create(@Body() body: CreateClientDto) {
+    return this.clientsService.create(body);
   }
 
+  /** Unscoped list (no orgId) can't carry a route-level permission, so it
+   *  narrows to the caller's orgs in the service instead. */
   @Get()
   findAll(
     @CurrentUser() user: AuthenticatedUser,
@@ -24,8 +28,9 @@ export class ClientsController {
     return this.clientsService.findAll(user.userId, orgId);
   }
 
-  @Get(":id")
-  findOne(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-    return this.clientsService.findOne(user.userId, id);
+  @Get(":clientId")
+  @RequirePermission("client:read", "client")
+  findOne(@Param("clientId") clientId: string) {
+    return this.clientsService.findOne(clientId);
   }
 }

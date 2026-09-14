@@ -6,10 +6,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { prisma, Role } from "@gch/database";
+import { can } from "@gch/permissions";
 import { AuditService } from "../audit/audit.service";
-import { MEMBERSHIP_ACTIVE, TenancyService } from "../tenancy/tenancy.service";
-
-const MANAGERS: Role[] = [Role.OWNER, Role.ADMIN];
+import type { TenantContext } from "../rbac/tenant.decorator";
+import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 
 const memberSelect = {
   id: true,
@@ -19,29 +19,40 @@ const memberSelect = {
   user: { select: { id: true, email: true, name: true } },
 };
 
+/**
+ * Coarse who-may-call-what lives in @RequirePermission on the controller.
+ * What stays here are the rules that depend on the *target* row — OWNER
+ * handling, last-owner protection, same-org scoping — which a route-level
+ * permission can't express.
+ */
 @Injectable()
 export class MembershipsService {
-  constructor(
-    private readonly tenancy: TenancyService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly audit: AuditService) {}
 
-  async list(callerId: string, orgId: string) {
-    await this.tenancy.requireMembership(callerId, orgId);
-    return prisma.membership.findMany({
-      where: { orgId },
+  async list(tenant: TenantContext) {
+    const rows = await prisma.membership.findMany({
+      where: { orgId: tenant.orgId },
       orderBy: { createdAt: "asc" },
       select: memberSelect,
     });
+    // Field-level: plain MEMBERs see who is in the workspace, but other
+    // people's email addresses are only for those who can manage them.
+    if (can(tenant.membership.role, "member:manage")) return rows;
+    return rows.map((m) => ({
+      ...m,
+      user: {
+        ...m.user,
+        email: m.user.id === tenant.membership.userId ? m.user.email : null,
+      },
+    }));
   }
 
   /**
    * Adds an existing portal User to the org. Inviting someone who has no
    * account yet is Stage 4's Invitation flow, not this endpoint.
    */
-  async add(callerId: string, orgId: string, email: string, role: Role) {
-    const caller = await this.tenancy.requireMembership(callerId, orgId, MANAGERS);
-    this.assertCanGrant(caller.role, role);
+  async add(tenant: TenantContext, email: string, role: Role) {
+    this.assertCanGrant(tenant.membership.role, role);
 
     const user = await prisma.user.findUnique({
       where: { email: email.trim().toLowerCase() },
@@ -53,34 +64,33 @@ export class MembershipsService {
     }
 
     const existing = await prisma.membership.findUnique({
-      where: { userId_orgId: { userId: user.id, orgId } },
+      where: { userId_orgId: { userId: user.id, orgId: tenant.orgId } },
     });
     if (existing) {
       throw new ConflictException("That user is already a member of this org");
     }
 
     const membership = await prisma.membership.create({
-      data: { userId: user.id, orgId, role },
+      data: { userId: user.id, orgId: tenant.orgId, role },
       select: memberSelect,
     });
     await this.audit.logAction({
-      actor: `user:${callerId}`,
+      actor: `user:${tenant.membership.userId}`,
       action: "membership.created",
       targetType: "Membership",
       targetId: membership.id,
-      metadata: { orgId, userId: user.id, role },
+      metadata: { orgId: tenant.orgId, userId: user.id, role },
     });
     return membership;
   }
 
-  async changeRole(callerId: string, orgId: string, membershipId: string, role: Role) {
-    const caller = await this.tenancy.requireMembership(callerId, orgId, MANAGERS);
-    const target = await this.findInOrg(orgId, membershipId);
+  async changeRole(tenant: TenantContext, membershipId: string, role: Role) {
+    const target = await this.findInOrg(tenant.orgId, membershipId);
 
-    this.assertCanGrant(caller.role, role);
-    this.assertCanTouch(caller.role, target.role);
+    this.assertCanGrant(tenant.membership.role, role);
+    this.assertCanTouch(tenant.membership.role, target.role);
     if (target.role === Role.OWNER && role !== Role.OWNER) {
-      await this.assertNotLastOwner(orgId, target.id);
+      await this.assertNotLastOwner(tenant.orgId, target.id);
     }
 
     const updated = await prisma.membership.update({
@@ -89,31 +99,30 @@ export class MembershipsService {
       select: memberSelect,
     });
     await this.audit.logAction({
-      actor: `user:${callerId}`,
+      actor: `user:${tenant.membership.userId}`,
       action: "membership.role_changed",
       targetType: "Membership",
       targetId: target.id,
-      metadata: { orgId, from: target.role, to: role },
+      metadata: { orgId: tenant.orgId, from: target.role, to: role },
     });
     return updated;
   }
 
-  async remove(callerId: string, orgId: string, membershipId: string) {
-    const caller = await this.tenancy.requireMembership(callerId, orgId, MANAGERS);
-    const target = await this.findInOrg(orgId, membershipId);
+  async remove(tenant: TenantContext, membershipId: string) {
+    const target = await this.findInOrg(tenant.orgId, membershipId);
 
-    this.assertCanTouch(caller.role, target.role);
+    this.assertCanTouch(tenant.membership.role, target.role);
     if (target.role === Role.OWNER) {
-      await this.assertNotLastOwner(orgId, target.id);
+      await this.assertNotLastOwner(tenant.orgId, target.id);
     }
 
     await prisma.membership.delete({ where: { id: target.id } });
     await this.audit.logAction({
-      actor: `user:${callerId}`,
+      actor: `user:${tenant.membership.userId}`,
       action: "membership.removed",
       targetType: "Membership",
       targetId: target.id,
-      metadata: { orgId, userId: target.userId, role: target.role },
+      metadata: { orgId: tenant.orgId, userId: target.userId, role: target.role },
     });
   }
 

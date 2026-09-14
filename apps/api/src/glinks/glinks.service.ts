@@ -1,36 +1,28 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { prisma, Role } from "@gch/database";
-import { TenancyService } from "../tenancy/tenancy.service";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { prisma } from "@gch/database";
+import type { TenantContext } from "../rbac/tenant.decorator";
 import { CreateGLinkDto } from "./dto";
 
-const WRITERS: Role[] = [Role.OWNER, Role.ADMIN];
-
+/** Org-scoped access (via the Client) is enforced by RolesGuard first. */
 @Injectable()
 export class GlinksService {
-  constructor(private readonly tenancy: TenancyService) {}
-
-  async create(callerId: string, input: CreateGLinkDto) {
-    const { client } = await this.tenancy.requireClientAccess(
-      callerId,
-      input.clientId,
-      WRITERS,
-    );
-    if (client.orgId !== input.orgId) {
+  create(tenant: TenantContext, input: CreateGLinkDto) {
+    // The guard resolved tenant.orgId from input.clientId, so this is the
+    // "does the body's orgId agree with the client's real org" check.
+    if (tenant.orgId !== input.orgId) {
       throw new BadRequestException("clientId does not belong to orgId");
     }
     return prisma.gLink.create({ data: input });
   }
 
-  async findByClient(callerId: string, clientId: string) {
-    await this.tenancy.requireClientAccess(callerId, clientId);
+  findByClient(clientId: string) {
     return prisma.gLink.findMany({
       where: { clientId, isActive: true },
       orderBy: { position: "asc" },
     });
   }
 
-  async reorder(callerId: string, clientId: string, orderedIds: string[]) {
-    await this.tenancy.requireClientAccess(callerId, clientId, WRITERS);
+  async reorder(clientId: string, orderedIds: string[]) {
     // updateMany with the clientId filter means an id from another client
     // is silently a no-op rather than a cross-tenant write.
     await prisma.$transaction(
@@ -38,13 +30,10 @@ export class GlinksService {
         prisma.gLink.updateMany({ where: { id, clientId }, data: { position } }),
       ),
     );
-    return this.findByClient(callerId, clientId);
+    return this.findByClient(clientId);
   }
 
-  async deactivate(callerId: string, id: string) {
-    const existing = await prisma.gLink.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`GLink ${id} not found`);
-    await this.tenancy.requireMembership(callerId, existing.orgId, WRITERS);
+  deactivate(id: string) {
     return prisma.gLink.update({ where: { id }, data: { isActive: false } });
   }
 }

@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { prisma, Role } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
-import { MEMBERSHIP_ACTIVE, TenancyService } from "../tenancy/tenancy.service";
+import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 
 function slugify(name: string): string {
   const base = name
@@ -17,10 +17,7 @@ function slugify(name: string): string {
 
 @Injectable()
 export class OrgsService {
-  constructor(
-    private readonly tenancy: TenancyService,
-    private readonly audit: AuditService,
-  ) {}
+  constructor(private readonly audit: AuditService) {}
 
   /** Creating an org makes the caller its first OWNER, atomically. */
   async create(callerId: string, name: string) {
@@ -51,8 +48,8 @@ export class OrgsService {
     });
   }
 
-  async findOne(callerId: string, id: string) {
-    await this.tenancy.requireMembership(callerId, id);
+  /** Membership already enforced by RolesGuard (@RequirePermission). */
+  findOne(id: string) {
     return prisma.org.findUniqueOrThrow({ where: { id } });
   }
 

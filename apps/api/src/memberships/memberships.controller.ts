@@ -9,8 +9,8 @@ import {
   Post,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { CurrentUser } from "../auth/current-user.decorator";
-import type { AuthenticatedUser } from "../auth/jwt.strategy";
+import { RequirePermission } from "../rbac/require-permission.decorator";
+import { Tenant, type TenantContext } from "../rbac/tenant.decorator";
 import { MembershipsService } from "./memberships.service";
 import { AddMemberDto, ChangeRoleDto } from "./dto";
 
@@ -21,36 +21,31 @@ export class MembershipsController {
   constructor(private readonly memberships: MembershipsService) {}
 
   @Get()
-  list(@CurrentUser() user: AuthenticatedUser, @Param("orgId") orgId: string) {
-    return this.memberships.list(user.userId, orgId);
+  @RequirePermission("member:read")
+  list(@Tenant() tenant: TenantContext) {
+    return this.memberships.list(tenant);
   }
 
   @Post()
-  add(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param("orgId") orgId: string,
-    @Body() dto: AddMemberDto,
-  ) {
-    return this.memberships.add(user.userId, orgId, dto.email, dto.role);
+  @RequirePermission("member:invite")
+  add(@Tenant() tenant: TenantContext, @Body() dto: AddMemberDto) {
+    return this.memberships.add(tenant, dto.email, dto.role);
   }
 
   @Patch(":id")
+  @RequirePermission("member:manage")
   changeRole(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param("orgId") orgId: string,
+    @Tenant() tenant: TenantContext,
     @Param("id") id: string,
     @Body() dto: ChangeRoleDto,
   ) {
-    return this.memberships.changeRole(user.userId, orgId, id, dto.role);
+    return this.memberships.changeRole(tenant, id, dto.role);
   }
 
   @Delete(":id")
   @HttpCode(204)
-  async remove(
-    @CurrentUser() user: AuthenticatedUser,
-    @Param("orgId") orgId: string,
-    @Param("id") id: string,
-  ) {
-    await this.memberships.remove(user.userId, orgId, id);
+  @RequirePermission("member:manage")
+  async remove(@Tenant() tenant: TenantContext, @Param("id") id: string) {
+    await this.memberships.remove(tenant, id);
   }
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { CurrentUser } from "../auth/current-user.decorator";
-import type { AuthenticatedUser } from "../auth/jwt.strategy";
+import { RequirePermission } from "../rbac/require-permission.decorator";
+import { Tenant, type TenantContext } from "../rbac/tenant.decorator";
 import { GlinksService } from "./glinks.service";
 import { CreateGLinkDto, ReorderGLinksDto } from "./dto";
 
@@ -12,25 +12,26 @@ export class GlinksController {
   constructor(private readonly glinksService: GlinksService) {}
 
   @Post()
-  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateGLinkDto) {
-    return this.glinksService.create(user.userId, body);
+  @RequirePermission("glink:write", "client")
+  create(@Tenant() tenant: TenantContext, @Body() body: CreateGLinkDto) {
+    return this.glinksService.create(tenant, body);
   }
 
   @Get()
-  findByClient(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query("clientId") clientId: string,
-  ) {
-    return this.glinksService.findByClient(user.userId, clientId);
+  @RequirePermission("glink:read", "client")
+  findByClient(@Query("clientId") clientId: string) {
+    return this.glinksService.findByClient(clientId);
   }
 
   @Patch("reorder")
-  reorder(@CurrentUser() user: AuthenticatedUser, @Body() body: ReorderGLinksDto) {
-    return this.glinksService.reorder(user.userId, body.clientId, body.orderedIds);
+  @RequirePermission("glink:write", "client")
+  reorder(@Body() body: ReorderGLinksDto) {
+    return this.glinksService.reorder(body.clientId, body.orderedIds);
   }
 
   @Patch(":id/deactivate")
-  deactivate(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
-    return this.glinksService.deactivate(user.userId, id);
+  @RequirePermission("glink:write", "glink")
+  deactivate(@Param("id") id: string) {
+    return this.glinksService.deactivate(id);
   }
 }

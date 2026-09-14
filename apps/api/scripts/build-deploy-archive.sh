@@ -14,6 +14,7 @@ OUT="$API_DIR/deploy-archive"
 cd "$REPO_ROOT"
 pnpm --filter @gch/database run generate
 pnpm --filter @gch/database run build
+pnpm --filter @gch/permissions run build
 pnpm --filter @gch/api run build
 
 rm -rf "$OUT" "$API_DIR/deploy-standalone"
@@ -24,6 +25,7 @@ node -e "
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('$API_DIR/deploy-standalone/package.json', 'utf8'));
 delete pkg.dependencies['@gch/database'];
+delete pkg.dependencies['@gch/permissions'];
 fs.writeFileSync('$OUT/package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 cp -r "$API_DIR/scripts" "$OUT/scripts"
