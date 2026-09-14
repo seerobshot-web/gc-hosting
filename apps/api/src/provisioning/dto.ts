@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsString } from "class-validator";
 
 export class PlaceOrderDto {
   @IsString()
@@ -12,8 +12,4 @@ export class PlaceOrderDto {
 
   @IsString()
   primaryDomain!: string;
-
-  @IsOptional()
-  @IsBoolean()
-  testMode?: boolean;
 }
