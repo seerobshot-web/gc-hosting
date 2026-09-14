@@ -9,12 +9,18 @@ import { AuditModule } from "./audit/audit.module";
 import { ProvisioningModule } from "./provisioning/provisioning.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
+import { TenancyModule } from "./tenancy/tenancy.module";
+import { UsersModule } from "./users/users.module";
+import { MembershipsModule } from "./memberships/memberships.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    TenancyModule,
     AuthModule,
+    UsersModule,
+    MembershipsModule,
     OrgsModule,
     ClientsModule,
     GlinksModule,

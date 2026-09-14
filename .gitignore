@@ -13,3 +13,4 @@ apps/api/deploy-archive/
 apps/api/deploy-standalone/
 apps/api/deploy-archive.zip
 scratch/
+tsconfig.tsbuildinfo

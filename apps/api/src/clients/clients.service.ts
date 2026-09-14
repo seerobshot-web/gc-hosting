@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { prisma } from "@gch/database";
+import { Injectable } from "@nestjs/common";
+import { prisma, Role } from "@gch/database";
+import { TenancyService } from "../tenancy/tenancy.service";
 import { CreateClientDto } from "./dto";
 
 /**
@@ -9,17 +10,28 @@ import { CreateClientDto } from "./dto";
  */
 @Injectable()
 export class ClientsService {
-  create(input: CreateClientDto) {
+  constructor(private readonly tenancy: TenancyService) {}
+
+  async create(callerId: string, input: CreateClientDto) {
+    await this.tenancy.requireMembership(callerId, input.orgId, [
+      Role.OWNER,
+      Role.ADMIN,
+    ]);
     return prisma.client.create({ data: input });
   }
 
-  findAll(orgId?: string) {
-    return prisma.client.findMany({ where: orgId ? { orgId } : undefined });
+  /** Scoped to one org when given, otherwise to every org the caller is in. */
+  async findAll(callerId: string, orgId?: string) {
+    if (orgId) {
+      await this.tenancy.requireMembership(callerId, orgId);
+      return prisma.client.findMany({ where: { orgId } });
+    }
+    const orgIds = await this.tenancy.memberOrgIds(callerId);
+    return prisma.client.findMany({ where: { orgId: { in: orgIds } } });
   }
 
-  async findOne(id: string) {
-    const client = await prisma.client.findUnique({ where: { id } });
-    if (!client) throw new NotFoundException(`Client ${id} not found`);
+  async findOne(callerId: string, id: string) {
+    const { client } = await this.tenancy.requireClientAccess(callerId, id);
     return client;
   }
 
