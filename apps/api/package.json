@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "pnpm --filter @gch/database run generate && tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
