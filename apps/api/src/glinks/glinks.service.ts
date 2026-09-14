@@ -1,18 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { prisma, GLinkModuleType } from "@gch/database";
-
-export interface CreateGLinkInput {
-  orgId: string;
-  clientId: string;
-  moduleType: GLinkModuleType;
-  label: string;
-  url?: string;
-  position?: number;
-}
+import { prisma } from "@gch/database";
+import { CreateGLinkDto } from "./glinks.dto";
 
 @Injectable()
 export class GlinksService {
-  create(input: CreateGLinkInput) {
+  create(input: CreateGLinkDto) {
     return prisma.gLink.create({ data: input });
   }
 
@@ -25,9 +17,7 @@ export class GlinksService {
 
   async reorder(clientId: string, orderedIds: string[]) {
     await prisma.$transaction(
-      orderedIds.map((id, position) =>
-        prisma.gLink.update({ where: { id }, data: { position } }),
-      ),
+      orderedIds.map((id, position) => prisma.gLink.update({ where: { id }, data: { position } })),
     );
     return this.findByClient(clientId);
   }

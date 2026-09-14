@@ -3,14 +3,7 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 import { prisma } from "@gch/database";
 import { ResellPortalClient } from "./resellportal.client";
 import { AuditService } from "../audit/audit.service";
-
-export interface PlaceOrderInput {
-  clientId: string;
-  resellPortalClientId: string;
-  cpanelUsername: string;
-  primaryDomain: string;
-  testMode?: boolean;
-}
+import { PlaceOrderDto } from "./provisioning.dto";
 
 /**
  * Implements the poll pattern this whole stack is built around, because
@@ -33,7 +26,7 @@ export class ProvisioningService {
     private readonly auditService: AuditService,
   ) {}
 
-  async placeOrder(input: PlaceOrderInput) {
+  async placeOrder(input: PlaceOrderDto) {
     const order = await prisma.provisioningOrder.create({
       data: {
         clientId: input.clientId,
@@ -102,12 +95,8 @@ export class ProvisioningService {
         const client = await prisma.client.findUniqueOrThrow({
           where: { id: order.clientId },
         });
-        const services = await this.resellPortal.getServices(
-          client.fossbillingClientId,
-        );
-        const match = services.find(
-          (s) => s.id === order.resellPortalOrderId,
-        );
+        const services = await this.resellPortal.getServices(client.fossbillingClientId);
+        const match = services.find((s) => s.id === order.resellPortalOrderId);
         if (!match) continue;
 
         if (match.deployment_status === "deployed") {
@@ -115,9 +104,7 @@ export class ProvisioningService {
             where: { id: order.id },
             data: {
               status: "deployed",
-              nextBillingDate: match.next_billing_date
-                ? new Date(match.next_billing_date)
-                : null,
+              nextBillingDate: match.next_billing_date ? new Date(match.next_billing_date) : null,
             },
           });
           await this.auditService.logAction({

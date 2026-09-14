@@ -1,6 +1,11 @@
 import { Body, Controller, Get, Param, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
-import { ProvisioningService, PlaceOrderInput } from "./provisioning.service";
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  PlaceOrderDto,
+  ProvisioningClientParamsDto,
+  ProvisioningOrderDto,
+} from "./provisioning.dto";
+import { ProvisioningService } from "./provisioning.service";
 
 @ApiTags("provisioning")
 @Controller("provisioning")
@@ -8,12 +13,14 @@ export class ProvisioningController {
   constructor(private readonly provisioningService: ProvisioningService) {}
 
   @Post("orders")
-  placeOrder(@Body() body: PlaceOrderInput) {
+  @ApiCreatedResponse({ type: ProvisioningOrderDto })
+  placeOrder(@Body() body: PlaceOrderDto) {
     return this.provisioningService.placeOrder(body);
   }
 
   @Get("orders/:clientId")
-  findByClient(@Param("clientId") clientId: string) {
-    return this.provisioningService.findByClient(clientId);
+  @ApiOkResponse({ type: ProvisioningOrderDto, isArray: true })
+  findByClient(@Param() params: ProvisioningClientParamsDto) {
+    return this.provisioningService.findByClient(params.clientId);
   }
 }
