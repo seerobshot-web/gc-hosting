@@ -6,7 +6,7 @@
  */
 
 const API_BASE_URL = process.env.GCH_API_URL ?? "http://localhost:3333";
-const DASHBOARD_API_KEY = process.env.GCH_DASHBOARD_API_KEY;
+const DASHBOARD_API_KEY = process.env.DASHBOARD_API_KEY;
 
 export interface GLink {
   id: string;

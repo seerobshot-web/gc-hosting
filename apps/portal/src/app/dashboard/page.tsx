@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { getDashboardOverview } from "@/lib/api-client";
 
 export const metadata: Metadata = {
@@ -40,12 +39,9 @@ export default async function InfrastructureDashboardPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <Script
-        id="dashboard-jsonld"
-        type="application/ld+json"
-      >
+      <script type="application/ld+json">
         {JSON.stringify(structuredData)}
-      </Script>
+      </script>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl text-hearth-ink">
