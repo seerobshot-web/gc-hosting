@@ -8,6 +8,7 @@ import {
 import { prisma, Role } from "@gch/database";
 import { can } from "@gch/permissions";
 import { AuditService } from "../audit/audit.service";
+import { BillingService } from "../billing/billing.service";
 import type { TenantContext } from "../rbac/tenant.decorator";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 
@@ -27,7 +28,10 @@ const memberSelect = {
  */
 @Injectable()
 export class MembershipsService {
-  constructor(private readonly audit: AuditService) {}
+  constructor(
+    private readonly audit: AuditService,
+    private readonly billing: BillingService,
+  ) {}
 
   async list(tenant: TenantContext) {
     const rows = await prisma.membership.findMany({
@@ -70,6 +74,8 @@ export class MembershipsService {
       throw new ConflictException("That user is already a member of this org");
     }
 
+    await this.billing.assertSeatAvailable(tenant.orgId);
+
     const membership = await prisma.membership.create({
       data: { userId: user.id, orgId: tenant.orgId, role },
       select: memberSelect,
@@ -81,6 +87,7 @@ export class MembershipsService {
       targetId: membership.id,
       metadata: { orgId: tenant.orgId, userId: user.id, role },
     });
+    await this.billing.syncSeats(tenant.orgId, `user:${tenant.membership.userId}`);
     return membership;
   }
 
@@ -124,6 +131,7 @@ export class MembershipsService {
       targetId: target.id,
       metadata: { orgId: tenant.orgId, userId: target.userId, role: target.role },
     });
+    await this.billing.syncSeats(tenant.orgId, `user:${tenant.membership.userId}`);
   }
 
   private async findInOrg(orgId: string, membershipId: string) {

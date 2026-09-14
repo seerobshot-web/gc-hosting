@@ -8,12 +8,20 @@ export default function PortalHome() {
         Account, billing status, and provisioning are managed here. GloryLink
         clients can manage their link-in-bio page under Dashboard.
       </p>
-      <Link
-        href="/dashboard/glinks"
-        className="w-fit rounded-md bg-ember-core px-4 py-2 font-medium text-cloudlight"
-      >
-        Go to GloryLink Dashboard
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link
+          href="/dashboard/glinks"
+          className="w-fit rounded-md bg-ember-core px-4 py-2 font-medium text-cloudlight"
+        >
+          Go to GloryLink Dashboard
+        </Link>
+        <Link
+          href="/dashboard/billing"
+          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+        >
+          Billing
+        </Link>
+      </div>
     </main>
   );
 }

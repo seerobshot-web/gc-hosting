@@ -44,15 +44,103 @@ export interface GLink {
   isActive: boolean;
 }
 
-async function apiGet<T>(path: string, accessToken: string): Promise<T> {
+export interface Plan {
+  id: string;
+  name: string;
+  seatLimit: number | null;
+  pricePerSeatCents: number;
+}
+
+export interface Subscription {
+  id: string;
+  status: string;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  seatsPurchased: number;
+  plan: Plan | null;
+}
+
+export interface Invoice {
+  id: string;
+  status: string;
+  currency: string;
+  amountDueCents: number;
+  amountPaidCents: number;
+  hostedInvoiceUrl: string | null;
+  periodStart: string;
+  periodEnd: string;
+  createdAt: string;
+}
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+async function api<T>(
+  method: "GET" | "POST",
+  path: string,
+  accessToken: string,
+  body?: unknown,
+): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
     cache: "no-store",
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    throw new Error(`API GET ${path} failed: ${res.status}`);
+    let message = `API ${method} ${path} failed: ${res.status}`;
+    try {
+      const err = (await res.json()) as { message?: string | string[] };
+      if (err.message) message = Array.isArray(err.message) ? err.message.join(", ") : err.message;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(res.status, message);
   }
   return res.json();
+}
+
+const apiGet = <T>(path: string, accessToken: string) => api<T>("GET", path, accessToken);
+
+export function getPlans(accessToken: string): Promise<Plan[]> {
+  return apiGet("/billing/plans", accessToken);
+}
+
+export function getBillingSubscription(
+  orgId: string,
+  accessToken: string,
+): Promise<{ subscription: Subscription | null; seatsUsed: number }> {
+  return apiGet(`/orgs/${encodeURIComponent(orgId)}/billing/subscription`, accessToken);
+}
+
+export function getInvoices(orgId: string, accessToken: string): Promise<Invoice[]> {
+  return apiGet(`/orgs/${encodeURIComponent(orgId)}/billing/invoices`, accessToken);
+}
+
+export function createCheckoutSession(
+  orgId: string,
+  planId: string,
+  accessToken: string,
+): Promise<{ url: string | null }> {
+  return api("POST", `/orgs/${encodeURIComponent(orgId)}/billing/checkout-session`, accessToken, {
+    planId,
+  });
+}
+
+export function createPortalSession(
+  orgId: string,
+  accessToken: string,
+): Promise<{ url: string }> {
+  return api("POST", `/orgs/${encodeURIComponent(orgId)}/billing/portal-session`, accessToken);
 }
 
 export function getMe(accessToken: string): Promise<Me> {

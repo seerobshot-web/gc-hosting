@@ -13,6 +13,7 @@ import { TenancyModule } from "./tenancy/tenancy.module";
 import { RolesGuard } from "./rbac/roles.guard";
 import { UsersModule } from "./users/users.module";
 import { MembershipsModule } from "./memberships/memberships.module";
+import { BillingModule } from "./billing/billing.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MembershipsModule } from "./memberships/memberships.module";
     AuthModule,
     UsersModule,
     MembershipsModule,
+    BillingModule,
     OrgsModule,
     ClientsModule,
     GlinksModule,

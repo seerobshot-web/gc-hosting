@@ -22,9 +22,88 @@ model Org {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clients     Client[]
-  glinks      GLink[]
-  memberships Membership[]
+  clients      Client[]
+  glinks       GLink[]
+  memberships  Membership[]
+  subscription Subscription?
+  invoices     Invoice[]
+}
+
+/// A purchasable workspace tier. Mirrors a Stripe Price by id — Stripe
+/// stays the authority on what it costs; this row is what the portal lists
+/// and what a Subscription points at. Seat-based: quantity on the Stripe
+/// subscription item = active Memberships.
+model Plan {
+  id                String   @id @default(cuid())
+  stripePriceId     String   @unique
+  name              String
+  /// Null = unlimited seats.
+  seatLimit         Int?
+  pricePerSeatCents Int
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  subscriptions Subscription[]
+}
+
+/// One Stripe subscription per Org (workspace-level SaaS billing). This is
+/// deliberately separate from FOSSBilling, which remains the system of record
+/// for individual hosting-account billing — never conflate the two.
+model Subscription {
+  id                       String    @id @default(cuid())
+  orgId                    String    @unique
+  org                      Org       @relation(fields: [orgId], references: [id])
+  planId                   String?
+  plan                     Plan?     @relation(fields: [planId], references: [id])
+  stripeCustomerId         String
+  stripeSubscriptionId     String?   @unique
+  stripeSubscriptionItemId String?
+  /// Stripe's status string as-is (`active`, `trialing`, `past_due`,
+  /// `canceled`, `incomplete`, …). A plain string on purpose: Stripe controls
+  /// this set and can add values outside this app's release cycle — unlike
+  /// GLinkModuleType, which stays a closed enum deliberately.
+  status                   String    @default("incomplete")
+  currentPeriodEnd         DateTime?
+  cancelAtPeriodEnd        Boolean   @default(false)
+  seatsPurchased           Int       @default(0)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  invoices Invoice[]
+
+  @@index([stripeCustomerId])
+}
+
+/// Read-only mirror of a Stripe invoice, keyed by Stripe's id — same
+/// "reference by external id, don't duplicate authority" pattern as
+/// Client.fossbillingClientId. Populated only by webhooks.
+model Invoice {
+  id               String        @id @default(cuid())
+  stripeInvoiceId  String        @unique
+  orgId            String
+  org              Org           @relation(fields: [orgId], references: [id])
+  subscriptionId   String?
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
+  status           String
+  currency         String
+  amountDueCents   Int
+  amountPaidCents  Int
+  hostedInvoiceUrl String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([orgId, createdAt])
+}
+
+/// Idempotency ledger for Stripe webhooks: the id is Stripe's event id, so
+/// a redelivered event hits the unique key and is acknowledged without
+/// being processed twice.
+model WebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
 }
 
 /// A portal account — the real identity behind logins, distinct from

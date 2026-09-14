@@ -9,6 +9,9 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
+    // Stripe's webhook signature is computed over the exact bytes sent;
+    // rawBody keeps them alongside the parsed JSON (see StripeWebhookController).
+    { rawBody: true },
   );
 
   const portalOrigin = process.env.GCH_PORTAL_ORIGIN ?? "http://localhost:3001";

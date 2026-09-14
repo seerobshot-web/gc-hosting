@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "generate": "CHECKPOINT_DISABLE=1 prisma generate",
     "migrate:dev": "prisma migrate dev",
-    "backfill:identity": "tsx scripts/backfill-identity.ts"
+    "backfill:identity": "tsx scripts/backfill-identity.ts",
+    "seed:plan": "tsx scripts/seed-plan.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"
