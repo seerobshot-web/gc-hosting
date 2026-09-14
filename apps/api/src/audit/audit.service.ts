@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { prisma } from "@gch/database";
+import { Prisma, prisma } from "@gch/database";
 
 export interface LogActionInput {
   actor: string;
@@ -17,8 +17,8 @@ export interface LogActionInput {
  */
 @Injectable()
 export class AuditService {
-  async logAction(input: LogActionInput) {
-    return prisma.auditLog.create({
+  async logAction(input: LogActionInput, db: Prisma.TransactionClient = prisma) {
+    return db.auditLog.create({
       data: {
         actor: input.actor,
         action: input.action,

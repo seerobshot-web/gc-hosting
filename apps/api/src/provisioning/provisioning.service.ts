@@ -52,17 +52,24 @@ export class ProvisioningService {
         testMode: input.testMode,
       });
 
-      await prisma.provisioningOrder.update({
-        where: { id: order.id },
-        data: { resellPortalOrderId: result.order_id },
-      });
+      return await prisma.$transaction(async (tx) => {
+        const placedOrder = await tx.provisioningOrder.update({
+          where: { id: order.id },
+          data: { resellPortalOrderId: result.order_id },
+        });
 
-      await this.auditService.logAction({
-        actor: "system:provisioning",
-        action: "order.placed",
-        targetType: "ProvisioningOrder",
-        targetId: order.id,
-        metadata: { resellPortalOrderId: result.order_id },
+        await this.auditService.logAction(
+          {
+            actor: "system:provisioning",
+            action: "order.placed",
+            targetType: "ProvisioningOrder",
+            targetId: order.id,
+            metadata: { resellPortalOrderId: result.order_id },
+          },
+          tx,
+        );
+
+        return placedOrder;
       });
     } catch (err) {
       await prisma.provisioningOrder.update({
@@ -78,8 +85,6 @@ export class ProvisioningService {
       });
       throw err;
     }
-
-    return order;
   }
 
   findByClient(clientId: string) {
