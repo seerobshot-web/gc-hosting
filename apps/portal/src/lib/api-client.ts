@@ -6,6 +6,7 @@
  */
 
 const API_BASE_URL = process.env.GCH_API_URL ?? "http://localhost:3333";
+const DASHBOARD_API_KEY = process.env.DASHBOARD_API_KEY;
 
 export type Role = "OWNER" | "ADMIN" | "MEMBER";
 
@@ -42,6 +43,46 @@ export interface GLink {
   url: string | null;
   position: number;
   isActive: boolean;
+}
+
+export interface DashboardOverview {
+  infrastructure: {
+    totalOrders: number;
+    provisioningOrders: number;
+    deployedOrders: number;
+    failedOrders: number;
+  };
+  registrations: {
+    totalClients: number;
+    newLast7Days: number;
+    recent: Array<{
+      id: string;
+      email: string;
+      createdAt: string;
+    }>;
+  };
+  rootTracking: Array<{
+    id: string;
+    primaryDomain: string;
+    cpanelUsername: string;
+    status: string;
+    host: string;
+    updatedAt: string;
+    createdAt: string;
+  }>;
+  apiRouteHealth: Array<{
+    method: "GET" | "POST" | "PATCH";
+    path: string;
+    status: "healthy" | "degraded" | "not_probed";
+    detail: string;
+  }>;
+  pageDestinations: Array<{
+    path: string;
+    purpose: string;
+    backlinkFocus: string;
+    structuredContentType: string;
+    metadataFocus: string;
+  }>;
 }
 
 export interface Plan {
@@ -234,6 +275,19 @@ async function apiPublic<T>(
   return res.json();
 }
 
+export async function getDashboardOverview(): Promise<DashboardOverview> {
+  const res = await fetch(`${API_BASE_URL}/dashboard/overview`, {
+    cache: "no-store",
+    headers: DASHBOARD_API_KEY
+      ? { "x-dashboard-key": DASHBOARD_API_KEY }
+      : undefined,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to load dashboard overview: ${res.status}`);
+  }
+  return res.json();
+}
+
 export function getPlans(accessToken: string): Promise<Plan[]> {
   return apiGet("/billing/plans", accessToken);
 }
@@ -273,7 +327,6 @@ export function getMe(accessToken: string): Promise<Me> {
 export function getClientsForOrg(orgId: string, accessToken: string): Promise<Client[]> {
   return apiGet(`/clients?orgId=${encodeURIComponent(orgId)}`, accessToken);
 }
-
 export function getGLinksForClient(clientId: string, accessToken: string): Promise<GLink[]> {
   return apiGet(`/glinks?clientId=${encodeURIComponent(clientId)}`, accessToken);
 }

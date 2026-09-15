@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@gch/ui": "workspace:*",
     "@gch/permissions": "workspace:*",
+    "@gch/ui": "workspace:*",
     "next": "^15.0.3",
-    "next-auth": "5.0.0-beta.25",
+    "next-auth": "5.0.0-beta.32",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

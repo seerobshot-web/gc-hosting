@@ -4,7 +4,8 @@ import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "GCH Client Portal",
-  description: "Account management, billing status, and GloryLink dashboard.",
+  description:
+    "Account management, infrastructure tracking, registrations, and GloryLink dashboard.",
 };
 
 export default function RootLayout({

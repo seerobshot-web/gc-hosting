@@ -7,6 +7,7 @@ import { ClientsModule } from "./clients/clients.module";
 import { GlinksModule } from "./glinks/glinks.module";
 import { AuditModule } from "./audit/audit.module";
 import { ProvisioningModule } from "./provisioning/provisioning.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
 import { TenancyModule } from "./tenancy/tenancy.module";
@@ -33,6 +34,7 @@ import { InvitationsModule } from "./invitations/invitations.module";
     GlinksModule,
     AuditModule,
     ProvisioningModule,
+    DashboardModule,
   ],
   // Order matters: JwtAuthGuard sets req.user, RolesGuard reads it.
   providers: [
