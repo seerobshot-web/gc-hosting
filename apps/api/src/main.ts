@@ -15,9 +15,7 @@ async function bootstrap() {
   );
   const portalOrigin = process.env.GCH_PORTAL_ORIGIN ?? "http://localhost:3001";
   app.enableCors({ origin: portalOrigin, credentials: true });
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-  );
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const config = new DocumentBuilder()
     .setTitle("GCH Operations & GloryLink Core API")
