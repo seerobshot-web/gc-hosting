@@ -27,8 +27,8 @@ export class GlinksController {
   @Get()
   @ApiOkResponse({ type: GLinkDto, isArray: true })
   @RequirePermission("glink:read", "client")
-  findByClient(@Query("clientId") clientId: string) {
-    return this.glinksService.findByClient(clientId);
+  findByClient(@Query() query: GLinkClientQueryDto) {
+    return this.glinksService.findByClient(query.clientId);
   }
 
   @Patch("reorder")
