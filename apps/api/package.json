@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "deploy-copy": "node scripts/deploy-copy.js",
     "start": "node dist/main.js",
-    "test": "node --import tsx --test src/**/*.spec.ts",
+    "test": "pnpm --filter @gch/database run generate && node --import tsx --test src/**/*.spec.ts",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
