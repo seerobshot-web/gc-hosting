@@ -35,29 +35,8 @@ jobs:
         with:
           version: 9.15.0
 
-      - name: Check GitHub Pages availability
-        id: pages-site
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          auth_scheme="Authorization: Bearer "
-          status="$(curl -sS -o /tmp/pages-site.json -w "%{http_code}" \
-            -H "${auth_scheme}${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")"
-
-          if [ "${status}" = "200" ]; then
-            echo "enabled=true" >> "${GITHUB_OUTPUT}"
-          elif [ "${status}" = "404" ]; then
-            echo "enabled=false" >> "${GITHUB_OUTPUT}"
-            echo "::notice::GitHub Pages is not enabled for ${GITHUB_REPOSITORY}; skipping dashboard preview deployment."
-          else
-            cat /tmp/pages-site.json
-            exit 1
-          fi
-
       - name: Configure GitHub Pages
-        if: steps.pages-site.outputs.enabled == 'true'
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
@@ -66,13 +45,17 @@ jobs:
       - name: Build dashboard preview
         run: pnpm --filter @gch/web build
 
+      - name: Skip GitHub Pages deployment
+        if: vars.GITHUB_PAGES_ENABLED != 'true'
+        run: echo "::notice::GitHub Pages deployment is disabled. Enable GitHub Pages for this repository and set the GITHUB_PAGES_ENABLED repository variable to true to publish the dashboard preview."
+
       - name: Upload Pages artifact
-        if: steps.pages-site.outputs.enabled == 'true'
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
 
       - name: Deploy to GitHub Pages
-        if: steps.pages-site.outputs.enabled == 'true'
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
