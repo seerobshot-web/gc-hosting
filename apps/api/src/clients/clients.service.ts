@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { prisma } from "@gch/database";
+import { CreateClientDto } from "./clients.dto";
 import { TenancyService } from "../tenancy/tenancy.service";
-import { CreateClientDto } from "./dto";
 
 /**
  * Mirrors the FOSSBilling client record via fossbillingClientId — this
@@ -13,7 +13,6 @@ import { CreateClientDto } from "./dto";
 @Injectable()
 export class ClientsService {
   constructor(private readonly tenancy: TenancyService) {}
-
   create(input: CreateClientDto) {
     return prisma.client.create({ data: input });
   }

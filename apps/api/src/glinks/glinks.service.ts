@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { prisma } from "@gch/database";
 import type { TenantContext } from "../rbac/tenant.decorator";
-import { CreateGLinkDto } from "./dto";
+import { CreateGLinkDto } from "./glinks.dto";
 
 /** Org-scoped access (via the Client) is enforced by RolesGuard first. */
 @Injectable()
