@@ -48,6 +48,7 @@ describe("ResellPortalClient.placeOrder", () => {
       const client = clientFor({
         NODE_ENV: nodeEnv,
         RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
       });
 
       await client.placeOrder(order);
@@ -61,6 +62,7 @@ describe("ResellPortalClient.placeOrder", () => {
     const client = clientFor({
       NODE_ENV: "development",
       RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
     });
     const untrustedInput = { ...order, testMode: false } as CreateOrderInput;
 
@@ -74,6 +76,7 @@ describe("ResellPortalClient.placeOrder", () => {
     const client = clientFor({
       NODE_ENV: "production",
       RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
       RESELLPORTAL_TEST_MODE: "false",
     });
 
@@ -86,6 +89,7 @@ describe("ResellPortalClient.placeOrder", () => {
     const client = clientFor({
       NODE_ENV: "production",
       RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
     });
 
     assert.throws(
