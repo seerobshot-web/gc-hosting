@@ -46,7 +46,7 @@ export class ProvisioningOrderDto {
   primaryDomain!: string;
   @ApiPropertyOptional({ nullable: true })
   resellPortalOrderId!: string | null;
-  @ApiProperty({ example: "provisioning" })
+  @ApiProperty({ enum: ["provisioning", "deployed", "failed"] })
   status!: string;
   @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
   nextBillingDate!: Date | null;
