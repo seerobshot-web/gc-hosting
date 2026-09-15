@@ -29,7 +29,7 @@ export class ClientIdParamsDto {
   @ApiProperty({ description: "Client identifier" })
   @IsString()
   @IsNotEmpty()
-  id!: string;
+  clientId!: string;
 }
 
 export class ClientDto {

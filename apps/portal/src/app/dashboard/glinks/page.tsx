@@ -1,5 +1,5 @@
-import { getSession } from "@/lib/session";
-import { getGLinksForClient } from "@/lib/api-client";
+import { can, getSession } from "@/lib/session";
+import { getClientsForOrg, getGLinksForClient } from "@/lib/api-client";
 
 export default async function GLinksDashboardPage() {
   const session = await getSession();
@@ -14,11 +14,34 @@ export default async function GLinksDashboardPage() {
     );
   }
 
-  const glinks = await getGLinksForClient(session.clientId);
+  if (!session.org) {
+    return (
+      <main className="mx-auto max-w-2xl px-6 py-16">
+        <h1 className="font-display text-2xl text-hearth-ink">Your GloryLink</h1>
+        <p className="mt-4 text-hearth-ink/80">
+          Your account isn&apos;t part of a workspace yet. Ask a workspace
+          owner to add you, or contact support.
+        </p>
+      </main>
+    );
+  }
+
+  // The caller's own Client (linked by userId) wins; otherwise the org's
+  // first Client — a single-tenant ministry has exactly one either way.
+  const clients = await getClientsForOrg(session.org.id, session.accessToken);
+  const client =
+    clients.find((c) => c.userId === session.userId) ?? clients[0] ?? null;
+  const glinks = client
+    ? await getGLinksForClient(client.id, session.accessToken)
+    : [];
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <h1 className="font-display text-2xl text-hearth-ink">Your GloryLink</h1>
+      <p className="mt-1 text-sm text-hearth-ink/60">
+        {session.org.name} · {session.org.role.toLowerCase()}
+        {!can(session, "glink:write") && " · view only"}
+      </p>
       <ul className="mt-6 flex flex-col gap-3">
         {glinks.map((link) => (
           <li
@@ -32,7 +55,9 @@ export default async function GLinksDashboardPage() {
           </li>
         ))}
         {glinks.length === 0 && (
-          <li className="text-hearth-ink/60">No modules added yet.</li>
+          <li className="text-hearth-ink/60">
+            {client ? "No modules added yet." : "No hosting client is linked to this workspace yet."}
+          </li>
         )}
       </ul>
     </main>

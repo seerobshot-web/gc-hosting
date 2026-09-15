@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "GCH Client Portal",
-  description: "Account management, billing status, and GloryLink dashboard.",
+  description:
+    "Account management, infrastructure tracking, registrations, and GloryLink dashboard.",
 };
 
 export default function RootLayout({
@@ -11,7 +13,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="font-body">{children}</body>
+      <body className="font-body">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

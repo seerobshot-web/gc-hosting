@@ -6,7 +6,6 @@ export interface CreateOrderInput {
   clientId: string;
   cpanelUsername: string;
   primaryDomain: string;
-  testMode?: boolean;
 }
 
 export interface ResellPortalService {
@@ -42,12 +41,23 @@ export class ResellPortalClient {
     return key;
   }
 
+  private get apiSecret(): string {
+    const secret = this.config.get<string>("RESELLPORTAL_API_SECRET");
+    if (!secret) {
+      throw new Error(
+        "RESELLPORTAL_API_SECRET is not set — the API requires both X-API-Key and X-API-Secret on every call.",
+      );
+    }
+    return secret;
+  }
+
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       ...init,
       headers: {
         "Content-Type": "application/json",
         "X-API-Key": this.apiKey,
+        "X-API-Secret": this.apiSecret,
         ...init.headers,
       },
     });
@@ -61,14 +71,44 @@ export class ResellPortalClient {
   }
 
   findOrCreateClient(input: { email: string; name: string }) {
-    return this.request<{ id: string }>("/clients", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
+    return this.request<{ client_id: string; portal_credentials?: unknown }>(
+      "/clients",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      },
+    );
   }
 
+  // NOTE: the only documented POST /orders example uses
+  // product_key: "ai_business_tools" with a body shaped { ai_tools: [...] }
+  // and a response of { service_id, tools_activated, amount_charged,
+  // new_balance, client_credentials } — there is no order_id field and no
+  // documented "web_hosting" product_key or its request/response shape.
+  // This method's body/response types are unverified against the real API
+  // and need confirming (or a real web_hosting example) before this is
+  // trusted in production.
   placeOrder(input: CreateOrderInput) {
-    const isDevLikeEnv = this.config.get<string>("NODE_ENV") !== "production";
+    const nodeEnv = this.config.get<string>("NODE_ENV");
+    let testMode = true;
+
+    if (nodeEnv === "production") {
+      const configuredTestMode = this.config.get<string | boolean>(
+        "RESELLPORTAL_TEST_MODE",
+      );
+
+      if (configuredTestMode !== true && configuredTestMode !== false) {
+        if (configuredTestMode === "true") testMode = true;
+        else if (configuredTestMode === "false") testMode = false;
+        else {
+          throw new Error(
+            "RESELLPORTAL_TEST_MODE must be explicitly set to true or false in production.",
+          );
+        }
+      } else {
+        testMode = configuredTestMode;
+      }
+    }
 
     return this.request<{ order_id: string }>("/orders", {
       method: "POST",
@@ -78,11 +118,14 @@ export class ResellPortalClient {
         cpanel_username: input.cpanelUsername,
         primary_domain: input.primaryDomain,
         // Never let a dev/test script place a real wholesale order.
-        test_mode: input.testMode ?? isDevLikeEnv,
+        test_mode: testMode,
       }),
     });
   }
 
+  // NOTE: deployment_status appears in the documented GET /orders response,
+  // not the GET /services example — this may need to poll /orders instead
+  // once web_hosting's real order shape is confirmed.
   getServices(clientId: string) {
     return this.request<ResellPortalService[]>(
       `/services?client_id=${encodeURIComponent(clientId)}`,

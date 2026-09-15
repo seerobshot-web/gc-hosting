@@ -42,7 +42,6 @@ export class ProvisioningService {
         clientId: input.resellPortalClientId,
         cpanelUsername: input.cpanelUsername,
         primaryDomain: input.primaryDomain,
-        testMode: input.testMode,
       });
 
       await prisma.provisioningOrder.update({

@@ -4,7 +4,12 @@
 // on the Hostinger account. DATABASE_URL points at that instance.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" covers local dev machines; "debian-openssl-1.1.x" is what
+  // Hostinger's actual Node.js hosting runtime needs (confirmed via a real
+  // PrismaClientInitializationError there: client was generated for
+  // debian-openssl-3.0.x but the deployment target is debian-openssl-1.1.x).
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -16,11 +21,199 @@ datasource db {
 model Org {
   id        String   @id @default(cuid())
   name      String
+  /// URL-safe handle, reserved for per-workspace routing (`/w/[slug]`) even
+  /// though v1 has no workspace switcher.
+  slug      String   @unique
+  /// When set, a user registering or signing in with an email at this domain
+  /// is auto-added as a MEMBER. May only ever be set to a domain with a
+  /// matching OrgDomainVerification.verifiedAt — the api refuses otherwise.
+  autoJoinDomain String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  clients Client[]
-  glinks  GLink[]
+  clients             Client[]
+  glinks              GLink[]
+  memberships         Membership[]
+  subscription        Subscription?
+  invoices            Invoice[]
+  invitations         Invitation[]
+  domainVerifications OrgDomainVerification[]
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+/// An emailed invitation to join an Org. The raw token goes only into the
+/// email link; the row stores its sha256, same as RefreshToken.
+model Invitation {
+  id              String           @id @default(cuid())
+  orgId           String
+  org             Org              @relation(fields: [orgId], references: [id])
+  email           String
+  role            Role
+  invitedByUserId String
+  invitedBy       User             @relation(fields: [invitedByUserId], references: [id])
+  tokenHash       String           @unique
+  status          InvitationStatus @default(PENDING)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([orgId, status])
+  @@index([email])
+}
+
+/// Proof of domain ownership via a DNS TXT record — the gate in front of
+/// Org.autoJoinDomain. An admin gets a token to publish; verification
+/// resolves the record and stamps verifiedAt only when it matches.
+model OrgDomainVerification {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         Org       @relation(fields: [orgId], references: [id])
+  domain      String
+  dnsTxtToken String    @unique
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([orgId, domain])
+  @@index([domain])
+}
+
+/// A purchasable workspace tier. Mirrors a Stripe Price by id — Stripe
+/// stays the authority on what it costs; this row is what the portal lists
+/// and what a Subscription points at. Seat-based: quantity on the Stripe
+/// subscription item = active Memberships.
+model Plan {
+  id                String   @id @default(cuid())
+  stripePriceId     String   @unique
+  name              String
+  /// Null = unlimited seats.
+  seatLimit         Int?
+  pricePerSeatCents Int
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  subscriptions Subscription[]
+}
+
+/// One Stripe subscription per Org (workspace-level SaaS billing). This is
+/// deliberately separate from FOSSBilling, which remains the system of record
+/// for individual hosting-account billing — never conflate the two.
+model Subscription {
+  id                       String    @id @default(cuid())
+  orgId                    String    @unique
+  org                      Org       @relation(fields: [orgId], references: [id])
+  planId                   String?
+  plan                     Plan?     @relation(fields: [planId], references: [id])
+  stripeCustomerId         String
+  stripeSubscriptionId     String?   @unique
+  stripeSubscriptionItemId String?
+  /// Stripe's status string as-is (`active`, `trialing`, `past_due`,
+  /// `canceled`, `incomplete`, …). A plain string on purpose: Stripe controls
+  /// this set and can add values outside this app's release cycle — unlike
+  /// GLinkModuleType, which stays a closed enum deliberately.
+  status                   String    @default("incomplete")
+  currentPeriodEnd         DateTime?
+  cancelAtPeriodEnd        Boolean   @default(false)
+  seatsPurchased           Int       @default(0)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  invoices Invoice[]
+
+  @@index([stripeCustomerId])
+}
+
+/// Read-only mirror of a Stripe invoice, keyed by Stripe's id — same
+/// "reference by external id, don't duplicate authority" pattern as
+/// Client.fossbillingClientId. Populated only by webhooks.
+model Invoice {
+  id               String        @id @default(cuid())
+  stripeInvoiceId  String        @unique
+  orgId            String
+  org              Org           @relation(fields: [orgId], references: [id])
+  subscriptionId   String?
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
+  status           String
+  currency         String
+  amountDueCents   Int
+  amountPaidCents  Int
+  hostedInvoiceUrl String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([orgId, createdAt])
+}
+
+/// Idempotency ledger for Stripe webhooks: the id is Stripe's event id, so
+/// a redelivered event hits the unique key and is acknowledged without
+/// being processed twice.
+model WebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+}
+
+/// A portal account — the real identity behind logins, distinct from
+/// `Client` (which mirrors a FOSSBilling record and may predate the person
+/// ever creating a portal account).
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  name         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  memberships     Membership[]
+  refreshTokens   RefreshToken[]
+  clients         Client[]
+  sentInvitations Invitation[]
+}
+
+/// The revocable half of the auth pair — access tokens stay short-lived and
+/// stateless (JWT), refresh tokens are looked up here so "sign out" and
+/// "sign out everywhere" actually work.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+/// Join table making multi-tenant workspaces real: one User, many Orgs, one
+/// role per (user, org) pair.
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id])
+  role      Role
+  status    String   @default("ACTIVE") // ACTIVE | SUSPENDED
+  createdAt DateTime @default(now())
+
+  @@unique([userId, orgId])
+  @@index([orgId])
 }
 
 /// Mirrors the FOSSBilling client record via an external ID field —
@@ -34,10 +227,19 @@ model Client {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
+  /// Links this FOSSBilling-mirrored record to the portal identity that
+  /// owns it, once one exists. Nullable: a Client can predate any portal
+  /// account (e.g. imported from FOSSBilling before the person ever logs
+  /// into the portal). This is a portal-identity link only — it does not
+  /// change what Client itself means or how GLink/ProvisioningOrder use it.
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
   glinks             GLink[]
   provisioningOrders ProvisioningOrder[]
 
   @@index([orgId])
+  @@index([userId])
 }
 
 /// Local shadow of a ResellPortal order. ResellPortal is request-only with

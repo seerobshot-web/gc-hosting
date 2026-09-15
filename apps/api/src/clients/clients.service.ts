@@ -1,20 +1,30 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { prisma } from "@gch/database";
 import { CreateClientDto } from "./clients.dto";
+import { TenancyService } from "../tenancy/tenancy.service";
 
 /**
  * Mirrors the FOSSBilling client record via fossbillingClientId — this
  * service never writes or reads billing amounts/invoices itself. FOSSBilling
  * stays the system of record for money; this is the identity join.
+ *
+ * Org-scoped access is enforced by RolesGuard before these run.
  */
 @Injectable()
 export class ClientsService {
+  constructor(private readonly tenancy: TenancyService) {}
   create(input: CreateClientDto) {
     return prisma.client.create({ data: input });
   }
 
-  findAll(orgId?: string) {
-    return prisma.client.findMany({ where: orgId ? { orgId } : undefined });
+  /** Scoped to one org when given, otherwise to every org the caller is in. */
+  async findAll(callerId: string, orgId?: string) {
+    if (orgId) {
+      await this.tenancy.requireMembership(callerId, orgId);
+      return prisma.client.findMany({ where: { orgId } });
+    }
+    const orgIds = await this.tenancy.memberOrgIds(callerId);
+    return prisma.client.findMany({ where: { orgId: { in: orgIds } } });
   }
 
   async findOne(id: string) {
