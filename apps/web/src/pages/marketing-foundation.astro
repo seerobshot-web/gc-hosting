@@ -8,6 +8,7 @@ import GCHHeroValueProposition from "../components/marketing/GCHHeroValueProposi
 import GCHPrimaryConversionCta from "../components/marketing/GCHPrimaryConversionCta.astro";
 import GCHGoalSelector from "../components/marketing/GCHGoalSelector.astro";
 import GCHSolutionPortals from "../components/marketing/GCHSolutionPortals.astro";
+import GCHLivingPatternGallery from "../components/marketing/GCHLivingPatternGallery.astro";
 import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro";
 ---
 
@@ -25,6 +26,7 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
             { index: "06", label: "Convert", href: "#journey-06" },
             { index: "11", label: "Intent", href: "#goal-selector" },
             { index: "12", label: "Paths", href: "#solution-portals" },
+            { index: "15", label: "Gallery", href: "#living-pattern-gallery" },
             { index: "35", label: "Close", href: "#journey-35" },
           ]}
         />
@@ -50,6 +52,10 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
 
         <section class="journey-block">
           <GCHSolutionPortals />
+        </section>
+
+        <section class="journey-block journey-block--gallery">
+          <GCHLivingPatternGallery />
         </section>
 
         <section class="journey-block journey-block--pathway">
@@ -106,6 +112,12 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
     margin-top: clamp(-2rem, -3vw, -4rem);
     position: relative;
     z-index: 3;
+  }
+
+  .journey-block--gallery {
+    min-width: 0;
+    border-top: 1px solid var(--gch-border-light);
+    border-bottom: 1px solid var(--gch-border-light);
   }
 
   .journey-block--pathway { padding-bottom: 1rem; }
