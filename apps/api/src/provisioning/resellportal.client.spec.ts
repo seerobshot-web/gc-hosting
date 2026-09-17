@@ -108,6 +108,75 @@ describe("ResellPortalClient.idempotencyKey", () => {
   });
 });
 
+describe("ResellPortalClient service lifecycle", () => {
+  function captureRequest(responseBody: unknown) {
+    let captured: { url: string; init: RequestInit | undefined } | undefined;
+    globalThis.fetch = async (input, init) => {
+      captured = { url: String(input), init };
+      return new Response(JSON.stringify(responseBody), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+    return () => captured;
+  }
+
+  const creds = { RESELLPORTAL_API_KEY: "api-key", RESELLPORTAL_API_SECRET: "api-secret" };
+
+  it("createService parses the response and forwards the idempotency key header", async () => {
+    const captured = captureRequest({ service_id: "svc-1", status: "active" });
+    const client = clientFor(creds);
+
+    const res = await client.createService(
+      { orderId: "order-1", planId: "plan-1", orgId: "org-1" },
+      "idem-key-1",
+    );
+
+    assert.deepEqual(res, { service_id: "svc-1", status: "active" });
+    const headers = captured()?.init?.headers as Record<string, string>;
+    assert.equal(headers["Idempotency-Key"], "idem-key-1");
+    assert.ok(captured()?.url.endsWith("/services"));
+  });
+
+  for (const method of ["suspendService", "reactivateService", "terminateService"] as const) {
+    it(`${method} forwards the idempotency key header`, async () => {
+      const captured = captureRequest({ service_id: "svc-1", status: "changed" });
+      const client = clientFor(creds);
+
+      const res = await client[method]("svc-1", `key-${method}`);
+
+      assert.equal(res.service_id, "svc-1");
+      const headers = captured()?.init?.headers as Record<string, string>;
+      assert.equal(headers["Idempotency-Key"], `key-${method}`);
+    });
+  }
+
+  it("getServiceStatus reads the status and forwards the idempotency key header", async () => {
+    const captured = captureRequest({ service_id: "svc-1", status: "active" });
+    const client = clientFor(creds);
+
+    const res = await client.getServiceStatus("svc-1", "status-key");
+
+    assert.equal(res.status, "active");
+    const headers = captured()?.init?.headers as Record<string, string>;
+    assert.equal(headers["Idempotency-Key"], "status-key");
+  });
+
+  it("rejects a malformed lifecycle response (zod parse failure at the boundary)", async () => {
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ wrong: "shape" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    const client = clientFor(creds);
+
+    await assert.rejects(
+      client.createService({ orderId: "o", planId: "p", orgId: "g" }, "k"),
+      /unexpected shape/,
+    );
+  });
+});
+
 describe("ResellPortalClient mutating requests", () => {
   it("send a deterministic Idempotency-Key header on placeOrder", async () => {
     let headers: Record<string, string> | undefined;

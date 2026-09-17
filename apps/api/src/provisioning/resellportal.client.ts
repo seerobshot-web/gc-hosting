@@ -32,6 +32,26 @@ const servicesSchema = z.array(serviceSchema);
 
 export type ResellPortalService = z.infer<typeof serviceSchema>;
 
+// Response shape for the lifecycle endpoints used by the GCH-ALEPH provisioning
+// orchestrator (create / suspend / reactivate / terminate / status). Kept
+// separate from the legacy `serviceSchema` (which mirrors the poller's
+// GET /services shape). Every lifecycle response is validated through this
+// before it reaches ProvisioningService, so a shape drift fails loudly at the
+// boundary instead of corrupting a ProviderService row.
+const providerServiceSchema = z.object({
+  service_id: z.string(),
+  status: z.string(),
+});
+
+export type ProviderServiceResponse = z.infer<typeof providerServiceSchema>;
+
+/** Params for provisioning a brand-new ResellPortal service for a GCH order. */
+export interface CreateServiceParams {
+  orderId: string;
+  planId: string;
+  orgId: string;
+}
+
 /**
  * Thin wrapper around ResellPortal's wholesale provisioning API.
  *
@@ -170,6 +190,85 @@ export class ResellPortalClient {
     return this.request(
       `/services?client_id=${encodeURIComponent(clientId)}`,
       servicesSchema,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // GCH-ALEPH service lifecycle (Phase 5).
+  //
+  // These are the durable, idempotent lifecycle mutations the provisioning
+  // orchestrator drives from the order state machine. Unlike the legacy
+  // placeOrder/getServices poller pair, each takes an EXPLICIT deterministic
+  // idempotencyKey (computed by the caller from the entity it is acting on) and
+  // forwards it as the `Idempotency-Key` header, so ResellPortal collapses a
+  // retried mutation instead of double-provisioning / double-terminating.
+  // Every response is parsed through providerServiceSchema.
+  // ---------------------------------------------------------------------------
+
+  /** Provision a new service for a paid order. Idempotent via the header. */
+  createService(
+    params: CreateServiceParams,
+    idempotencyKey: string,
+  ): Promise<ProviderServiceResponse> {
+    return this.request("/services", providerServiceSchema, {
+      method: "POST",
+      body: JSON.stringify({
+        order_id: params.orderId,
+        plan_id: params.planId,
+        org_id: params.orgId,
+      }),
+      headers: { "Idempotency-Key": idempotencyKey },
+    });
+  }
+
+  /** Suspend an active service (e.g. on payment failure / cancellation). */
+  suspendService(
+    resellPortalId: string,
+    idempotencyKey: string,
+  ): Promise<ProviderServiceResponse> {
+    return this.request(
+      `/services/${encodeURIComponent(resellPortalId)}/suspend`,
+      providerServiceSchema,
+      { method: "POST", headers: { "Idempotency-Key": idempotencyKey } },
+    );
+  }
+
+  /** Reactivate a previously suspended service. */
+  reactivateService(
+    resellPortalId: string,
+    idempotencyKey: string,
+  ): Promise<ProviderServiceResponse> {
+    return this.request(
+      `/services/${encodeURIComponent(resellPortalId)}/reactivate`,
+      providerServiceSchema,
+      { method: "POST", headers: { "Idempotency-Key": idempotencyKey } },
+    );
+  }
+
+  /** Permanently terminate a service. */
+  terminateService(
+    resellPortalId: string,
+    idempotencyKey: string,
+  ): Promise<ProviderServiceResponse> {
+    return this.request(
+      `/services/${encodeURIComponent(resellPortalId)}/terminate`,
+      providerServiceSchema,
+      { method: "POST", headers: { "Idempotency-Key": idempotencyKey } },
+    );
+  }
+
+  /**
+   * Read the current status of a service. Read-only, but still accepts an
+   * idempotencyKey (forwarded as a header) for a uniform adapter surface.
+   */
+  getServiceStatus(
+    resellPortalId: string,
+    idempotencyKey: string,
+  ): Promise<ProviderServiceResponse> {
+    return this.request(
+      `/services/${encodeURIComponent(resellPortalId)}`,
+      providerServiceSchema,
+      { headers: { "Idempotency-Key": idempotencyKey } },
     );
   }
 }
