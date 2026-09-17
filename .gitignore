@@ -14,3 +14,7 @@ apps/api/deploy-standalone/
 apps/api/deploy-archive.zip
 scratch/
 tsconfig.tsbuildinfo
+
+# Auto-generated doc previews (kept out of the repo; .md is the source of truth)
+docs/**/*.pdf
+docs/**/*.docx

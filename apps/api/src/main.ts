@@ -1,11 +1,33 @@
 import "reflect-metadata";
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+import { validateEnv } from "./config/env.schema";
+
+/**
+ * Parses ALLOWED_ORIGINS (comma-separated) into an explicit allowlist.
+ * CORS is NEVER opened with origin:true or "*" in any environment — a
+ * missing/empty allowlist yields an empty list (all cross-origin denied).
+ */
+function parseAllowedOrigins(): string[] {
+  return (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+}
 
 async function bootstrap() {
+  // Fail fast: validate the environment before wiring anything up. Only the
+  // failing variable NAMES are logged — never their values.
+  const env = validateEnv();
+  if (!env.success) {
+    const logger = new Logger("Bootstrap");
+    logger.error(`Environment validation failed. Fix these variables: ${env.invalidVars.join(", ")}`);
+    process.exit(1);
+  }
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
@@ -13,8 +35,9 @@ async function bootstrap() {
     // rawBody keeps them alongside the parsed JSON (see StripeWebhookController).
     { rawBody: true },
   );
-  const portalOrigin = process.env.GCH_PORTAL_ORIGIN ?? "http://localhost:3001";
-  app.enableCors({ origin: portalOrigin, credentials: true });
+
+  const allowedOrigins = parseAllowedOrigins();
+  app.enableCors({ origin: allowedOrigins, credentials: true });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const config = new DocumentBuilder()

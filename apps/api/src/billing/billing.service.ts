@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { createHash } from "node:crypto";
 import { prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
 import type { TenantContext } from "../rbac/tenant.decorator";
@@ -126,18 +127,23 @@ export class BillingService {
 
     const customerId = existing?.stripeCustomerId ?? (await this.createCustomer(tenant, customerEmail));
 
-    const session = await this.stripe.client.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      client_reference_id: tenant.orgId,
-      line_items: [{ price: plan.stripePriceId, quantity: Math.max(seats, 1) }],
-      // Metadata on both the session and the subscription it creates: the
-      // webhook handlers resolve the Org from whichever event arrives first.
-      metadata: { orgId: tenant.orgId, planId: plan.id },
-      subscription_data: { metadata: { orgId: tenant.orgId, planId: plan.id } },
-      success_url: `${this.stripe.portalOrigin}/dashboard/billing?checkout=success`,
-      cancel_url: `${this.stripe.portalOrigin}/dashboard/billing?checkout=cancelled`,
-    });
+    const session = await this.stripe.createCheckoutSession(
+      {
+        mode: "subscription",
+        customerId,
+        clientReferenceId: tenant.orgId,
+        lineItems: [{ price: plan.stripePriceId, quantity: Math.max(seats, 1) }],
+        // Metadata on both the session and the subscription it creates: the
+        // webhook handlers resolve the Org from whichever event arrives first.
+        metadata: { orgId: tenant.orgId, planId: plan.id },
+        subscriptionMetadata: { orgId: tenant.orgId, planId: plan.id },
+        successUrl: `${this.stripe.portalOrigin}/dashboard/billing?checkout=success`,
+        cancelUrl: `${this.stripe.portalOrigin}/dashboard/billing?checkout=cancelled`,
+      },
+      // Deterministic per (org, plan) operation identity — a retried checkout
+      // for the same plan de-duplicates at Stripe (IDEMPOTENCY.md convention).
+      checkoutIdempotencyKey(tenant.orgId, plan.id),
+    );
 
     await this.audit.logAction({
       actor: `user:${tenant.membership.userId}`,
@@ -155,10 +161,7 @@ export class BillingService {
     if (!sub) {
       throw new NotFoundException("No billing account yet — start a subscription first");
     }
-    const session = await this.stripe.client.billingPortal.sessions.create({
-      customer: sub.stripeCustomerId,
-      return_url: `${this.stripe.portalOrigin}/dashboard/billing`,
-    });
+    const session = await this.stripe.createBillingPortalSession(sub.stripeCustomerId);
     return { url: session.url };
   }
 
@@ -176,4 +179,11 @@ export class BillingService {
     });
     return customer.id;
   }
+}
+
+/** Deterministic Stripe idempotency key for a checkout, per IDEMPOTENCY.md. */
+function checkoutIdempotencyKey(orgId: string, planId: string): string {
+  return createHash("sha256")
+    .update(`Org:${orgId}:createCheckoutSession:${planId}`)
+    .digest("hex");
 }
