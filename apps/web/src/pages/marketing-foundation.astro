@@ -9,6 +9,8 @@ import GCHPrimaryConversionCta from "../components/marketing/GCHPrimaryConversio
 import GCHGoalSelector from "../components/marketing/GCHGoalSelector.astro";
 import GCHSolutionPortals from "../components/marketing/GCHSolutionPortals.astro";
 import GCHLivingPatternGallery from "../components/marketing/GCHLivingPatternGallery.astro";
+import GCHSaasProductShowcase from "../components/marketing/GCHSaasProductShowcase.astro";
+import GCHLiveDemoCta from "../components/marketing/GCHLiveDemoCta.astro";
 import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro";
 ---
 
@@ -27,6 +29,8 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
             { index: "11", label: "Intent", href: "#goal-selector" },
             { index: "12", label: "Paths", href: "#solution-portals" },
             { index: "15", label: "Gallery", href: "#living-pattern-gallery" },
+            { index: "24", label: "Products", href: "#saas-showcase" },
+            { index: "25", label: "Demo", href: "#demo-lab" },
             { index: "35", label: "Close", href: "#journey-35" },
           ]}
         />
@@ -56,6 +60,14 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
 
         <section class="journey-block journey-block--gallery">
           <GCHLivingPatternGallery />
+        </section>
+
+        <section class="journey-block">
+          <GCHSaasProductShowcase />
+        </section>
+
+        <section class="journey-block">
+          <GCHLiveDemoCta />
         </section>
 
         <section class="journey-block journey-block--pathway">
