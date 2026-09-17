@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { afterEach, describe, it } from "node:test";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -83,5 +84,50 @@ describe("ResellPortalClient.placeOrder", () => {
     await client.placeOrder(untrustedInput);
 
     assert.equal(requestBody()?.test_mode, true);
+  });
+});
+
+describe("ResellPortalClient.idempotencyKey", () => {
+  it("is a deterministic sha256(entityType:entityId:operationName)", () => {
+    const expected = createHash("sha256")
+      .update("provisioning_order:client-1:placeOrder")
+      .digest("hex");
+
+    const a = ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "placeOrder");
+    const b = ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "placeOrder");
+
+    assert.equal(a, expected);
+    assert.equal(a, b); // same operation identity -> same key (safe to retry)
+  });
+
+  it("differs when any component of the operation identity differs", () => {
+    const base = ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "placeOrder");
+    assert.notEqual(base, ResellPortalClient.idempotencyKey("client", "client-1", "placeOrder"));
+    assert.notEqual(base, ResellPortalClient.idempotencyKey("provisioning_order", "client-2", "placeOrder"));
+    assert.notEqual(base, ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "getServices"));
+  });
+});
+
+describe("ResellPortalClient mutating requests", () => {
+  it("send a deterministic Idempotency-Key header on placeOrder", async () => {
+    let headers: Record<string, string> | undefined;
+    globalThis.fetch = async (_input, init) => {
+      headers = init?.headers as Record<string, string>;
+      return new Response(JSON.stringify({ order_id: "order-1" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const client = clientFor({
+      RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
+    });
+    await client.placeOrder(order);
+
+    assert.equal(
+      headers?.["Idempotency-Key"],
+      ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "placeOrder"),
+    );
   });
 });
