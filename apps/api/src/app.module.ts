@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { OrgsModule } from "./orgs/orgs.module";
 import { ClientsModule } from "./clients/clients.module";
 import { GlinksModule } from "./glinks/glinks.module";
@@ -21,6 +22,9 @@ import { InvitationsModule } from "./invitations/invitations.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Global rate limit: 60 requests/minute per IP. Auth endpoints tighten
+    // this to 10/min via @Throttle (see AuthController).
+    ThrottlerModule.forRoot([{ name: "default", ttl: 60_000, limit: 60 }]),
     ScheduleModule.forRoot(),
     TenancyModule,
     EmailModule,
@@ -36,8 +40,10 @@ import { InvitationsModule } from "./invitations/invitations.module";
     ProvisioningModule,
     DashboardModule,
   ],
-  // Order matters: JwtAuthGuard sets req.user, RolesGuard reads it.
+  // Order matters: ThrottlerGuard rejects abusive traffic before auth work;
+  // JwtAuthGuard then sets req.user, and RolesGuard reads it.
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
