@@ -42,13 +42,13 @@ afterEach(() => {
 });
 
 describe("ResellPortalClient.placeOrder", () => {
-  for (const nodeEnv of ["development", "test", undefined]) {
+  for (const nodeEnv of ["development", "test", "production", undefined]) {
     it(`enables test mode when NODE_ENV is ${String(nodeEnv)}`, async () => {
       const requestBody = captureRequestBody();
       const client = clientFor({
         NODE_ENV: nodeEnv,
         RESELLPORTAL_API_KEY: "api-key",
-      RESELLPORTAL_API_SECRET: "api-secret",
+        RESELLPORTAL_API_SECRET: "api-secret",
       });
 
       await client.placeOrder(order);
@@ -57,7 +57,21 @@ describe("ResellPortalClient.placeOrder", () => {
     });
   }
 
-  it("does not allow caller-provided false to disable test mode outside production", async () => {
+  it("ignores obsolete production settings that previously enabled live orders", async () => {
+    const requestBody = captureRequestBody();
+    const client = clientFor({
+      NODE_ENV: "production",
+      RESELLPORTAL_API_KEY: "api-key",
+      RESELLPORTAL_API_SECRET: "api-secret",
+      RESELLPORTAL_TEST_MODE: "false",
+    });
+
+    await client.placeOrder(order);
+
+    assert.equal(requestBody()?.test_mode, true);
+  });
+
+  it("does not allow caller-provided false to disable test mode", async () => {
     const requestBody = captureRequestBody();
     const client = clientFor({
       NODE_ENV: "development",
@@ -69,32 +83,5 @@ describe("ResellPortalClient.placeOrder", () => {
     await client.placeOrder(untrustedInput);
 
     assert.equal(requestBody()?.test_mode, true);
-  });
-
-  it("uses an explicit production test-mode setting", async () => {
-    const requestBody = captureRequestBody();
-    const client = clientFor({
-      NODE_ENV: "production",
-      RESELLPORTAL_API_KEY: "api-key",
-      RESELLPORTAL_API_SECRET: "api-secret",
-      RESELLPORTAL_TEST_MODE: "false",
-    });
-
-    await client.placeOrder(order);
-
-    assert.equal(requestBody()?.test_mode, false);
-  });
-
-  it("rejects production orders without an explicit test-mode setting", () => {
-    const client = clientFor({
-      NODE_ENV: "production",
-      RESELLPORTAL_API_KEY: "api-key",
-      RESELLPORTAL_API_SECRET: "api-secret",
-    });
-
-    assert.throws(
-      () => client.placeOrder(order),
-      /RESELLPORTAL_TEST_MODE must be explicitly set to true or false/,
-    );
   });
 });
