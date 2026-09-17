@@ -112,7 +112,7 @@ const offerings = [
     components: ["GLinksProfile", "VideoModule", "LinkStack", "MinistryCTA"],
     integrations: ["Streaming", "Bunny video", "Ministry websites"],
   },
-];
+] as const;
 ---
 
 <section class="gch-pattern-gallery" id="living-pattern-gallery" data-view-mode="marketing" data-active-goal="all" aria-labelledby="gch-gallery-title">
@@ -213,7 +213,7 @@ const offerings = [
     const indexLabel = gallery.querySelector(".gch-pattern-gallery__selection-index");
     const categoryLabel = gallery.querySelector(".gch-pattern-gallery__selection-category");
 
-    const setActive = (key) => {
+    const setActive = (key: string | null) => {
       const activeIndex = previews.findIndex((preview) => preview.getAttribute("data-preview") === key);
       previews.forEach((preview) => preview.setAttribute("data-active", preview.getAttribute("data-preview") === key ? "true" : "false"));
       notes.forEach((note) => note.setAttribute("data-active", note.getAttribute("data-note") === key ? "true" : "false"));
@@ -231,7 +231,8 @@ const offerings = [
     });
 
     window.addEventListener("gch:goal-change", (event) => {
-      const goal = event.detail?.goal || "all";
+      const goalEvent = event as CustomEvent<{ goal?: string }>;
+      const goal = goalEvent.detail?.goal || "all";
       gallery.setAttribute("data-active-goal", goal);
       const match = buttons.find((button) => button.getAttribute("data-goal") === goal);
       if (match) setActive(match.getAttribute("data-select"));

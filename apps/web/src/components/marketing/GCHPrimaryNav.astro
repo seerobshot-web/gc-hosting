@@ -1,18 +1,13 @@
 ---
 import GCHHudLabel from "./GCHHudLabel.astro";
+import { primaryNavItems, siteRoutes } from "../../config/site-routes";
 
-const items = [
-  { index: "01", label: "Marketing", href: "/marketing" },
-  { index: "02", label: "Ministry", href: "/ministry" },
-  { index: "03", label: "Hosting", href: "/hosting" },
-  { index: "04", label: "Tools", href: "/tools" },
-  { index: "05", label: "Resources", href: "/resources" },
-];
+const items = primaryNavItems;
 ---
 
 <header class="gch-nav-shell" data-gch-surface="light">
   <nav class="gch-nav" aria-label="Primary navigation">
-    <a class="gch-nav__brand" href="/" aria-label="Glory Cloud Hosts home">
+    <a class="gch-nav__brand" href={siteRoutes.home} aria-label="Glory Cloud Hosts home">
       <span class="gch-nav__mark" aria-hidden="true">GC</span>
       <span class="gch-nav__wordmark">Glory Cloud Hosts</span>
     </a>
@@ -26,9 +21,9 @@ const items = [
     </div>
 
     <div class="gch-nav__actions">
-      <a class="gch-nav__text-action" href="/resources">Search</a>
-      <a class="gch-nav__text-action" href="/portal">Sign in</a>
-      <a class="gch-nav__primary" href="/start">Get started</a>
+      <a class="gch-nav__text-action" href={siteRoutes.resources}>Resources</a>
+      <a class="gch-nav__text-action" href={siteRoutes.portal}>Portal</a>
+      <a class="gch-nav__primary" href={siteRoutes.start}>Get started</a>
     </div>
 
     <details class="gch-nav__mobile">
@@ -39,7 +34,10 @@ const items = [
             <GCHHudLabel index={item.index} label={item.label} />
           </a>
         ))}
-        <a class="gch-nav__primary" href="/start">Get started</a>
+        <a class="gch-nav__mobile-link" href={siteRoutes.portal}>
+          <GCHHudLabel label="Portal" tone="muted" />
+        </a>
+        <a class="gch-nav__primary" href={siteRoutes.start}>Get started</a>
       </div>
     </details>
   </nav>

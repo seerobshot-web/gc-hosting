@@ -1,0 +1,30 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import GCHHudLabel from "../components/marketing/GCHHudLabel.astro";
+import { siteRoutes } from "../config/site-routes";
+
+const portalUrl = import.meta.env.PUBLIC_PORTAL_URL;
+if (portalUrl) {
+  return Astro.redirect(portalUrl);
+}
+---
+<Layout title="Customer Portal | Glory Cloud Hosts">
+  <GCHPrimaryNav />
+  <main class="portal-bridge">
+    <GCHHudLabel index="PORTAL" label="Route bridge" />
+    <h1>The customer portal destination is not configured for this build.</h1>
+    <p>
+      GCH maintains the customer portal as a separate application. Production should provide
+      <code>PUBLIC_PORTAL_URL</code> so this route redirects to the authoritative portal deployment.
+      Until then, the dashboard preview remains available for interface review only.
+    </p>
+    <a href={siteRoutes.dashboardPreview}>Open dashboard preview</a>
+  </main>
+</Layout>
+<style>
+  .portal-bridge{width:min(100% - 2rem,760px);margin-inline:auto;padding-block:clamp(5rem,10vw,10rem)}
+  .portal-bridge h1{margin:1rem 0;font:800 clamp(2.3rem,5vw,4.8rem)/.98 "Outfit",system-ui,sans-serif;letter-spacing:-.05em}
+  .portal-bridge p{color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}.portal-bridge code{font-family:"JetBrains Mono",monospace;font-size:.88em}
+  .portal-bridge a{display:inline-flex;margin-top:1rem;padding:.8rem 1rem;border-radius:999px;background:var(--gch-gold);color:var(--gch-brand-dark);text-decoration:none;font:700 .9rem/1 "Outfit",system-ui,sans-serif}.portal-bridge a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
+</style>

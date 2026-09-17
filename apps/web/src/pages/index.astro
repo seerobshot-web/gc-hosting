@@ -1,53 +1,46 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import HeroScene from "../components/HeroScene";
-import PillarCard from "../components/PillarCard.astro";
-import { pillars } from "@gch/ui/tokens";
-
-const pillarCopy: Record<(typeof pillars)[number]["key"], string> = {
-  hosting: "Managed cPanel hosting, provisioned and billed in one place.",
-  "ai-tools": "AI tooling for ministry teams — content, workflows, and more.",
-  "design-marketing": "Brand identity, content strategy, and SEO for your ministry.",
-  "ministry-education": "GloryLink and other tools built for churches and ministries.",
-};
-
-const pillarHref: Record<(typeof pillars)[number]["key"], string> = {
-  hosting: "/hosting",
-  "ai-tools": "/ai-tools",
-  "design-marketing": "/design-marketing",
-  "ministry-education": "/ministry-education",
-};
-const baseUrl = import.meta.env.BASE_URL;
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import GCHHudLabel from "../components/marketing/GCHHudLabel.astro";
+import { primaryNavItems, siteRoutes } from "../config/site-routes";
 ---
 
 <Layout title="Glory Cloud Hosts">
-  <HeroScene client:visible />
+  <GCHPrimaryNav />
+  <main class="home-safe">
+    <section class="home-safe__hero" data-gch-surface="dark">
+      <div class="home-safe__inner">
+        <GCHHudLabel index="GCH" label="Faith-forward · Tech-confident" tone="light" />
+        <h1>One connected digital partner for mission-driven organizations.</h1>
+        <p>
+          GCH helps ministries, nonprofits, and mission-driven organizations establish identity,
+          build digital presence, host infrastructure, reach people online, and use modern digital
+          tools without stitching together unrelated providers.
+        </p>
+        <div class="home-safe__actions">
+          <a class="home-safe__primary" href={siteRoutes.start}>Find my starting point</a>
+          <a class="home-safe__secondary" href={siteRoutes.marketingFoundation}>Review the full experience</a>
+        </div>
+      </div>
+    </section>
 
-  <section class="mx-auto max-w-5xl px-6 py-16">
-    <h1 class="font-display text-4xl text-hearth-ink">Glory Cloud Hosts</h1>
-    <p class="mt-2 max-w-2xl text-hearth-ink/70">
-      Hosting, AI tools, design, and ministry-specific software — one client
-      relationship, four pillars.
-    </p>
-    <p class="mt-4">
-      <a
-        href={`${baseUrl}dashboard-preview/`}
-        class="inline-flex rounded-md bg-hearth-ink px-4 py-2 text-sm font-medium text-cloudlight transition hover:bg-verdigris-sky"
-      >
-        Preview the dashboard
-      </a>
-    </p>
-
-    <div class="mt-10 grid gap-6 sm:grid-cols-2">
-      {
-        pillars.map((pillar) => (
-          <PillarCard
-            label={pillar.label}
-            description={pillarCopy[pillar.key]}
-            href={pillarHref[pillar.key]}
-          />
-        ))
-      }
-    </div>
-  </section>
+    <section class="home-safe__routes" aria-labelledby="home-routes-title">
+      <GCHHudLabel index="ROUTES" label="Validated public paths" />
+      <h2 id="home-routes-title">Choose a path.</h2>
+      <div class="home-safe__grid">
+        {primaryNavItems.map((item) => (
+          <a href={item.href}>
+            <span>{item.index}</span>
+            <strong>{item.label}</strong>
+            <small>Open public route →</small>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
 </Layout>
+
+<style>
+  .home-safe__hero{background:radial-gradient(circle at 76% 18%,rgba(232,160,32,.14),transparent 29%),var(--gch-brand-dark);color:var(--gch-text-primary-dark)}
+  .home-safe__inner,.home-safe__routes{width:min(100% - 2rem,1180px);margin-inline:auto}.home-safe__inner{padding:clamp(5rem,10vw,9rem) 0}.home-safe h1{max-width:14ch;margin:1rem 0;font:800 clamp(2.8rem,6.4vw,6.1rem)/.95 "Outfit",system-ui,sans-serif;letter-spacing:-.055em}.home-safe__hero p{max-width:68ch;margin:0;color:var(--gch-text-secondary-dark);font:400 1.08rem/1.7 "Outfit",system-ui,sans-serif}.home-safe__actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:2rem}.home-safe__actions a{min-height:2.9rem;display:inline-flex;align-items:center;padding:0 1rem;border-radius:999px;text-decoration:none;font:700 .9rem/1 "Outfit",system-ui,sans-serif}.home-safe__primary{background:var(--gch-gold-dark);color:var(--gch-brand-dark)}.home-safe__secondary{border:1px solid var(--gch-border-dark);color:var(--gch-text-primary-dark)}.home-safe__actions a:focus-visible,.home-safe__grid a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}.home-safe__routes{padding:clamp(4rem,8vw,7rem) 0}.home-safe__routes h2{margin:.8rem 0 2rem;font:800 clamp(2rem,4.5vw,4rem)/1 "Outfit",system-ui,sans-serif;letter-spacing:-.045em}.home-safe__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.8rem}.home-safe__grid a{display:grid;gap:.8rem;min-height:10rem;padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white);color:var(--gch-text-primary);text-decoration:none}.home-safe__grid span{color:var(--gch-gold-text);font:700 .6rem/1 "JetBrains Mono",monospace}.home-safe__grid strong{align-self:end;font:700 1.05rem/1.1 "Outfit",system-ui,sans-serif}.home-safe__grid small{color:var(--gch-text-muted);font:600 .72rem/1.2 "Outfit",system-ui,sans-serif}@media(max-width:900px){.home-safe__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.home-safe__grid{grid-template-columns:1fr}}
+</style>

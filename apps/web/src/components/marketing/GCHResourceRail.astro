@@ -1,18 +1,36 @@
 ---
 import GCHHudLabel from "./GCHHudLabel.astro";
-const resources = [
-  {type:"FIELD GUIDE",title:"Planning a ministry website that supports Sunday and weekday engagement",meta:"6 min read",href:"/resources"},
-  {type:"CHECKLIST",title:"Website redesign readiness: what to gather before the rebuild",meta:"Practical guide",href:"/resources"},
-  {type:"SEO GUIDE",title:"How local search, Google Business, and service pages reinforce each other",meta:"8 min read",href:"/resources"},
-  {type:"MINISTRY TECH",title:"Connecting livestreams, GLinks, events, giving, and next steps",meta:"Architecture note",href:"/resources"},
-];
+import { resourceBriefs, contentSources } from "../../content/marketing-content";
+import { siteRoutes } from "../../config/site-routes";
 ---
 <section class="gch-resource-rail" id="resources" aria-labelledby="gch-resource-title">
-  <header><GCHHudLabel index="33" label="Resource recommendations" /><h2 id="gch-resource-title">Keep learning without leaving the journey.</h2><p>Recommendations extend the page into useful guides instead of treating resources as a separate content silo.</p></header>
+  <header>
+    <GCHHudLabel index="33" label="Resource recommendations" />
+    <h2 id="gch-resource-title">Keep learning without inventing a content library.</h2>
+    <p>
+      These cards are editorial briefs sourced from the public-content queue. They become linked
+      resources only after approved copy, publication metadata, and a real route exist.
+    </p>
+  </header>
+
   <div class="gch-resource-rail__track">
-    {resources.map((r,i)=><article class="gch-resource-card"><div class="gch-resource-card__visual" aria-hidden="true"><span>{String(i+1).padStart(2,"0")}</span></div><div class="gch-resource-card__body"><small>{r.type}</small><h3>{r.title}</h3><p>{r.meta}</p><a href={r.href}>Open resource →</a></div></article>)}
+    {resourceBriefs.map((resource, index) => (
+      <article class="gch-resource-card">
+        <div class="gch-resource-card__visual" aria-hidden="true">
+          <span>{String(index + 1).padStart(2, "0")}</span>
+        </div>
+        <div class="gch-resource-card__body">
+          <small>{resource.type}</small>
+          <h3>{resource.title}</h3>
+          <p>
+            {resource.status} · Source: {contentSources[resource.source].label}
+          </p>
+          <a href={`${siteRoutes.resources}#${resource.id}`}>View editorial brief →</a>
+        </div>
+      </article>
+    ))}
   </div>
 </section>
 <style>
-.gch-resource-rail{padding-block:clamp(4rem,8vw,7rem)}.gch-resource-rail header{max-width:46rem;margin-bottom:2rem}.gch-resource-rail h2{max-width:14ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.4vw,3.8rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.gch-resource-rail header p,.gch-resource-card p{color:var(--gch-text-secondary);font:400 1rem/1.6 "Outfit",sans-serif}.gch-resource-rail__track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(17rem,1fr);gap:1rem;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:.6rem}.gch-resource-card{scroll-snap-align:start;border:1px solid var(--gch-border-light);border-radius:1rem;overflow:hidden;background:var(--gch-white)}.gch-resource-card__visual{min-height:9rem;display:grid;place-items:end start;padding:1rem;background:linear-gradient(145deg,var(--gch-brand-dark),var(--gch-surface-elevated));color:var(--gch-gold-dark);font:800 1.4rem/1 "JetBrains Mono",monospace}.gch-resource-card__body{padding:1rem}.gch-resource-card small{color:var(--gch-gold-text);font:700 .58rem/1 "JetBrains Mono",monospace;letter-spacing:.08em}.gch-resource-card h3{margin:.65rem 0;font:700 1.05rem/1.25 "Outfit",sans-serif}.gch-resource-card p{margin:.4rem 0 .9rem;font-size:.88rem}.gch-resource-card a{color:var(--gch-text-primary);font:700 .85rem/1 "Outfit",sans-serif;text-decoration:none}.gch-resource-card a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px;border-radius:.2rem}
+.gch-resource-rail{padding-block:clamp(4rem,8vw,7rem)}.gch-resource-rail header{max-width:46rem;margin-bottom:2rem}.gch-resource-rail h2{max-width:14ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.4vw,3.8rem)/.98 "Outfit",system-ui,sans-serif;letter-spacing:-.05em}.gch-resource-rail header p,.gch-resource-card p{color:var(--gch-text-secondary);font:400 1rem/1.6 "Outfit",sans-serif}.gch-resource-rail__track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(17rem,1fr);gap:1rem;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:.6rem}.gch-resource-card{scroll-snap-align:start;border:1px solid var(--gch-border-light);border-radius:1rem;overflow:hidden;background:var(--gch-white)}.gch-resource-card__visual{min-height:9rem;display:grid;place-items:end start;padding:1rem;background:linear-gradient(145deg,var(--gch-brand-dark),var(--gch-surface-elevated));color:var(--gch-gold-dark);font:800 1.4rem/1 "JetBrains Mono",monospace}.gch-resource-card__body{padding:1rem}.gch-resource-card small{color:var(--gch-gold-text);font:700 .58rem/1 "JetBrains Mono",monospace;letter-spacing:.08em}.gch-resource-card h3{margin:.65rem 0;font:700 1.05rem/1.25 "Outfit",sans-serif}.gch-resource-card p{margin:.4rem 0 .9rem;font-size:.88rem}.gch-resource-card a{color:var(--gch-text-primary);font:700 .85rem/1 "Outfit",sans-serif;text-decoration:none}.gch-resource-card a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px;border-radius:.2rem}
 </style>

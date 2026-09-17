@@ -1,10 +1,13 @@
 name: Deploy dashboard preview
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: "Set to true only after review and explicit approval to publish the dashboard preview."
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -17,6 +20,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: inputs.confirm_deploy && vars.GITHUB_PAGES_ENABLED == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,14 +33,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
+          run_install: false
 
       - name: Configure GitHub Pages
-        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
@@ -45,17 +51,11 @@ jobs:
       - name: Build dashboard preview
         run: pnpm --filter @gch/web build
 
-      - name: Skip GitHub Pages deployment
-        if: vars.GITHUB_PAGES_ENABLED != 'true'
-        run: echo "::notice::GitHub Pages deployment is disabled. Enable GitHub Pages for this repository and set the GITHUB_PAGES_ENABLED repository variable to true to publish the dashboard preview."
-
       - name: Upload Pages artifact
-        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
 
       - name: Deploy to GitHub Pages
-        if: vars.GITHUB_PAGES_ENABLED == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

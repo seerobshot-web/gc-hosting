@@ -1,0 +1,57 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+import GCHPrimaryNav from "./GCHPrimaryNav.astro";
+import { siteRoutes } from "../../config/site-routes";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  body: string;
+  sourceLabel: string;
+  accent?: "gold" | "blue";
+}
+
+const { eyebrow, title, body, sourceLabel, accent = "gold" } = Astro.props;
+---
+
+<GCHPrimaryNav />
+<main class={`gch-category gch-category--${accent}`}>
+  <section class="gch-category__hero" data-gch-surface="dark">
+    <div class="gch-category__inner">
+      <GCHHudLabel index="PUBLIC" label={eyebrow} tone={accent === "blue" ? "blue" : "light"} />
+      <h1>{title}</h1>
+      <p>{body}</p>
+      <div class="gch-category__actions">
+        <a class="gch-category__primary" href={siteRoutes.start}>Find my starting point</a>
+        <a class="gch-category__secondary" href={`${siteRoutes.marketingFoundation}#living-pattern-gallery`}>Explore the GCH gallery</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="gch-category__source" aria-label="Content provenance">
+    <GCHHudLabel index="SOURCE" label="Production content contract" tone="muted" />
+    <p>
+      This route is now valid and intentionally uses approved or repository-backed copy only.
+      Its current content source is <strong>{sourceLabel}</strong>. Product availability, pricing,
+      limits, and contractual entitlements remain catalog-controlled and are not inferred here.
+    </p>
+  </section>
+</main>
+
+<style>
+  .gch-category{background:var(--gch-cream);color:var(--gch-text-primary);min-height:100vh}
+  .gch-category__hero{background:radial-gradient(circle at 78% 20%,rgba(232,160,32,.14),transparent 28%),var(--gch-brand-dark);color:var(--gch-text-primary-dark)}
+  .gch-category--blue .gch-category__hero{background:radial-gradient(circle at 78% 20%,rgba(72,114,184,.2),transparent 30%),var(--gch-brand-dark)}
+  .gch-category__inner,.gch-category__source{width:min(100% - 2rem,1180px);margin-inline:auto}
+  .gch-category__inner{padding:clamp(5rem,10vw,9rem) 0}
+  .gch-category h1{max-width:13ch;margin:1rem 0;font:800 clamp(2.8rem,6.5vw,6.2rem)/.95 "Outfit",system-ui,sans-serif;letter-spacing:-.055em}
+  .gch-category__inner>p{max-width:62ch;margin:0;color:var(--gch-text-secondary-dark);font:400 1.08rem/1.68 "Outfit",system-ui,sans-serif}
+  .gch-category__actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2rem}
+  .gch-category__actions a{display:inline-flex;align-items:center;justify-content:center;min-height:2.9rem;padding:0 1rem;border-radius:999px;text-decoration:none;font:700 .9rem/1 "Outfit",system-ui,sans-serif}
+  .gch-category__primary{background:var(--gch-gold-dark);color:var(--gch-brand-dark)}
+  .gch-category--blue .gch-category__primary{background:var(--gch-blue-dark-safe)}
+  .gch-category__secondary{border:1px solid var(--gch-border-dark);color:var(--gch-text-primary-dark)}
+  .gch-category__actions a:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:4px}
+  .gch-category__source{padding:clamp(3rem,6vw,5rem) 0}
+  .gch-category__source p{max-width:70ch;margin:1rem 0 0;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}.gch-category__source strong{color:var(--gch-text-primary)}
+</style>
