@@ -1,0 +1,42 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+interface Props {
+  product?: string;
+  status?: string;
+  href?: string;
+  note?: string;
+}
+
+const {
+  product = "AI Website Builder",
+  status = "AVAILABLE",
+  href = "/tools",
+  note = "Open the product experience and explore the workflow before choosing a plan.",
+} = Astro.props;
+---
+
+<section class="gch-live-demo" id="demo-lab" aria-labelledby="gch-live-demo-title">
+  <div class="gch-live-demo__grid" aria-hidden="true"></div>
+  <div class="gch-live-demo__copy">
+    <GCHHudLabel index="25" label="GCH Demo Lab" tone="light" />
+    <h2 id="gch-live-demo-title">Try the product before the sales conversation.</h2>
+    <p>{note}</p>
+  </div>
+
+  <div class="gch-live-demo__terminal">
+    <span class="gch-live-demo__status"><i aria-hidden="true"></i>{status}</span>
+    <strong>{product}</strong>
+    <small>SELF-GUIDED PRODUCT PREVIEW</small>
+    <a href={href}>Open Demo <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<style>
+  .gch-live-demo{position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(18rem,.8fr);gap:clamp(2rem,5vw,5rem);align-items:center;padding:clamp(2rem,5vw,4rem);border:1px solid var(--gch-border-dark);border-radius:1.6rem;overflow:hidden;background:linear-gradient(145deg,#0b0d12,#151923 70%,#111723);color:var(--gch-text-primary-dark)}
+  .gch-live-demo__grid{position:absolute;inset:0;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to right,black,transparent 75%)}
+  .gch-live-demo__copy,.gch-live-demo__terminal{position:relative;z-index:1}.gch-live-demo__copy h2{max-width:13ch;margin:.9rem 0 1rem;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(2rem,4.2vw,4rem);line-height:.98;letter-spacing:-.045em;text-transform:uppercase}.gch-live-demo__copy p{max-width:52ch;margin:0;color:var(--gch-text-secondary-dark);font:400 1rem/1.6 "Outfit",sans-serif}
+  .gch-live-demo__terminal{display:grid;gap:.8rem;padding:1.15rem;border:1px solid rgba(255,255,255,.1);border-radius:1rem;background:rgba(255,255,255,.035)}.gch-live-demo__status{display:inline-flex;align-items:center;gap:.45rem;color:var(--gch-gold-dark);font:700 .58rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}.gch-live-demo__status i{width:.5rem;aspect-ratio:1;border-radius:50%;background:currentColor;box-shadow:0 0 14px rgba(232,160,32,.48)}.gch-live-demo__terminal strong{font:800 1.15rem/1.1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-live-demo__terminal small{color:rgba(242,239,232,.45);font:700 .55rem/1 "JetBrains Mono",monospace;letter-spacing:.08em}.gch-live-demo__terminal a{margin-top:.4rem;display:inline-flex;justify-content:center;align-items:center;gap:.55rem;min-height:3rem;border-radius:999px;background:var(--gch-gold);color:var(--gch-brand-dark);text-decoration:none;font:800 .86rem/1 "Outfit",sans-serif}.gch-live-demo__terminal a:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:4px}
+  @media(max-width:760px){.gch-live-demo{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){.gch-live-demo__status i{box-shadow:none}}
+</style>

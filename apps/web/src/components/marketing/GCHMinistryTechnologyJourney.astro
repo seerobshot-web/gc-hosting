@@ -1,0 +1,57 @@
+---
+const stages = [
+  { key: "service", label: "Service", copy: "Worship, teaching, prayer, and ministry activity begin in a real room with real people." },
+  { key: "signal", label: "Signal", copy: "Cameras, audio, and streaming systems carry that ministry moment beyond the room." },
+  { key: "platform", label: "Platform", copy: "The website, GLinks, media, giving, events, and next steps become one connected digital layer." },
+  { key: "connection", label: "Connection", copy: "People watching remotely can move from viewing to responding, giving, joining, or learning more." },
+];
+---
+
+<div class="gch-ministry-journey" data-ministry-journey>
+  <div class="gch-ministry-journey__scene" aria-hidden="true">
+    <div class="gch-ministry-journey__sanctuary"><span></span><span></span><span></span><i></i></div>
+    <div class="gch-ministry-journey__camera"><b></b><i></i><em></em></div>
+    <div class="gch-ministry-journey__screen"><span>LIVE</span><strong>Sunday Worship</strong><small>Watch · Give · Connect</small></div>
+    <div class="gch-ministry-journey__phone"><strong>GLINKS</strong><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="gch-ministry-journey__path" role="tablist" aria-label="Ministry technology journey">
+    {stages.map((stage, index) => (
+      <button type="button" role="tab" data-ministry-step={stage.key} aria-selected={index === 0 ? "true" : "false"}>
+        <small>{String(index + 1).padStart(2, "0")}</small><strong>{stage.label}</strong>
+      </button>
+    ))}
+  </div>
+
+  <div class="gch-ministry-journey__copy" aria-live="polite">
+    <span data-ministry-title>{stages[0].label}</span>
+    <p data-ministry-copy>{stages[0].copy}</p>
+  </div>
+</div>
+
+<script define:vars={{ stages }}>
+  document.querySelectorAll("[data-ministry-journey]").forEach((root) => {
+    const title = root.querySelector("[data-ministry-title]");
+    const copy = root.querySelector("[data-ministry-copy]");
+    root.querySelectorAll("[data-ministry-step]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.getAttribute("data-ministry-step");
+        root.querySelectorAll("[data-ministry-step]").forEach((item) => item.setAttribute("aria-selected", item === button ? "true" : "false"));
+        root.setAttribute("data-stage", key || "service");
+        const stage = stages.find((item) => item.key === key);
+        if (stage && title && copy) { title.textContent = stage.label; copy.textContent = stage.copy; }
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-ministry-journey{position:absolute;inset:0;z-index:2;padding:clamp(1rem,2.2vw,1.6rem);display:grid;grid-template-rows:1fr auto auto;gap:.9rem;color:#f2efe8}
+  .gch-ministry-journey__scene{position:relative;min-height:15rem;border:1px solid rgba(255,255,255,.08);border-radius:.9rem;overflow:hidden;background:radial-gradient(circle at 52% 22%,rgba(147,180,223,.18),transparent 24%),linear-gradient(180deg,#101828,#0b0d12 62%)}
+  .gch-ministry-journey__sanctuary{position:absolute;inset:0}.gch-ministry-journey__sanctuary:before{content:"";position:absolute;left:28%;right:14%;bottom:16%;height:34%;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015));border-top:1px solid rgba(255,255,255,.1);clip-path:polygon(4% 100%,8% 38%,13% 100%,18% 25%,24% 100%,30% 43%,37% 100%,43% 31%,50% 100%,58% 45%,65% 100%,72% 29%,79% 100%,86% 41%,94% 100%)}.gch-ministry-journey__sanctuary span{position:absolute;top:13%;width:2px;height:42%;background:linear-gradient(#93b4df,transparent);opacity:.45;transform-origin:top}.gch-ministry-journey__sanctuary span:nth-child(1){left:41%;transform:rotate(18deg)}.gch-ministry-journey__sanctuary span:nth-child(2){left:53%}.gch-ministry-journey__sanctuary span:nth-child(3){left:65%;transform:rotate(-18deg)}.gch-ministry-journey__sanctuary i{position:absolute;left:48%;top:20%;width:16%;height:22%;border-radius:.6rem;background:rgba(72,114,184,.12);border:1px solid rgba(147,180,223,.18)}
+  .gch-ministry-journey__camera{position:absolute;left:4%;bottom:8%;width:24%;height:34%;border-radius:.75rem;background:#171b25;border:1px solid rgba(255,255,255,.1);box-shadow:0 16px 38px rgba(0,0,0,.35)}.gch-ministry-journey__camera b{position:absolute;left:15%;top:18%;width:54%;height:40%;border-radius:.55rem;background:#06080b;border:1px solid rgba(255,255,255,.08)}.gch-ministry-journey__camera b:after{content:"";position:absolute;inset:20%;border-radius:50%;border:4px solid #2e3347;background:#0b0d12}.gch-ministry-journey__camera i{position:absolute;right:-22%;top:28%;width:30%;height:28%;background:#1e2028;clip-path:polygon(0 0,100% 18%,100% 82%,0 100%)}.gch-ministry-journey__camera em{position:absolute;left:44%;bottom:-28%;width:5%;height:34%;background:#2e3347}
+  .gch-ministry-journey__screen{position:absolute;right:5%;top:10%;width:34%;min-height:31%;padding:.8rem;border-radius:.7rem;border:1px solid rgba(147,180,223,.22);background:rgba(16,24,40,.82);display:grid;align-content:end;gap:.3rem}.gch-ministry-journey__screen span{color:#93b4df;font:700 .5rem/1 "JetBrains Mono",monospace}.gch-ministry-journey__screen strong{font:700 .8rem/1.1 "Outfit",sans-serif}.gch-ministry-journey__screen small{color:rgba(242,239,232,.55);font:600 .52rem/1 "JetBrains Mono",monospace}.gch-ministry-journey__phone{position:absolute;right:8%;bottom:7%;width:18%;height:39%;padding:.7rem .5rem;border:2px solid rgba(147,180,223,.28);border-radius:1.2rem;background:#0e1420;display:grid;align-content:start;gap:.45rem}.gch-ministry-journey__phone strong{color:#93b4df;text-align:center;font:800 .52rem/1 "JetBrains Mono",monospace}.gch-ministry-journey__phone span{display:block;height:1.5rem;border-radius:.45rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06)}
+  .gch-ministry-journey__path{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}.gch-ministry-journey__path button{min-height:3.5rem;border:1px solid rgba(255,255,255,.09);border-radius:.6rem;background:rgba(255,255,255,.025);color:#f2efe8;padding:.6rem;text-align:left;cursor:pointer}.gch-ministry-journey__path small,.gch-ministry-journey__path strong{display:block}.gch-ministry-journey__path small{color:#93b4df;font:700 .48rem/1 "JetBrains Mono",monospace}.gch-ministry-journey__path strong{margin-top:.45rem;font:700 .62rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-ministry-journey__path button[aria-selected="true"]{background:rgba(72,114,184,.18);border-color:#4872b8}.gch-ministry-journey__path button:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:3px}
+  .gch-ministry-journey__copy{display:grid;grid-template-columns:auto 1fr;gap:.7rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.07)}.gch-ministry-journey__copy span{color:#93b4df;font:700 .55rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-ministry-journey__copy p{margin:0;color:rgba(242,239,232,.7);font:500 .7rem/1.4 "Outfit",sans-serif}
+  @media(max-width:700px){.gch-ministry-journey__screen{width:46%}.gch-ministry-journey__phone{display:none}.gch-ministry-journey__path{grid-template-columns:repeat(2,1fr)}.gch-ministry-journey__copy{grid-template-columns:1fr}}
+</style>

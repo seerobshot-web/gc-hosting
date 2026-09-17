@@ -3,6 +3,8 @@ import GCHWebsiteTransformationPreview from "./GCHWebsiteTransformationPreview.a
 import GCHBrandIdentityPreview from "./GCHBrandIdentityPreview.astro";
 import GCHLocalSearchPreview from "./GCHLocalSearchPreview.astro";
 import GCHSeoGrowthPreview from "./GCHSeoGrowthPreview.astro";
+import GCHHostingArchitecturePreview from "./GCHHostingArchitecturePreview.astro";
+import GCHMinistryTechnologyJourney from "./GCHMinistryTechnologyJourney.astro";
 
 interface Props {
   title: string;
@@ -20,7 +22,7 @@ const {
   kind = "website",
 } = Astro.props;
 
-const hasSpecializedPreview = ["website", "local", "brand", "seo"].includes(kind);
+const hasSpecializedPreview = ["website", "local", "brand", "seo", "hosting", "glinks"].includes(kind);
 ---
 
 <div class={`gch-demo-frame gch-demo-frame--${tone}`} data-demo-kind={kind}>
@@ -40,6 +42,8 @@ const hasSpecializedPreview = ["website", "local", "brand", "seo"].includes(kind
     {kind === "brand" && <GCHBrandIdentityPreview />}
     {kind === "local" && <GCHLocalSearchPreview />}
     {kind === "seo" && <GCHSeoGrowthPreview />}
+    {kind === "hosting" && <GCHHostingArchitecturePreview />}
+    {kind === "glinks" && <GCHMinistryTechnologyJourney />}
 
     {!hasSpecializedPreview && (
       <div class="gch-demo-frame__scene" aria-hidden="true">
@@ -145,9 +149,6 @@ const hasSpecializedPreview = ["website", "local", "brand", "seo"].includes(kind
   .gch-demo-frame__node { position: absolute; width: .58rem; aspect-ratio: 1; border-radius: 999px; background: var(--demo-accent); box-shadow: 0 0 18px color-mix(in srgb, var(--demo-accent) 60%, transparent); }
   .gch-demo-frame__node--one { right: 18%; top: 31%; }
   .gch-demo-frame__node--two { right: 27%; bottom: 21%; }
-
-  [data-demo-kind="hosting"] .gch-demo-frame__panel--one { left: 7%; top: 16%; width: 86%; height: 64%; transform: none; }
-  [data-demo-kind="glinks"] .gch-demo-frame__panel--one { left: 34%; top: 10%; width: 32%; height: 76%; border-radius: 1.8rem; }
 
   .gch-demo-frame__label {
     position: absolute;
