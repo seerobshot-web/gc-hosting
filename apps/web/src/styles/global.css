@@ -3,6 +3,6 @@
 @tailwind utilities;
 
 body {
-  background-color: theme("colors.cloudlight");
-  color: theme("colors.hearth-ink");
+  background-color: theme("colors.cream.DEFAULT");
+  color: theme("colors.ink.DEFAULT");
 }

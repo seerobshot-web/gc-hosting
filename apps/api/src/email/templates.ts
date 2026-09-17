@@ -5,10 +5,10 @@ function esc(s: string) {
 }
 
 function layout(title: string, bodyHtml: string) {
-  return `<!doctype html><html><body style="font-family:Inter,Arial,sans-serif;background:#F6F2E7;color:#2C231C;padding:32px">
-<div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #C9C0AF;border-radius:8px;padding:28px">
+  return `<!doctype html><html><body style="font-family:Outfit,Arial,sans-serif;background:#F8F5EF;color:#1A1C26;padding:32px">
+<div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #EDE9E2;border-radius:8px;padding:28px">
 <h1 style="font-size:20px;margin:0 0 16px">${esc(title)}</h1>${bodyHtml}
-<p style="margin-top:28px;font-size:12px;color:#2C231C99">Glory Cloud Hosts</p></div></body></html>`;
+<p style="margin-top:28px;font-size:12px;color:#4A4E66">Glory Cloud Hosts</p></div></body></html>`;
 }
 
 export function invitationEmail(opts: {
@@ -27,8 +27,8 @@ export function invitationEmail(opts: {
     html: layout(
       `You're invited to ${opts.orgName}`,
       `<p>${esc(opts.inviterName)} has invited you to join <strong>${esc(opts.orgName)}</strong> as <strong>${esc(opts.role.toLowerCase())}</strong>.</p>
-<p><a href="${esc(opts.acceptUrl)}" style="display:inline-block;background:#A83E1B;color:#F6F2E7;padding:10px 18px;border-radius:6px;text-decoration:none">Accept invitation</a></p>
-<p style="font-size:13px;color:#2C231C99">This link expires ${esc(when)}. If you weren't expecting it, you can ignore this email.</p>`,
+<p><a href="${esc(opts.acceptUrl)}" style="display:inline-block;background:#D4900C;color:#0B0D12;padding:10px 18px;border-radius:999px;font-weight:600;text-decoration:none">Accept invitation</a></p>
+<p style="font-size:13px;color:#4A4E66">This link expires ${esc(when)}. If you weren't expecting it, you can ignore this email.</p>`,
     ),
   };
 }
@@ -51,7 +51,7 @@ export function paymentFailedEmail(opts: {
     html: layout(
       "Payment failed",
       `<p>We couldn't collect <strong>${esc(amount)}</strong> for <strong>${esc(opts.orgName)}</strong>'s subscription.</p>
-<p><a href="${esc(opts.billingUrl)}" style="display:inline-block;background:#A83E1B;color:#F6F2E7;padding:10px 18px;border-radius:6px;text-decoration:none">Update payment method</a></p>`,
+<p><a href="${esc(opts.billingUrl)}" style="display:inline-block;background:#D4900C;color:#0B0D12;padding:10px 18px;border-radius:999px;font-weight:600;text-decoration:none">Update payment method</a></p>`,
     ),
   };
 }

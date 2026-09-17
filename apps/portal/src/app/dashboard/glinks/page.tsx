@@ -7,7 +7,7 @@ export default async function GLinksDashboardPage() {
   if (!session) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16">
-        <p className="text-hearth-ink">
+        <p className="text-ink">
           Sign in required to manage your GloryLink page.
         </p>
       </main>
@@ -17,8 +17,8 @@ export default async function GLinksDashboardPage() {
   if (!session.org) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16">
-        <h1 className="font-display text-2xl text-hearth-ink">Your GloryLink</h1>
-        <p className="mt-4 text-hearth-ink/80">
+        <h1 className="font-display text-2xl text-ink">Your GloryLink</h1>
+        <p className="mt-4 text-ink-sub">
           Your account isn&apos;t part of a workspace yet. Ask a workspace
           owner to add you, or contact support.
         </p>
@@ -37,8 +37,8 @@ export default async function GLinksDashboardPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <h1 className="font-display text-2xl text-hearth-ink">Your GloryLink</h1>
-      <p className="mt-1 text-sm text-hearth-ink/60">
+      <h1 className="font-display text-2xl text-ink">Your GloryLink</h1>
+      <p className="mt-1 text-sm text-ink-muted">
         {session.org.name} · {session.org.role.toLowerCase()}
         {!can(session, "glink:write") && " · view only"}
       </p>
@@ -46,16 +46,16 @@ export default async function GLinksDashboardPage() {
         {glinks.map((link) => (
           <li
             key={link.id}
-            className="rounded-md border border-ash-stone bg-cloudlight px-4 py-3"
+            className="rounded-md border border-ink/10 bg-white px-4 py-3"
           >
-            <span className="text-xs uppercase tracking-wide text-verdigris-sky">
+            <span className="text-xs uppercase tracking-wide text-gold-text">
               {link.moduleType.replace("_", " ")}
             </span>
-            <p className="font-medium text-hearth-ink">{link.label}</p>
+            <p className="font-medium text-ink">{link.label}</p>
           </li>
         ))}
         {glinks.length === 0 && (
-          <li className="text-hearth-ink/60">
+          <li className="text-ink-muted">
             {client ? "No modules added yet." : "No hosting client is linked to this workspace yet."}
           </li>
         )}

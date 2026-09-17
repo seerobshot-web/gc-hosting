@@ -3,39 +3,39 @@ import Link from "next/link";
 export default function PortalHome() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-4 px-6">
-      <h1 className="font-display text-3xl text-hearth-ink">GCH Client Portal</h1>
-      <p className="text-hearth-ink/80">
+      <h1 className="font-display text-3xl text-ink">GCH Client Portal</h1>
+      <p className="text-ink-sub">
         Account, billing status, and provisioning are managed here. GloryLink
         clients can manage their link-in-bio page under Dashboard.
       </p>
       <div className="flex flex-wrap gap-3">
         <Link
           href="/dashboard"
-          className="w-fit rounded-md bg-ember-core px-4 py-2 font-medium text-cloudlight"
+          className="w-fit rounded-md bg-gold px-4 py-2 font-medium text-brand"
         >
           Infrastructure Dashboard
         </Link>
         <Link
           href="/dashboard/glinks"
-          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+          className="w-fit rounded-md border border-ink/10 px-4 py-2 font-medium text-ink"
         >
           Go to GloryLink Dashboard
         </Link>
         <Link
           href="/dashboard/team"
-          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+          className="w-fit rounded-md border border-ink/10 px-4 py-2 font-medium text-ink"
         >
           Team
         </Link>
         <Link
           href="/dashboard/billing"
-          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+          className="w-fit rounded-md border border-ink/10 px-4 py-2 font-medium text-ink"
         >
           Billing
         </Link>
         <Link
           href="/dashboard/settings"
-          className="w-fit rounded-md border border-ash-stone px-4 py-2 font-medium text-hearth-ink"
+          className="w-fit rounded-md border border-ink/10 px-4 py-2 font-medium text-ink"
         >
           Settings
         </Link>
