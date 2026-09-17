@@ -1,0 +1,171 @@
+---
+interface Props {
+  title: string;
+  status?: string;
+  urlLabel?: string;
+  tone?: "gold" | "blue";
+  kind?: "website" | "local" | "brand" | "seo" | "hosting" | "glinks";
+}
+
+const {
+  title,
+  status = "LIVE PREVIEW",
+  urlLabel = "preview.gch",
+  tone = "gold",
+  kind = "website",
+} = Astro.props;
+---
+
+<div class={`gch-demo-frame gch-demo-frame--${tone}`} data-demo-kind={kind}>
+  <div class="gch-demo-frame__bar">
+    <div class="gch-demo-frame__lights" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="gch-demo-frame__address">
+      <span class="gch-demo-frame__lab">GCH LAB</span>
+      <span>{urlLabel}</span>
+    </div>
+    <span class="gch-demo-frame__status"><i aria-hidden="true"></i>{status}</span>
+  </div>
+
+  <div class="gch-demo-frame__stage">
+    <div class="gch-demo-frame__scene" aria-hidden="true">
+      <span class="gch-demo-frame__panel gch-demo-frame__panel--one"></span>
+      <span class="gch-demo-frame__panel gch-demo-frame__panel--two"></span>
+      <span class="gch-demo-frame__panel gch-demo-frame__panel--three"></span>
+      <span class="gch-demo-frame__line gch-demo-frame__line--one"></span>
+      <span class="gch-demo-frame__line gch-demo-frame__line--two"></span>
+      <span class="gch-demo-frame__line gch-demo-frame__line--three"></span>
+      <span class="gch-demo-frame__node gch-demo-frame__node--one"></span>
+      <span class="gch-demo-frame__node gch-demo-frame__node--two"></span>
+    </div>
+
+    <div class="gch-demo-frame__label">
+      <span>{title}</span>
+      <small>{kind}</small>
+    </div>
+
+    <slot />
+  </div>
+</div>
+
+<style>
+  .gch-demo-frame {
+    --demo-accent: var(--gch-gold-dark);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 1.1rem;
+    overflow: hidden;
+    background: var(--gch-brand-dark);
+    box-shadow: 0 24px 70px rgba(11,13,18,.22);
+  }
+
+  .gch-demo-frame--blue { --demo-accent: var(--gch-blue-dark-safe); }
+
+  .gch-demo-frame__bar {
+    min-height: 3.1rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: .65rem .85rem;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    background: #11151d;
+  }
+
+  .gch-demo-frame__lights { display: flex; gap: .35rem; }
+  .gch-demo-frame__lights span { width: .46rem; aspect-ratio: 1; border-radius: 999px; background: rgba(255,255,255,.2); }
+  .gch-demo-frame__lights span:nth-child(1) { background: #E8566A; }
+  .gch-demo-frame__lights span:nth-child(2) { background: #F0862E; }
+  .gch-demo-frame__lights span:nth-child(3) { background: #E8A020; }
+
+  .gch-demo-frame__address {
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    min-width: 0;
+    max-width: 100%;
+    color: rgba(242,239,232,.58);
+    font: 600 .64rem/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: .04em;
+  }
+
+  .gch-demo-frame__lab {
+    color: var(--demo-accent);
+    letter-spacing: .09em;
+  }
+
+  .gch-demo-frame__status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--demo-accent);
+    font: 700 .58rem/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .gch-demo-frame__status i { width: .42rem; aspect-ratio: 1; border-radius: 999px; background: currentColor; box-shadow: 0 0 12px color-mix(in srgb, currentColor 55%, transparent); }
+
+  .gch-demo-frame__stage {
+    position: relative;
+    min-height: clamp(22rem, 48vw, 36rem);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 72% 22%, color-mix(in srgb, var(--demo-accent) 14%, transparent), transparent 26%),
+      linear-gradient(150deg, #0B0D12 0%, #171b25 52%, #10131a 100%);
+  }
+
+  .gch-demo-frame__scene { position: absolute; inset: 0; }
+  .gch-demo-frame__panel { position: absolute; border: 1px solid rgba(255,255,255,.12); border-radius: .9rem; background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.018)); }
+  .gch-demo-frame__panel--one { left: 8%; top: 14%; width: 54%; height: 60%; transform: perspective(900px) rotateY(4deg); }
+  .gch-demo-frame__panel--two { right: 7%; top: 22%; width: 29%; height: 31%; }
+  .gch-demo-frame__panel--three { right: 10%; bottom: 10%; width: 36%; height: 24%; }
+  .gch-demo-frame__line { position: absolute; height: 2px; border-radius: 999px; background: color-mix(in srgb, var(--demo-accent) 82%, white 4%); opacity: .75; }
+  .gch-demo-frame__line--one { left: 13%; top: 27%; width: 28%; }
+  .gch-demo-frame__line--two { left: 13%; top: 34%; width: 39%; opacity: .35; }
+  .gch-demo-frame__line--three { left: 13%; top: 41%; width: 22%; opacity: .22; }
+  .gch-demo-frame__node { position: absolute; width: .58rem; aspect-ratio: 1; border-radius: 999px; background: var(--demo-accent); box-shadow: 0 0 18px color-mix(in srgb, var(--demo-accent) 60%, transparent); }
+  .gch-demo-frame__node--one { right: 18%; top: 31%; }
+  .gch-demo-frame__node--two { right: 27%; bottom: 21%; }
+
+  [data-demo-kind="brand"] .gch-demo-frame__panel--one { width: 38%; height: 52%; left: 10%; top: 18%; transform: rotate(-3deg); }
+  [data-demo-kind="brand"] .gch-demo-frame__panel--two { width: 34%; height: 45%; right: 12%; top: 16%; transform: rotate(4deg); }
+  [data-demo-kind="brand"] .gch-demo-frame__panel--three { width: 42%; height: 24%; left: 29%; bottom: 9%; }
+  [data-demo-kind="local"] .gch-demo-frame__panel--one { left: 9%; width: 47%; }
+  [data-demo-kind="local"] .gch-demo-frame__panel--two { right: 9%; width: 36%; height: 55%; }
+  [data-demo-kind="seo"] .gch-demo-frame__panel { border-radius: 999px; }
+  [data-demo-kind="seo"] .gch-demo-frame__panel--one { width: 10rem; height: 10rem; left: 36%; top: 28%; }
+  [data-demo-kind="seo"] .gch-demo-frame__panel--two { width: 5rem; height: 5rem; right: 16%; top: 17%; }
+  [data-demo-kind="seo"] .gch-demo-frame__panel--three { width: 6rem; height: 6rem; right: 18%; bottom: 14%; }
+  [data-demo-kind="hosting"] .gch-demo-frame__panel--one { left: 7%; top: 16%; width: 86%; height: 64%; transform: none; }
+  [data-demo-kind="glinks"] .gch-demo-frame__panel--one { left: 34%; top: 10%; width: 32%; height: 76%; border-radius: 1.8rem; }
+
+  .gch-demo-frame__label {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .55rem .65rem;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: .6rem;
+    background: rgba(11,13,18,.72);
+    backdrop-filter: blur(12px);
+  }
+  .gch-demo-frame__label span { color: var(--gch-text-primary-dark); font: 700 .72rem/1 "Outfit", system-ui, sans-serif; }
+  .gch-demo-frame__label small { color: var(--demo-accent); font: 700 .55rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; }
+
+  @media (max-width: 620px) {
+    .gch-demo-frame__bar { grid-template-columns: auto 1fr; }
+    .gch-demo-frame__address { justify-self: start; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gch-demo-frame__status { grid-column: 1 / -1; }
+    .gch-demo-frame__stage { min-height: 22rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-demo-frame__status i { box-shadow: none; }
+  }
+</style>
