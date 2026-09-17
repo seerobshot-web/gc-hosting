@@ -7,7 +7,8 @@
     "build": "astro build",
     "start": "astro preview --port 3000",
     "lint": "eslint src --ext .astro,.ts,.tsx",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "validate:routes": "node scripts/validate-public-routes.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^3.6.2",
