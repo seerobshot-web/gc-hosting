@@ -1,0 +1,10 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GCHCategoryLanding from "../components/marketing/GCHCategoryLanding.astro";
+import { publicCategoryContent, contentSources } from "../content/marketing-content";
+const content = publicCategoryContent.tools;
+const source = contentSources[content.source];
+---
+<Layout title="Tools | Glory Cloud Hosts">
+  <GCHCategoryLanding {...content} sourceLabel={source.label} />
+</Layout>
