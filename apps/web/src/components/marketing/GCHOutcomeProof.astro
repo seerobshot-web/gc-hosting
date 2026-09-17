@@ -1,0 +1,17 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+const cards=[
+ {code:"LOG-01",title:"Website rebuild",status:"Evidence slot",copy:"Before/after captures, launch scope, accessibility checks, mobile improvements, and conversion-path changes belong here once verified."},
+ {code:"LOG-02",title:"Migration / hosting",status:"Evidence slot",copy:"Documented migration scope, service continuity, DNS/SSL checks, and post-launch verification can be presented without inventing performance claims."},
+ {code:"LOG-03",title:"Search / visibility",status:"Evidence slot",copy:"Verified Search Console, profile, content, or local-visibility outcomes can populate this card when a real reporting period exists."},
+];
+---
+<section class="proof" id="proof-outcomes" aria-labelledby="proof-title">
+ <header><GCHHudLabel index="30" label="Proof / outcomes"/><h2 id="proof-title">Show the work with evidence, not decoration.</h2><p>This wireframe deliberately uses evidence slots rather than fabricated testimonials or metrics. Published proof should be tied to a named project, timeframe, and verifiable result.</p></header>
+ <div class="proof__grid">
+  {cards.map(card=><article><div class="proof__meta"><span>{card.code}</span><b>{card.status}</b></div><div class="proof__media" aria-hidden="true"><i></i><i></i><i></i></div><h3>{card.title}</h3><p>{card.copy}</p><a href="/start">Discuss a project <span aria-hidden="true">→</span></a></article>)}
+ </div>
+</section>
+<style>
+.proof{padding-block:clamp(4rem,8vw,7rem)}.proof header{max-width:54rem}.proof h2{max-width:15ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.6vw,4.3rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.proof header p{max-width:64ch;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",sans-serif}.proof__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem}.proof__grid article{padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}.proof__meta{display:flex;justify-content:space-between;gap:.8rem;align-items:center}.proof__meta span,.proof__meta b{font:700 .54rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.proof__meta span{color:var(--gch-text-muted)}.proof__meta b{color:var(--gch-gold-text)}.proof__media{height:9rem;margin:1rem 0;border-radius:.75rem;background:linear-gradient(145deg,#10131a,#2e3347);display:grid;align-content:center;gap:.5rem;padding:1rem}.proof__media i{display:block;height:.4rem;border-radius:999px;background:rgba(255,255,255,.12)}.proof__media i:nth-child(1){width:72%;background:var(--gch-gold-dark)}.proof__media i:nth-child(2){width:54%}.proof__media i:nth-child(3){width:63%}.proof h3{margin:.4rem 0 .6rem;font:800 1rem/1.05 "JetBrains Mono",monospace;text-transform:uppercase}.proof article p{margin:0 0 1rem;color:var(--gch-text-secondary);font:400 .87rem/1.55 "Outfit",sans-serif}.proof a{color:var(--gch-text-primary);text-decoration:none;font:700 .83rem/1 "Outfit",sans-serif}.proof a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:3px}@media(max-width:850px){.proof__grid{grid-template-columns:1fr}}
+</style>
