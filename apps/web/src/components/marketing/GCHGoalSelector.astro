@@ -51,10 +51,10 @@ const goals = [
 
 <script>
   document.querySelectorAll("[data-goal-selector]").forEach((root) => {
-    const buttons = Array.from(root.querySelectorAll("[data-goal-button]"));
-    const panels = Array.from(root.querySelectorAll("[data-goal-panel]"));
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-goal-button]"));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-goal-panel]"));
 
-    const activate = (key) => {
+    const activate = (key: string | null) => {
       buttons.forEach((button) => {
         button.setAttribute("aria-pressed", button.getAttribute("data-goal-button") === key ? "true" : "false");
       });
