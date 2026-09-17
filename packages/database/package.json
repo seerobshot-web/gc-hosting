@@ -13,6 +13,9 @@
     "backfill:identity": "tsx scripts/backfill-identity.ts",
     "seed:plan": "tsx scripts/seed-plan.ts"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0"
   },

@@ -19,17 +19,17 @@ datasource db {
 
 /// Top-level tenant — a ministry or client organization.
 model Org {
-  id        String   @id @default(cuid())
-  name      String
+  id             String   @id @default(cuid())
+  name           String
   /// URL-safe handle, reserved for per-workspace routing (`/w/[slug]`) even
   /// though v1 has no workspace switcher.
-  slug      String   @unique
+  slug           String   @unique
   /// When set, a user registering or signing in with an email at this domain
   /// is auto-added as a MEMBER. May only ever be set to a domain with a
   /// matching OrgDomainVerification.verifiedAt — the api refuses otherwise.
   autoJoinDomain String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   clients             Client[]
   glinks              GLink[]
@@ -38,6 +38,7 @@ model Org {
   invoices            Invoice[]
   invitations         Invitation[]
   domainVerifications OrgDomainVerification[]
+  orders              Order[]
 }
 
 enum InvitationStatus {
@@ -99,6 +100,7 @@ model Plan {
   createdAt         DateTime @default(now())
 
   subscriptions Subscription[]
+  orders        Order[]
 }
 
 /// One Stripe subscription per Org (workspace-level SaaS billing). This is
@@ -219,13 +221,13 @@ model Membership {
 /// Mirrors the FOSSBilling client record via an external ID field —
 /// billing data itself is never duplicated here, only referenced.
 model Client {
-  id                 String   @id @default(cuid())
-  orgId              String
-  org                Org      @relation(fields: [orgId], references: [id])
-  fossbillingClientId String  @unique
-  email              String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  orgId               String
+  org                 Org      @relation(fields: [orgId], references: [id])
+  fossbillingClientId String   @unique
+  email               String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   /// Links this FOSSBilling-mirrored record to the portal identity that
   /// owns it, once one exists. Nullable: a Client can predate any portal
@@ -303,5 +305,93 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   @@index([targetType, targetId])
+  @@index([actor])
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// GCH-ALEPH order → provisioning domain model (Phase 3)
+//
+// Encodes the three core invariants from AUTHORITY-BOUNDARIES.md:
+//   1. One paid GCH order line grants AT MOST one active provider service —
+//      enforced at the DB level by ProviderService.orderId @unique.
+//   2. External mutations are replayable via IdempotencyRecord
+//      (key = sha256(entityType:entityId:operationName), see IDEMPOTENCY.md).
+//   3. Every state transition is auditable (AuditLog, above).
+// ---------------------------------------------------------------------------
+
+/// Lifecycle of a GCH order line. Stripe drives PENDING → PAID; the
+/// provisioning orchestrator drives PAID → PROVISIONING → ACTIVE. CANCELLED
+/// and FAILED are terminal off-ramps.
+enum OrderStatus {
+  PENDING
+  PAID
+  PROVISIONING
+  ACTIVE
+  CANCELLED
+  FAILED
+}
+
+/// A single purchase of a Plan by an Org — the GCH-ALEPH order line that the
+/// state machine tracks from checkout through provisioning. Distinct from the
+/// legacy `ProvisioningOrder` shadow table (a poller-updated mirror of a
+/// ResellPortal order keyed off Client); this Order is the org-facing,
+/// Stripe-anchored commercial record.
+model Order {
+  id              String      @id @default(cuid())
+  orgId           String
+  org             Org         @relation(fields: [orgId], references: [id])
+  /// Set only once Stripe confirms payment, hence nullable; still globally
+  /// unique so a Stripe PaymentIntent can back at most one order.
+  stripePaymentId String?     @unique
+  status          OrderStatus @default(PENDING)
+  planId          String
+  plan            Plan        @relation(fields: [planId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  /// Null until provisioned. One-to-one — the guard lives on
+  /// ProviderService.orderId @unique.
+  providerService ProviderService?
+
+  @@index([orgId])
+  @@index([status])
+}
+
+/// Fulfillment state of the ResellPortal service behind an order.
+enum ProviderStatus {
+  PROVISIONING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+/// The provisioned ResellPortal service for an order. `orderId @unique` is the
+/// DB-level "one active service per order" invariant — do not remove it.
+/// `resellPortalId` is the external ID returned by ResellPortal.
+model ProviderService {
+  id             String         @id @default(cuid())
+  orderId        String         @unique
+  order          Order          @relation(fields: [orderId], references: [id])
+  resellPortalId String         @unique
+  status         ProviderStatus @default(PROVISIONING)
+  provisionedAt  DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status])
+}
+
+/// Replay ledger for external mutations. The key is a deterministic
+/// sha256(entityType:entityId:operationName) (see IDEMPOTENCY.md), so a retry
+/// of the same logical operation hits the same row and returns the stored
+/// result instead of re-executing. `expiresAt` drives TTL cleanup (24h for
+/// most ops, 7d for provisioning).
+model IdempotencyRecord {
+  key       String   @id
+  result    Json
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
 }
