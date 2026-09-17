@@ -5,6 +5,7 @@ import { getMe, type Role } from "./api-client";
 export interface Session {
   userId: string;
   email: string;
+  name: string | null;
   accessToken: string;
   /** Active workspace. Null for a user who belongs to no org yet. */
   org: { id: string; name: string; slug: string; role: Role } | null;
@@ -47,6 +48,7 @@ export async function getSession(): Promise<Session | null> {
   return {
     userId: me.id,
     email: me.email,
+    name: me.name,
     accessToken,
     org: active
       ? { ...active.org, role: active.role }

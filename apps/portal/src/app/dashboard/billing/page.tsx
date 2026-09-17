@@ -23,7 +23,7 @@ export default async function BillingPage({
   if (!session?.org) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16">
-        <p className="text-hearth-ink">Sign in to a workspace to manage billing.</p>
+        <p className="text-ink">Sign in to a workspace to manage billing.</p>
       </main>
     );
   }
@@ -31,8 +31,8 @@ export default async function BillingPage({
   if (!can(session, "billing:manage")) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-16">
-        <h1 className="font-display text-2xl text-hearth-ink">Billing</h1>
-        <p className="mt-4 text-hearth-ink/80">
+        <h1 className="font-display text-2xl text-ink">Billing</h1>
+        <p className="mt-4 text-ink-sub">
           Only a workspace owner can view or change billing for {session.org.name}.
         </p>
       </main>
@@ -48,46 +48,46 @@ export default async function BillingPage({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <h1 className="font-display text-2xl text-hearth-ink">Billing</h1>
-      <p className="mt-1 text-sm text-hearth-ink/60">{session.org.name}</p>
+      <h1 className="font-display text-2xl text-ink">Billing</h1>
+      <p className="mt-1 text-sm text-ink-muted">{session.org.name}</p>
 
       {params.checkout === "success" && (
-        <p className="mt-4 rounded-md border border-verdigris-sky bg-cloudlight px-4 py-3 text-sm text-verdigris-sky">
+        <p className="mt-4 rounded-md border border-success bg-white px-4 py-3 text-sm text-success">
           Thanks — your subscription is being activated. This page updates as soon as Stripe
           confirms it.
         </p>
       )}
       {params.error && (
-        <p className="mt-4 rounded-md border border-ember-core px-4 py-3 text-sm text-ember-core">
+        <p className="mt-4 rounded-md border border-danger px-4 py-3 text-sm text-danger">
           {params.error === "forbidden" ? "You can't do that." : params.error}
         </p>
       )}
 
-      <section className="mt-8 rounded-md border border-ash-stone bg-cloudlight p-5">
-        <h2 className="font-display text-lg text-hearth-ink">Current plan</h2>
+      <section className="mt-8 rounded-md border border-ink/10 bg-white p-5">
+        <h2 className="font-display text-lg text-ink">Current plan</h2>
         {live && subscription ? (
           <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-hearth-ink/60">Plan</dt>
-            <dd className="text-hearth-ink">{subscription.plan?.name ?? "—"}</dd>
-            <dt className="text-hearth-ink/60">Status</dt>
-            <dd className="text-hearth-ink">
+            <dt className="text-ink-muted">Plan</dt>
+            <dd className="text-ink">{subscription.plan?.name ?? "—"}</dd>
+            <dt className="text-ink-muted">Status</dt>
+            <dd className="text-ink">
               {subscription.status}
               {subscription.cancelAtPeriodEnd && " · cancels at period end"}
             </dd>
-            <dt className="text-hearth-ink/60">Seats</dt>
-            <dd className="text-hearth-ink">
+            <dt className="text-ink-muted">Seats</dt>
+            <dd className="text-ink">
               {seatsUsed} in use
               {subscription.plan?.seatLimit != null && ` of ${subscription.plan.seatLimit}`}
               {subscription.seatsPurchased !== seatsUsed &&
                 ` (billing ${subscription.seatsPurchased}, syncing)`}
             </dd>
-            <dt className="text-hearth-ink/60">
+            <dt className="text-ink-muted">
               {subscription.cancelAtPeriodEnd ? "Ends" : "Renews"}
             </dt>
-            <dd className="text-hearth-ink">{date(subscription.currentPeriodEnd)}</dd>
+            <dd className="text-ink">{date(subscription.currentPeriodEnd)}</dd>
           </dl>
         ) : (
-          <p className="mt-3 text-sm text-hearth-ink/80">
+          <p className="mt-3 text-sm text-ink-sub">
             No active subscription. {seatsUsed} member{seatsUsed === 1 ? "" : "s"} in this
             workspace.
           </p>
@@ -96,11 +96,11 @@ export default async function BillingPage({
           <form action={openBillingPortal} className="mt-4">
             <button
               type="submit"
-              className="rounded-md bg-ember-core px-4 py-2 text-sm text-cloudlight"
+              className="rounded-md bg-gold px-4 py-2 text-sm text-brand"
             >
               Manage billing
             </button>
-            <span className="ml-3 text-xs text-hearth-ink/60">
+            <span className="ml-3 text-xs text-ink-muted">
               Payment method, plan changes, and cancellation — handled by Stripe.
             </span>
           </form>
@@ -109,14 +109,14 @@ export default async function BillingPage({
 
       {!live && plans.length > 0 && (
         <section className="mt-8">
-          <h2 className="font-display text-lg text-hearth-ink">Choose a plan</h2>
+          <h2 className="font-display text-lg text-ink">Choose a plan</h2>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {plans.map((plan) => {
               const tooSmall = plan.seatLimit != null && seatsUsed > plan.seatLimit;
               return (
-                <li key={plan.id} className="rounded-md border border-ash-stone bg-cloudlight p-4">
-                  <p className="font-medium text-hearth-ink">{plan.name}</p>
-                  <p className="mt-1 text-sm text-hearth-ink/80">
+                <li key={plan.id} className="rounded-md border border-ink/10 bg-white p-4">
+                  <p className="font-medium text-ink">{plan.name}</p>
+                  <p className="mt-1 text-sm text-ink-sub">
                     {money(plan.pricePerSeatCents)} per seat / month
                     {plan.seatLimit != null && ` · up to ${plan.seatLimit} seats`}
                   </p>
@@ -125,7 +125,7 @@ export default async function BillingPage({
                     <button
                       type="submit"
                       disabled={tooSmall}
-                      className="rounded-md bg-ember-core px-3 py-1.5 text-sm text-cloudlight disabled:opacity-50"
+                      className="rounded-md bg-gold px-3 py-1.5 text-sm text-brand disabled:opacity-50"
                     >
                       {tooSmall ? `Needs ≤ ${plan.seatLimit} members` : "Subscribe"}
                     </button>
@@ -138,25 +138,25 @@ export default async function BillingPage({
       )}
 
       <section className="mt-8">
-        <h2 className="font-display text-lg text-hearth-ink">Invoices</h2>
+        <h2 className="font-display text-lg text-ink">Invoices</h2>
         {invoices.length === 0 ? (
-          <p className="mt-3 text-sm text-hearth-ink/60">No invoices yet.</p>
+          <p className="mt-3 text-sm text-ink-muted">No invoices yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-ash-stone rounded-md border border-ash-stone bg-cloudlight">
+          <ul className="mt-3 divide-y divide-ink/10 rounded-md border border-ink/10 bg-white">
             {invoices.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <div>
-                  <p className="text-hearth-ink">
+                  <p className="text-ink">
                     {date(inv.periodStart)} – {date(inv.periodEnd)}
                   </p>
-                  <p className="text-xs uppercase tracking-wide text-hearth-ink/60">{inv.status}</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">{inv.status}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-hearth-ink">{money(inv.amountDueCents, inv.currency)}</p>
+                  <p className="text-ink">{money(inv.amountDueCents, inv.currency)}</p>
                   {inv.hostedInvoiceUrl && (
                     <a
                       href={inv.hostedInvoiceUrl}
-                      className="text-xs text-verdigris-sky underline"
+                      className="text-xs text-gold-text underline"
                       target="_blank"
                       rel="noreferrer"
                     >
