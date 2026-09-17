@@ -1,0 +1,102 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+interface Props {
+  title?: string;
+  body?: string;
+}
+
+const {
+  title = "The mission is already moving. Let’s make sure the technology can keep up.",
+  body = "Start with a project, explore the product ecosystem, or talk with GCH about the clearest next step.",
+} = Astro.props;
+
+const actions = [
+  { label: "Start a project", href: "/start" },
+  { label: "Explore products", href: "/tools" },
+  { label: "Talk with GCH", href: "/contact" },
+];
+---
+
+<section class="gch-final" data-gch-surface="dark" aria-labelledby="gch-final-title">
+  <div class="gch-final__wash" aria-hidden="true"></div>
+  <div class="gch-final__inner">
+    <div class="gch-final__copy">
+      <GCHHudLabel index="35" label="Final conversion layer" tone="light" />
+      <h2 id="gch-final-title">{title}</h2>
+      <p>{body}</p>
+    </div>
+
+    <div class="gch-final__actions">
+      {actions.map((action, index) => (
+        <a class="gch-final__action" href={action.href}>
+          <span class="gch-final__index">0{index + 1}</span>
+          <span>{action.label}</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </div>
+  <div class="gch-final__horizon" aria-hidden="true"></div>
+</section>
+
+<style>
+  .gch-final {
+    position:relative;
+    overflow:hidden;
+    padding:clamp(4rem,8vw,7rem) 0;
+    background:
+      radial-gradient(circle at 80% 20%,rgba(232,160,32,.14),transparent 27%),
+      radial-gradient(circle at 24% 78%,rgba(72,114,184,.1),transparent 30%),
+      var(--gch-brand-dark);
+    color:var(--gch-text-primary-dark);
+  }
+  .gch-final__wash {
+    position:absolute; inset:0;
+    background:linear-gradient(115deg,rgba(11,13,18,.2),rgba(11,13,18,.74));
+    pointer-events:none;
+  }
+  .gch-final__inner {
+    position:relative; z-index:2;
+    width:min(100% - 2rem,1180px);
+    margin-inline:auto;
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(18rem,.85fr);
+    gap:clamp(2rem,5vw,5rem);
+    align-items:end;
+  }
+  .gch-final h2 {
+    max-width:11ch;
+    margin:1rem 0 1.1rem;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:clamp(2.2rem,5.4vw,5.2rem);
+    line-height:.97;
+    letter-spacing:-.055em;
+    text-transform:uppercase;
+  }
+  .gch-final p { max-width:55ch; margin:0; color:var(--gch-text-secondary-dark); font:400 1rem/1.7 "Outfit",system-ui,sans-serif; }
+  .gch-final__actions { display:grid; gap:.65rem; }
+  .gch-final__action {
+    display:grid;
+    grid-template-columns:2rem 1fr auto;
+    gap:.75rem;
+    align-items:center;
+    min-height:4.2rem;
+    padding:.85rem 1rem;
+    border:1px solid var(--gch-border-dark);
+    border-radius:1rem;
+    background:rgba(255,255,255,.045);
+    color:var(--gch-text-primary-dark);
+    text-decoration:none;
+    backdrop-filter:blur(10px);
+    transition:transform 180ms ease,border-color 180ms ease,background-color 180ms ease;
+  }
+  .gch-final__action:hover,
+  .gch-final__action:focus-visible { transform:translateX(4px); border-color:rgba(232,160,32,.5); background:rgba(255,255,255,.07); outline:none; }
+  .gch-final__action:focus-visible { box-shadow:0 0 0 2px var(--gch-blue-dark-safe); }
+  .gch-final__index { color:var(--gch-gold-dark); font:700 .64rem/1 "JetBrains Mono",monospace; letter-spacing:.08em; }
+  .gch-final__action span:nth-child(2) { font:700 .98rem/1.2 "Outfit",system-ui,sans-serif; }
+  .gch-final__horizon { position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--gch-gradient-ember); box-shadow:0 -12px 40px rgba(232,160,32,.18); }
+  @media (max-width:780px) { .gch-final__inner { grid-template-columns:1fr; align-items:start; } .gch-final h2 { max-width:13ch; } }
+  @media (prefers-reduced-motion:reduce) { .gch-final__action { transition:none; } .gch-final__action:hover,.gch-final__action:focus-visible { transform:none; } }
+</style>
