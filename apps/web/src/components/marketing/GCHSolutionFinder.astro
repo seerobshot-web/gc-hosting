@@ -1,0 +1,25 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+const choices = [
+  {id:"build",label:"Build or redesign a website",result:"Start with Website + Brand foundations.",href:"/start?goal=build"},
+  {id:"grow",label:"Improve search visibility and growth",result:"Start with SEO + Google / Local visibility.",href:"/start?goal=grow"},
+  {id:"host",label:"Move or simplify hosting",result:"Start with Managed Hosting + migration planning.",href:"/start?goal=host"},
+  {id:"connect",label:"Connect ministry content and next steps",result:"Start with Ministry Technology + GLinks.",href:"/start?goal=connect"},
+  {id:"unsure",label:"I need help figuring it out",result:"Start with a guided consultation and digital-system review.",href:"/start"},
+];
+---
+<section class="gch-finder" id="solution-finder" aria-labelledby="gch-finder-title" data-finder>
+  <div class="gch-finder__intro"><GCHHudLabel index="34" label="Consultation / solution finder" /><h2 id="gch-finder-title">Start with the outcome, not the catalog.</h2><p>Choose the closest need and the system points to a practical starting path.</p></div>
+  <div class="gch-finder__panel">
+    <div class="gch-finder__choices" role="radiogroup" aria-label="What do you need help with?">
+      {choices.map((c,i)=><button type="button" role="radio" aria-checked={i===0?"true":"false"} data-finder-choice={c.id} data-result={c.result} data-href={c.href}><span>{String(i+1).padStart(2,"0")}</span>{c.label}</button>)}
+    </div>
+    <div class="gch-finder__result" aria-live="polite"><GCHHudLabel index="RESULT" label="Recommended starting point" /><p data-finder-result>{choices[0].result}</p><a data-finder-link href={choices[0].href}>See recommended starting point →</a></div>
+  </div>
+</section>
+<script>
+document.querySelectorAll('[data-finder]').forEach(root=>{const buttons=[...root.querySelectorAll('[data-finder-choice]')];const result=root.querySelector('[data-finder-result]');const link=root.querySelector('[data-finder-link]');buttons.forEach(btn=>btn.addEventListener('click',()=>{buttons.forEach(b=>b.setAttribute('aria-checked',b===btn?'true':'false'));if(result)result.textContent=btn.getAttribute('data-result')||'';if(link instanceof HTMLAnchorElement)link.href=btn.getAttribute('data-href')||'/start'}))})
+</script>
+<style>
+.gch-finder{padding:clamp(3rem,6vw,5rem);border-radius:1.5rem;background:linear-gradient(145deg,#0b0d12,#1e2028);color:var(--gch-text-primary-dark)}.gch-finder__intro{max-width:48rem;margin-bottom:2rem}.gch-finder h2{max-width:13ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.5vw,4rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.gch-finder__intro p{color:var(--gch-text-secondary-dark);font:400 1rem/1.6 "Outfit",sans-serif}.gch-finder__panel{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(16rem,.9fr);gap:1rem}.gch-finder__choices{display:grid;gap:.6rem}.gch-finder__choices button{display:grid;grid-template-columns:auto 1fr;gap:.8rem;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:.8rem;background:rgba(255,255,255,.03);color:var(--gch-text-primary-dark);padding:1rem;text-align:left;font:600 .95rem/1.3 "Outfit",sans-serif;cursor:pointer}.gch-finder__choices button span{color:var(--gch-gold-dark);font:700 .58rem/1 "JetBrains Mono",monospace}.gch-finder__choices button[aria-checked="true"]{border-color:var(--gch-gold-dark);background:rgba(232,160,32,.08)}.gch-finder__choices button:focus-visible,.gch-finder__result a:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:3px}.gch-finder__result{display:grid;align-content:start;gap:1rem;padding:1.3rem;border:1px solid rgba(255,255,255,.08);border-radius:1rem;background:rgba(255,255,255,.04)}.gch-finder__result p{margin:0;color:var(--gch-text-primary-dark);font:600 1.2rem/1.4 "Outfit",sans-serif}.gch-finder__result a{width:max-content;color:var(--gch-gold-dark);font:700 .9rem/1 "Outfit",sans-serif;text-decoration:none}@media(max-width:800px){.gch-finder__panel{grid-template-columns:1fr}}
+</style>

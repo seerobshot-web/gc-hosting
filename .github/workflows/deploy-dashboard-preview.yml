@@ -36,6 +36,7 @@ jobs:
           version: 9.15.0
 
       - name: Configure GitHub Pages
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
@@ -44,11 +45,17 @@ jobs:
       - name: Build dashboard preview
         run: pnpm --filter @gch/web build
 
+      - name: Skip GitHub Pages deployment
+        if: vars.GITHUB_PAGES_ENABLED != 'true'
+        run: echo "::notice::GitHub Pages deployment is disabled. Enable GitHub Pages for this repository and set the GITHUB_PAGES_ENABLED repository variable to true to publish the dashboard preview."
+
       - name: Upload Pages artifact
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
 
       - name: Deploy to GitHub Pages
+        if: vars.GITHUB_PAGES_ENABLED == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

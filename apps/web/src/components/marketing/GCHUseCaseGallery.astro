@@ -1,0 +1,26 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+const cases = [
+  { id:"UC-01", title:"Sunday Service", audience:"Church", goal:"connect", summary:"Website, livestream, giving, events, and next steps working as one Sunday-to-digital journey." },
+  { id:"UC-02", title:"Bible Study", audience:"Ministry", goal:"connect", summary:"A teaching page that brings Scripture, video, notes, registration, and follow-up into one experience." },
+  { id:"UC-03", title:"Nonprofit Campaign", audience:"Nonprofit", goal:"grow", summary:"A focused campaign path for awareness, donations, volunteer action, and measurable outreach." },
+  { id:"UC-04", title:"Christian Business", audience:"Business", goal:"build", summary:"Brand, website, local visibility, and lead flow arranged around trust and clear action." },
+  { id:"UC-05", title:"Coaching Practice", audience:"Coach", goal:"build", summary:"Positioning, booking, content, and nurture pathways for a service-led coaching organization." },
+  { id:"UC-06", title:"Conference / Event", audience:"Ministry", goal:"grow", summary:"Registration, schedule, speakers, livestream, updates, and post-event resources in one launch system." },
+];
+---
+
+<section class="uc" id="use-case-gallery" aria-labelledby="uc-title">
+  <header class="uc__head"><GCHHudLabel index="26" label="Use-case gallery"/><h2 id="uc-title">See GCH in the work itself.</h2><p>Practical contexts show how multiple services combine around a real mission, event, or organization.</p></header>
+  <div class="uc__filters" role="group" aria-label="Filter use cases"><button type="button" data-filter="all" aria-pressed="true">All</button><button type="button" data-filter="build" aria-pressed="false">Build</button><button type="button" data-filter="grow" aria-pressed="false">Grow</button><button type="button" data-filter="connect" aria-pressed="false">Connect</button></div>
+  <div class="uc__grid">
+    {cases.map((item) => <article class="uc__card" data-case-goal={item.goal}><div class="uc__media" aria-hidden="true"><span>{item.audience}</span></div><div class="uc__copy"><small>{item.id} · {item.audience}</small><h3>{item.title}</h3><p>{item.summary}</p><a href="/start">Explore this use case <span aria-hidden="true">→</span></a></div></article>)}
+  </div>
+</section>
+<script>
+  document.querySelectorAll(".uc").forEach((root)=>{const cards=[...root.querySelectorAll("[data-case-goal]")];root.querySelectorAll("[data-filter]").forEach((button)=>button.addEventListener("click",()=>{const value=button.getAttribute("data-filter");root.querySelectorAll("[data-filter]").forEach((b)=>b.setAttribute("aria-pressed",b===button?"true":"false"));cards.forEach((card)=>card.toggleAttribute("hidden",value!=="all"&&card.getAttribute("data-case-goal")!==value));}));});
+</script>
+<style>
+.uc{padding-block:clamp(4rem,8vw,7rem)}.uc__head{max-width:52rem}.uc__head h2{max-width:14ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.7vw,4.5rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.uc__head p{max-width:62ch;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",sans-serif}.uc__filters{display:flex;gap:.5rem;flex-wrap:wrap;margin:2rem 0}.uc__filters button{border:1px solid var(--gch-border-light);border-radius:999px;background:var(--gch-white);padding:.65rem .85rem;color:var(--gch-text-secondary);font:700 .62rem/1 "JetBrains Mono",monospace;text-transform:uppercase;cursor:pointer}.uc__filters button[aria-pressed="true"]{background:var(--gch-brand-dark);color:var(--gch-text-primary-dark);border-color:var(--gch-brand-dark)}.uc__filters button:focus-visible{outline:2px solid var(--gch-blue);outline-offset:3px}.uc__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.uc__card{border:1px solid var(--gch-border-light);border-radius:1.2rem;overflow:hidden;background:var(--gch-white)}.uc__media{min-height:11rem;display:flex;align-items:end;padding:1rem;background:radial-gradient(circle at 70% 25%,rgba(232,160,32,.22),transparent 28%),linear-gradient(145deg,#10131a,#2e3347)}.uc__media span{color:var(--gch-gold-dark);font:700 .58rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.uc__copy{padding:1.1rem}.uc__copy small{color:var(--gch-text-muted);font:700 .56rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.uc__copy h3{margin:.6rem 0;font:800 1.15rem/1.05 "JetBrains Mono",monospace;text-transform:uppercase}.uc__copy p{margin:0 0 1rem;color:var(--gch-text-secondary);font:400 .9rem/1.55 "Outfit",sans-serif}.uc__copy a{color:var(--gch-text-primary);text-decoration:none;font:700 .85rem/1 "Outfit",sans-serif}.uc__copy a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:3px}@media(max-width:850px){.uc__grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.uc__grid{grid-template-columns:1fr}}
+</style>

@@ -1,0 +1,66 @@
+---
+const nodes = [
+  { id: "domain", label: "Domain", detail: "Public address and ownership boundary." },
+  { id: "dns", label: "DNS", detail: "Routing that connects the name to the right service." },
+  { id: "hosting", label: "Hosting", detail: "Managed infrastructure where the site and services run." },
+  { id: "site", label: "Website", detail: "Customer-facing experience built on top of the infrastructure." },
+  { id: "services", label: "Services", detail: "SSL, WordPress, email, forms, streaming, and connected tools." },
+  { id: "visitor", label: "Visitor", detail: "The destination: a clear, reliable experience for the person arriving." },
+];
+---
+
+<div class="gch-hosting-architecture" data-hosting-architecture>
+  <div class="gch-hosting-architecture__hud">
+    <span>INFRASTRUCTURE PATH</span>
+    <strong>GCH MANAGED STACK</strong>
+  </div>
+
+  <div class="gch-hosting-architecture__flow" role="list" aria-label="Hosting architecture path">
+    {nodes.map((node, index) => (
+      <button type="button" class="gch-hosting-architecture__node" data-host-node={node.id} aria-pressed={index === 0 ? "true" : "false"}>
+        <small>{String(index + 1).padStart(2, "0")}</small>
+        <strong>{node.label}</strong>
+        <span aria-hidden="true"></span>
+      </button>
+    ))}
+  </div>
+
+  <div class="gch-hosting-architecture__detail" aria-live="polite">
+    <span data-host-title>{nodes[0].label}</span>
+    <p data-host-copy>{nodes[0].detail}</p>
+  </div>
+
+  <div class="gch-hosting-architecture__status-grid">
+    <article><small>Control</small><strong>GCH</strong></article>
+    <article><small>Provisioning</small><strong>Managed</strong></article>
+    <article><small>Path</small><strong>Connected</strong></article>
+  </div>
+</div>
+
+<script define:vars={{ nodes }}>
+  document.querySelectorAll("[data-hosting-architecture]").forEach((root) => {
+    const title = root.querySelector("[data-host-title]");
+    const copy = root.querySelector("[data-host-copy]");
+    root.querySelectorAll("[data-host-node]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.getAttribute("data-host-node");
+        root.querySelectorAll("[data-host-node]").forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+        const node = nodes.find((item) => item.id === id);
+        if (node && title && copy) {
+          title.textContent = node.label;
+          copy.textContent = node.detail;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-hosting-architecture{position:absolute;inset:0;z-index:2;padding:clamp(1rem,2.4vw,1.8rem);display:grid;grid-template-rows:auto 1fr auto auto;gap:1rem;color:var(--gch-text-primary-dark)}
+  .gch-hosting-architecture__hud{display:flex;justify-content:space-between;gap:1rem;color:var(--gch-gold-dark);font:700 .56rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}.gch-hosting-architecture__hud strong{color:rgba(242,239,232,.62)}
+  .gch-hosting-architecture__flow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.55rem;align-items:center}.gch-hosting-architecture__node{position:relative;min-height:7rem;padding:.85rem .6rem;border:1px solid rgba(255,255,255,.1);border-radius:.8rem;background:rgba(255,255,255,.035);color:#f2efe8;text-align:left;cursor:pointer}.gch-hosting-architecture__node small,.gch-hosting-architecture__node strong{display:block}.gch-hosting-architecture__node small{color:var(--gch-gold-dark);font:700 .52rem/1 "JetBrains Mono",monospace}.gch-hosting-architecture__node strong{margin-top:.7rem;font:800 .72rem/1.1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-hosting-architecture__node span{position:absolute;left:50%;bottom:-.4rem;width:.75rem;aspect-ratio:1;border-radius:50%;background:#2e3347;border:1px solid rgba(255,255,255,.16);transform:translateX(-50%)}.gch-hosting-architecture__node[aria-pressed="true"]{border-color:color-mix(in srgb,var(--gch-gold-dark) 65%,transparent);background:rgba(232,160,32,.09)}.gch-hosting-architecture__node[aria-pressed="true"] span{background:var(--gch-gold-dark);box-shadow:0 0 18px rgba(232,160,32,.42)}.gch-hosting-architecture__node:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:3px}
+  .gch-hosting-architecture__detail{display:grid;grid-template-columns:auto 1fr;gap:.8rem;align-items:start;padding-top:.85rem;border-top:1px solid rgba(255,255,255,.08)}.gch-hosting-architecture__detail span{color:var(--gch-gold-dark);font:700 .58rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-hosting-architecture__detail p{margin:0;color:rgba(242,239,232,.72);font:500 .74rem/1.45 "Outfit",sans-serif}
+  .gch-hosting-architecture__status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}.gch-hosting-architecture__status-grid article{padding:.7rem;border:1px solid rgba(255,255,255,.08);border-radius:.6rem;background:rgba(255,255,255,.025)}.gch-hosting-architecture__status-grid small,.gch-hosting-architecture__status-grid strong{display:block}.gch-hosting-architecture__status-grid small{color:rgba(242,239,232,.45);font:700 .5rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-hosting-architecture__status-grid strong{margin-top:.45rem;font:700 .72rem/1 "Outfit",sans-serif}
+  @media(max-width:760px){.gch-hosting-architecture__flow{grid-template-columns:repeat(2,1fr)}.gch-hosting-architecture__node{min-height:5.6rem}.gch-hosting-architecture__detail{grid-template-columns:1fr}.gch-hosting-architecture__status-grid{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){.gch-hosting-architecture__node[aria-pressed="true"] span{box-shadow:none}}
+</style>

@@ -1,0 +1,24 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+const topics = [
+  {id:"web",label:"Websites",qs:["What should a ministry website include?","When should an organization redesign its website?","How do website structure and SEO work together?"]},
+  {id:"hosting",label:"Hosting",qs:["What does managed hosting include?","Can an existing WordPress site be migrated?","How do domains, DNS, hosting, and SSL relate?"]},
+  {id:"growth",label:"Growth",qs:["How does Google Business support local visibility?","What is the difference between technical SEO and content SEO?","How should People Also Ask questions be used in a content strategy?"]},
+  {id:"ministry",label:"Ministry Tech",qs:["How can churches organize livestreams, links, giving, and events?","What is GLinks for?","Can ministry tools connect to an existing website?"]},
+];
+---
+<section class="gch-paa" id="people-also-ask" aria-labelledby="gch-paa-title" data-paa>
+  <header><GCHHudLabel index="32" label="People also ask" /><h2 id="gch-paa-title">Search intent becomes a content system.</h2><p>Group real visitor questions by topic so resources and service pages can answer them in context.</p></header>
+  <div class="gch-paa__layout">
+    <div class="gch-paa__topics" role="tablist" aria-label="Question topics">{topics.map((t,i)=><button type="button" role="tab" data-paa-topic={t.id} aria-selected={i===0?"true":"false"}>{String(i+1).padStart(2,"0")} {t.label}</button>)}</div>
+    <div class="gch-paa__questions">
+      {topics.map((t,i)=><section data-paa-panel={t.id} hidden={i!==0}>{t.qs.map((q,n)=><details open={n===0}><summary>{q}</summary><p>This question is mapped to the {t.label} content cluster. Production copy should come from the approved resource or service-page source of truth.</p></details>)}</section>)}
+    </div>
+  </div>
+</section>
+<script>
+document.querySelectorAll('[data-paa]').forEach(root=>{const tabs=[...root.querySelectorAll('[data-paa-topic]')];const panels=[...root.querySelectorAll('[data-paa-panel]')];tabs.forEach(tab=>tab.addEventListener('click',()=>{const key=tab.getAttribute('data-paa-topic');tabs.forEach(t=>t.setAttribute('aria-selected',t===tab?'true':'false'));panels.forEach(p=>{if(p.getAttribute('data-paa-panel')===key)p.removeAttribute('hidden');else p.setAttribute('hidden','')})}))})
+</script>
+<style>
+.gch-paa{padding-block:clamp(4rem,8vw,7rem)}.gch-paa header{max-width:46rem;margin-bottom:2rem}.gch-paa h2{max-width:14ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.5vw,4rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.gch-paa header p,.gch-paa details p{color:var(--gch-text-secondary);font:400 1rem/1.6 "Outfit",sans-serif}.gch-paa__layout{display:grid;grid-template-columns:14rem minmax(0,1fr);gap:2rem}.gch-paa__topics{display:grid;gap:.5rem;align-content:start}.gch-paa__topics button{border:1px solid var(--gch-border-light);border-radius:.7rem;background:var(--gch-white);color:var(--gch-text-secondary);padding:.8rem;text-align:left;font:700 .62rem/1.2 "JetBrains Mono",monospace;text-transform:uppercase;cursor:pointer}.gch-paa__topics button[aria-selected="true"]{border-color:var(--gch-gold);color:var(--gch-text-primary);background:var(--gch-cream-dim)}.gch-paa__topics button:focus-visible,.gch-paa summary:focus-visible{outline:2px solid var(--gch-blue);outline-offset:3px}.gch-paa__questions section{border-top:1px solid var(--gch-border-light)}.gch-paa details{border-bottom:1px solid var(--gch-border-light)}.gch-paa summary{cursor:pointer;list-style:none;padding:1rem 0;font:700 1rem/1.35 "Outfit",sans-serif}.gch-paa summary::-webkit-details-marker{display:none}.gch-paa details p{margin:0 0 1rem}@media(max-width:760px){.gch-paa__layout{grid-template-columns:1fr}.gch-paa__topics{display:flex;overflow-x:auto}.gch-paa__topics button{white-space:nowrap}}
+</style>

@@ -1,0 +1,150 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  href: string;
+  cta: string;
+  tone?: "light" | "dark";
+}
+
+const {
+  eyebrow = "Not sure where to start?",
+  title,
+  body,
+  href,
+  cta,
+  tone = "light",
+} = Astro.props;
+---
+
+<section class={`gch-pathway gch-pathway--${tone}`}>
+  <div class="gch-pathway__copy">
+    <GCHHudLabel label={eyebrow} tone={tone === "dark" ? "light" : "gold"} />
+    <h2>{title}</h2>
+    {body && <p>{body}</p>}
+  </div>
+
+  <a class="gch-pathway__action" href={href}>
+    <span>{cta}</span>
+    <span class="gch-pathway__line" aria-hidden="true"></span>
+    <span class="gch-pathway__arrow" aria-hidden="true">→</span>
+  </a>
+</section>
+
+<style>
+  .gch-pathway {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.75fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: end;
+    padding: clamp(2rem, 4vw, 4rem);
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+
+  .gch-pathway--light {
+    background: var(--gch-white);
+    color: var(--gch-text-primary);
+    border: 1px solid var(--gch-border-light);
+  }
+
+  .gch-pathway--dark {
+    background:
+      radial-gradient(circle at 78% 18%, rgba(232, 160, 32, 0.12), transparent 28%),
+      var(--gch-brand-dark);
+    color: var(--gch-text-primary-dark);
+    border: 1px solid var(--gch-border-dark);
+  }
+
+  .gch-pathway h2 {
+    max-width: 18ch;
+    margin: 0.75rem 0 0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: clamp(1.7rem, 3.8vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+
+  .gch-pathway p {
+    max-width: 58ch;
+    margin: 1rem 0 0;
+    color: var(--gch-text-secondary);
+    font: 400 1rem/1.65 "Outfit", system-ui, sans-serif;
+  }
+
+  .gch-pathway--dark p { color: var(--gch-text-secondary-dark); }
+
+  .gch-pathway__action {
+    display: grid;
+    grid-template-columns: auto minmax(2rem, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    padding-block: 0.8rem;
+    color: inherit;
+    text-decoration: none;
+    font: 700 0.96rem/1.2 "Outfit", system-ui, sans-serif;
+  }
+
+  .gch-pathway__line {
+    height: 1px;
+    transform-origin: left center;
+    background: currentColor;
+    opacity: 0.35;
+    transition: transform 220ms ease, opacity 220ms ease;
+  }
+
+  .gch-pathway__arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--gch-gold);
+    color: var(--gch-brand-dark);
+    font-size: 1.15rem;
+    transition: transform 220ms ease;
+  }
+
+  .gch-pathway__action:hover .gch-pathway__line,
+  .gch-pathway__action:focus-visible .gch-pathway__line {
+    transform: scaleX(1.07);
+    opacity: 0.8;
+  }
+
+  .gch-pathway__action:hover .gch-pathway__arrow,
+  .gch-pathway__action:focus-visible .gch-pathway__arrow {
+    transform: translateX(4px);
+  }
+
+  .gch-pathway__action:focus-visible {
+    outline: 2px solid var(--gch-blue);
+    outline-offset: 6px;
+    border-radius: 0.5rem;
+  }
+
+  @media (max-width: 760px) {
+    .gch-pathway {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .gch-pathway__action { margin-top: 0.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-pathway__line,
+    .gch-pathway__arrow { transition: none; }
+
+    .gch-pathway__action:hover .gch-pathway__line,
+    .gch-pathway__action:focus-visible .gch-pathway__line,
+    .gch-pathway__action:hover .gch-pathway__arrow,
+    .gch-pathway__action:focus-visible .gch-pathway__arrow {
+      transform: none;
+    }
+  }
+</style>

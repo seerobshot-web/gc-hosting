@@ -1,0 +1,48 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+const products = [
+  { key: "builder", index: "01", name: "AI Website Builder", category: "Tools", copy: "Move from idea to structured site direction with a guided build surface.", status: "DEMO", accent: "gold" },
+  { key: "glinks", index: "02", name: "GLinks", category: "Ministry + Tools", copy: "A mobile-first connection layer for links, media, campaigns, streams, and ministry next steps.", status: "PREVIEW", accent: "blue" },
+  { key: "plugins", index: "03", name: "WP Plugin Installer", category: "Tools", copy: "A curated installer experience for WordPress extension workflows.", status: "CATALOG", accent: "gold" },
+  { key: "ai-box", index: "04", name: "Private AI Box", category: "Tools", copy: "A private, organization-controlled AI environment for sensitive or internal workflows.", status: "PLANNED", accent: "gold" },
+];
+---
+
+<section class="gch-saas-showcase" id="saas-showcase" aria-labelledby="gch-saas-title">
+  <header class="gch-saas-showcase__header">
+    <div>
+      <GCHHudLabel index="24" label="SaaS product showcase" />
+      <h2 id="gch-saas-title">Products that feel like one ecosystem.</h2>
+      <p>Each tool gets its own interaction pattern, but the shell, cues, and navigation remain unmistakably GCH.</p>
+    </div>
+    <span class="gch-saas-showcase__system">GCH PRODUCT SYSTEM // 04 MODULES</span>
+  </header>
+
+  <div class="gch-saas-showcase__grid">
+    {products.map((product) => (
+      <article class={`gch-saas-card gch-saas-card--${product.accent}`}>
+        <div class="gch-saas-card__topline">
+          <span>{product.index}</span><small>{product.category}</small><b>{product.status}</b>
+        </div>
+        <div class="gch-saas-card__scene" aria-hidden="true">
+          <span class="gch-saas-card__panel"></span>
+          <span class="gch-saas-card__panel gch-saas-card__panel--two"></span>
+          <span class="gch-saas-card__path"></span>
+          <i></i>
+        </div>
+        <h3>{product.name}</h3>
+        <p>{product.copy}</p>
+        <a href={product.key === "glinks" ? "/ministry" : "/tools"}>Explore product <span aria-hidden="true">→</span></a>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .gch-saas-showcase{padding-block:clamp(4.5rem,8vw,7.5rem)}
+  .gch-saas-showcase__header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2rem;align-items:end;margin-bottom:2rem}.gch-saas-showcase__header h2{max-width:13ch;margin:.8rem 0 1rem;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:clamp(2rem,4.8vw,4.4rem);line-height:.98;letter-spacing:-.05em;text-transform:uppercase}.gch-saas-showcase__header p{max-width:62ch;margin:0;color:var(--gch-text-secondary);font:400 1rem/1.6 "Outfit",sans-serif}.gch-saas-showcase__system{color:var(--gch-text-muted);font:700 .58rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+  .gch-saas-showcase__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.gch-saas-card{--accent:var(--gch-gold-dark);display:grid;gap:1rem;padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}.gch-saas-card--blue{--accent:var(--gch-blue)}.gch-saas-card__topline{display:grid;grid-template-columns:auto 1fr auto;gap:.6rem;align-items:center;color:var(--gch-text-muted);font:700 .55rem/1 "JetBrains Mono",monospace;letter-spacing:.07em;text-transform:uppercase}.gch-saas-card__topline span{color:var(--accent)}.gch-saas-card__topline small{font:inherit}.gch-saas-card__topline b{padding:.35rem .45rem;border:1px solid var(--gch-border-light);border-radius:999px;color:var(--accent);font:inherit}.gch-saas-card__scene{position:relative;min-height:12rem;border-radius:.8rem;overflow:hidden;background:linear-gradient(150deg,#0b0d12,#1e2028)}.gch-saas-card__panel{position:absolute;left:10%;top:16%;width:54%;height:60%;border:1px solid rgba(255,255,255,.1);border-radius:.7rem;background:rgba(255,255,255,.04)}.gch-saas-card__panel--two{left:auto;right:10%;top:27%;width:25%;height:35%}.gch-saas-card__path{position:absolute;left:14%;right:16%;bottom:20%;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}.gch-saas-card__scene i{position:absolute;right:14%;bottom:16%;width:.55rem;aspect-ratio:1;border-radius:50%;background:var(--accent);box-shadow:0 0 16px color-mix(in srgb,var(--accent) 55%,transparent)}.gch-saas-card h3{margin:0;font:800 1.2rem/1.05 "JetBrains Mono",monospace;text-transform:uppercase}.gch-saas-card p{margin:0;color:var(--gch-text-secondary);font:400 .92rem/1.55 "Outfit",sans-serif}.gch-saas-card a{width:max-content;color:var(--gch-text-primary);text-decoration:none;font:700 .88rem/1 "Outfit",sans-serif}.gch-saas-card a span{margin-left:.35rem}.gch-saas-card a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
+  @media(max-width:760px){.gch-saas-showcase__header{grid-template-columns:1fr}.gch-saas-showcase__system{white-space:normal}.gch-saas-showcase__grid{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){.gch-saas-card__scene i{box-shadow:none}}
+</style>

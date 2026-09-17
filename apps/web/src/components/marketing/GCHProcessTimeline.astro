@@ -1,0 +1,19 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+const steps=[
+ {id:"01",name:"Discover",copy:"Clarify audience, goals, existing systems, constraints, and the job the digital experience must do."},
+ {id:"02",name:"Design",copy:"Translate the strategy into information architecture, visual direction, content structure, and interaction patterns."},
+ {id:"03",name:"Build",copy:"Implement the selected website, hosting, marketing, ministry, and product components with reusable primitives."},
+ {id:"04",name:"Launch",copy:"Validate accessibility, content, integrations, analytics, domain/hosting readiness, and release criteria."},
+ {id:"05",name:"Grow",copy:"Use search, content, product iteration, support, and measurement to keep improving the system after launch."},
+];
+---
+<section class="process" id="process-timeline" aria-labelledby="process-title">
+ <header><GCHHudLabel index="29" label="How it works"/><h2 id="process-title">A visible path from first conversation to growth.</h2><p>Every stage should make the next decision clearer instead of hiding the work behind an opaque handoff.</p></header>
+ <ol class="process__list">
+  {steps.map((step,index)=><li class="process__step"><span class="process__index">{step.id}</span><div class="process__track" aria-hidden="true"><i></i></div><div><small>{index===steps.length-1?"Ongoing":"Stage"}</small><h3>{step.name}</h3><p>{step.copy}</p></div></li>)}
+ </ol>
+</section>
+<style>
+.process{padding:clamp(4rem,8vw,7rem);border-radius:1.6rem;background:var(--gch-brand-dark);color:var(--gch-text-primary-dark)}.process header{max-width:52rem}.process h2{max-width:15ch;margin:.8rem 0 1rem;font:800 clamp(2rem,4.5vw,4.2rem)/.98 "JetBrains Mono",monospace;letter-spacing:-.05em;text-transform:uppercase}.process header p{max-width:60ch;color:var(--gch-text-secondary-dark);font:400 1rem/1.65 "Outfit",sans-serif}.process__list{list-style:none;margin:2.5rem 0 0;padding:0;display:grid}.process__step{display:grid;grid-template-columns:3.2rem 1px 1fr;gap:1rem;min-height:9rem}.process__index{color:var(--gch-gold-dark);font:700 .65rem/1 "JetBrains Mono",monospace}.process__track{position:relative;background:rgba(255,255,255,.1)}.process__track i{position:absolute;left:50%;top:0;transform:translate(-50%,-.1rem);width:.6rem;aspect-ratio:1;border-radius:50%;background:var(--gch-gold-dark);box-shadow:0 0 18px rgba(232,160,32,.35)}.process__step small{color:var(--gch-blue-dark-safe);font:700 .56rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.process__step h3{margin:.45rem 0 .55rem;font:800 clamp(1.3rem,2.4vw,2rem)/1 "JetBrains Mono",monospace;text-transform:uppercase}.process__step p{max-width:58ch;margin:0;color:var(--gch-text-secondary-dark);font:400 .94rem/1.55 "Outfit",sans-serif}@media(max-width:620px){.process{padding:1.4rem}.process__step{grid-template-columns:2.4rem 1px 1fr;gap:.7rem}}@media(prefers-reduced-motion:reduce){.process__track i{box-shadow:none}}
+</style>
