@@ -110,7 +110,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="font-display text-[10px] font-bold uppercase tracking-[0.08em] text-brand/70">
-          gloryhosts.cloud
+          gloryhost.cloud
         </div>
       </aside>
     </main>
