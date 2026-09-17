@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { OrgsModule } from "./orgs/orgs.module";
@@ -25,6 +26,9 @@ import { InvitationsModule } from "./invitations/invitations.module";
     // Global rate limit: 60 requests/minute per IP. Auth endpoints tighten
     // this to 10/min via @Throttle (see AuthController).
     ThrottlerModule.forRoot([{ name: "default", ttl: 60_000, limit: 60 }]),
+    // In-process domain event bus. Phase 4 emits `order.paid` /
+    // `subscription.cancelled` here; Phase 5 provisioning listens for them.
+    EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     TenancyModule,
     EmailModule,
