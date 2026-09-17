@@ -16,6 +16,10 @@ import GCHBundleBuilder from "../components/marketing/GCHBundleBuilder.astro";
 import GCHPlanMatrix from "../components/marketing/GCHPlanMatrix.astro";
 import GCHProcessTimeline from "../components/marketing/GCHProcessTimeline.astro";
 import GCHOutcomeProof from "../components/marketing/GCHOutcomeProof.astro";
+import GCHFaqObjections from "../components/marketing/GCHFaqObjections.astro";
+import GCHPeopleAlsoAsk from "../components/marketing/GCHPeopleAlsoAsk.astro";
+import GCHResourceRail from "../components/marketing/GCHResourceRail.astro";
+import GCHSolutionFinder from "../components/marketing/GCHSolutionFinder.astro";
 import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro";
 ---
 
@@ -38,6 +42,10 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
             { index: "28", label: "Plans", href: "#plan-matrix" },
             { index: "29", label: "Process", href: "#process-timeline" },
             { index: "30", label: "Proof", href: "#proof-outcomes" },
+            { index: "31", label: "FAQ", href: "#faq" },
+            { index: "32", label: "PAA", href: "#people-also-ask" },
+            { index: "33", label: "Resources", href: "#resources" },
+            { index: "34", label: "Finder", href: "#solution-finder" },
             { index: "35", label: "Close", href: "#journey-35" },
           ]}
         />
@@ -60,14 +68,18 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
         <section class="journey-block"><GCHPlanMatrix /></section>
         <section class="journey-block"><GCHProcessTimeline /></section>
         <section class="journey-block"><GCHOutcomeProof /></section>
+        <section class="journey-block journey-block--authority"><GCHFaqObjections /></section>
+        <section class="journey-block"><GCHPeopleAlsoAsk /></section>
+        <section class="journey-block"><GCHResourceRail /></section>
+        <section class="journey-block"><GCHSolutionFinder /></section>
 
         <section class="journey-block journey-block--pathway">
           <GCHPathwayCta
             eyebrow="Next path"
-            title="Not sure which combination matches the work?"
-            body="Use the solution finder when the right bundle, tier, or starting point is not obvious."
-            href="/start"
-            cta="Use the solution finder"
+            title="Prefer to explore before starting?"
+            body="Use the resource layer, FAQ system, and solution finder to choose a starting point without committing to a full bundle."
+            href="/resources"
+            cta="Explore resources"
           />
         </section>
       </div>
@@ -81,6 +93,6 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
   .homepage-arc{width:min(100% - 2rem,1180px);margin-inline:auto;display:grid;grid-template-columns:10.5rem minmax(0,1fr);gap:clamp(2rem,5vw,5rem);padding-block:clamp(4rem,7vw,7rem)}
   .homepage-arc__rail{align-self:stretch}.homepage-arc__content{min-width:0;display:grid;gap:clamp(4rem,8vw,8rem)}
   .journey-note{display:grid;gap:.9rem;padding-bottom:1.5rem;border-bottom:1px solid var(--gch-border-light)}.journey-note p{max-width:64ch;margin:0;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
-  .journey-block--lifted{margin-top:clamp(-2rem,-3vw,-4rem);position:relative;z-index:3}.journey-block--gallery{min-width:0;border-top:1px solid var(--gch-border-light);border-bottom:1px solid var(--gch-border-light)}.journey-block--commercial{border-top:1px solid var(--gch-border-light)}.journey-block--pathway{padding-bottom:1rem}
+  .journey-block--lifted{margin-top:clamp(-2rem,-3vw,-4rem);position:relative;z-index:3}.journey-block--gallery{min-width:0;border-top:1px solid var(--gch-border-light);border-bottom:1px solid var(--gch-border-light)}.journey-block--commercial,.journey-block--authority{border-top:1px solid var(--gch-border-light)}.journey-block--pathway{padding-bottom:1rem}
   @media(max-width:900px){.homepage-arc{grid-template-columns:1fr}.homepage-arc__rail{order:-1}.journey-block--lifted{margin-top:0}}
 </style>
