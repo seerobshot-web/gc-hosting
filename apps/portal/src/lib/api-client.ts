@@ -324,6 +324,25 @@ export function getMe(accessToken: string): Promise<Me> {
   return apiGet("/users/me", accessToken);
 }
 
+export interface ProvisioningOrder {
+  id: string;
+  clientId: string;
+  cpanelUsername: string;
+  primaryDomain: string;
+  resellPortalOrderId: string | null;
+  status: "provisioning" | "deployed" | "failed" | (string & {});
+  nextBillingDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function getProvisioningOrders(
+  clientId: string,
+  accessToken: string,
+): Promise<ProvisioningOrder[]> {
+  return apiGet(`/provisioning/orders/${encodeURIComponent(clientId)}`, accessToken);
+}
+
 export function getClientsForOrg(orgId: string, accessToken: string): Promise<Client[]> {
   return apiGet(`/clients?orgId=${encodeURIComponent(orgId)}`, accessToken);
 }
