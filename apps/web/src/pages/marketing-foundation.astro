@@ -11,6 +11,15 @@ import GCHSolutionPortals from "../components/marketing/GCHSolutionPortals.astro
 import GCHLivingPatternGallery from "../components/marketing/GCHLivingPatternGallery.astro";
 import GCHSaasProductShowcase from "../components/marketing/GCHSaasProductShowcase.astro";
 import GCHLiveDemoCta from "../components/marketing/GCHLiveDemoCta.astro";
+import GCHUseCaseGallery from "../components/marketing/GCHUseCaseGallery.astro";
+import GCHBundleBuilder from "../components/marketing/GCHBundleBuilder.astro";
+import GCHPlanMatrix from "../components/marketing/GCHPlanMatrix.astro";
+import GCHProcessTimeline from "../components/marketing/GCHProcessTimeline.astro";
+import GCHOutcomeProof from "../components/marketing/GCHOutcomeProof.astro";
+import GCHFaqObjections from "../components/marketing/GCHFaqObjections.astro";
+import GCHPeopleAlsoAsk from "../components/marketing/GCHPeopleAlsoAsk.astro";
+import GCHResourceRail from "../components/marketing/GCHResourceRail.astro";
+import GCHSolutionFinder from "../components/marketing/GCHSolutionFinder.astro";
 import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro";
 ---
 
@@ -25,12 +34,18 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
         <GCHCategoryRail
           items={[
             { index: "04", label: "Hero", href: "#journey-04" },
-            { index: "06", label: "Convert", href: "#journey-06" },
             { index: "11", label: "Intent", href: "#goal-selector" },
-            { index: "12", label: "Paths", href: "#solution-portals" },
             { index: "15", label: "Gallery", href: "#living-pattern-gallery" },
             { index: "24", label: "Products", href: "#saas-showcase" },
-            { index: "25", label: "Demo", href: "#demo-lab" },
+            { index: "26", label: "Use Cases", href: "#use-case-gallery" },
+            { index: "27", label: "Bundle", href: "#package-builder" },
+            { index: "28", label: "Plans", href: "#plan-matrix" },
+            { index: "29", label: "Process", href: "#process-timeline" },
+            { index: "30", label: "Proof", href: "#proof-outcomes" },
+            { index: "31", label: "FAQ", href: "#faq" },
+            { index: "32", label: "PAA", href: "#people-also-ask" },
+            { index: "33", label: "Resources", href: "#resources" },
+            { index: "34", label: "Finder", href: "#solution-finder" },
             { index: "35", label: "Close", href: "#journey-35" },
           ]}
         />
@@ -39,104 +54,45 @@ import GCHFinalConversion from "../components/marketing/GCHFinalConversion.astro
       <div class="homepage-arc__content">
         <section id="journey-04" class="journey-note">
           <GCHHudLabel index="ARC" label="Arrive → understand GCH" />
-          <p>
-            The hero establishes the faith-forward, tech-confident promise before the visitor
-            encounters the catalog. Replace the abstract fallback scene with final worship,
-            ministry, streaming, or business-meeting media when approved assets are ready.
-          </p>
+          <p>The hero establishes the faith-forward, tech-confident promise before the visitor encounters the catalog.</p>
         </section>
 
-        <section id="journey-06" class="journey-block journey-block--lifted">
-          <GCHPrimaryConversionCta />
-        </section>
-
-        <section class="journey-block">
-          <GCHGoalSelector />
-        </section>
-
-        <section class="journey-block">
-          <GCHSolutionPortals />
-        </section>
-
-        <section class="journey-block journey-block--gallery">
-          <GCHLivingPatternGallery />
-        </section>
-
-        <section class="journey-block">
-          <GCHSaasProductShowcase />
-        </section>
-
-        <section class="journey-block">
-          <GCHLiveDemoCta />
-        </section>
+        <section id="journey-06" class="journey-block journey-block--lifted"><GCHPrimaryConversionCta /></section>
+        <section class="journey-block"><GCHGoalSelector /></section>
+        <section class="journey-block"><GCHSolutionPortals /></section>
+        <section class="journey-block journey-block--gallery"><GCHLivingPatternGallery /></section>
+        <section class="journey-block"><GCHSaasProductShowcase /></section>
+        <section class="journey-block"><GCHLiveDemoCta /></section>
+        <section class="journey-block journey-block--commercial"><GCHUseCaseGallery /></section>
+        <section class="journey-block"><GCHBundleBuilder /></section>
+        <section class="journey-block"><GCHPlanMatrix /></section>
+        <section class="journey-block"><GCHProcessTimeline /></section>
+        <section class="journey-block"><GCHOutcomeProof /></section>
+        <section class="journey-block journey-block--authority"><GCHFaqObjections /></section>
+        <section class="journey-block"><GCHPeopleAlsoAsk /></section>
+        <section class="journey-block"><GCHResourceRail /></section>
+        <section class="journey-block"><GCHSolutionFinder /></section>
 
         <section class="journey-block journey-block--pathway">
           <GCHPathwayCta
             eyebrow="Next path"
-            title="Not sure which portal matches the work?"
-            body="The broader 35-journey system can route visitors by audience, need, offering, or level of support without forcing them to understand the catalog first."
-            href="/start"
-            cta="Use the solution finder"
+            title="Prefer to explore before starting?"
+            body="Use the resource layer, FAQ system, and solution finder to choose a starting point without committing to a full bundle."
+            href="/resources"
+            cta="Explore resources"
           />
         </section>
       </div>
     </section>
 
-    <div id="journey-35">
-      <GCHFinalConversion />
-    </div>
+    <div id="journey-35"><GCHFinalConversion /></div>
   </main>
 </Layout>
 
 <style>
-  .homepage-arc {
-    width: min(100% - 2rem, 1180px);
-    margin-inline: auto;
-    display: grid;
-    grid-template-columns: 10.5rem minmax(0, 1fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    padding-block: clamp(4rem, 7vw, 7rem);
-  }
-
-  .homepage-arc__rail { align-self: stretch; }
-
-  .homepage-arc__content {
-    min-width: 0;
-    display: grid;
-    gap: clamp(4rem, 8vw, 8rem);
-  }
-
-  .journey-note {
-    display: grid;
-    gap: 0.9rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--gch-border-light);
-  }
-
-  .journey-note p {
-    max-width: 64ch;
-    margin: 0;
-    color: var(--gch-text-secondary);
-    font: 400 1rem/1.65 "Outfit", system-ui, sans-serif;
-  }
-
-  .journey-block--lifted {
-    margin-top: clamp(-2rem, -3vw, -4rem);
-    position: relative;
-    z-index: 3;
-  }
-
-  .journey-block--gallery {
-    min-width: 0;
-    border-top: 1px solid var(--gch-border-light);
-    border-bottom: 1px solid var(--gch-border-light);
-  }
-
-  .journey-block--pathway { padding-bottom: 1rem; }
-
-  @media (max-width: 900px) {
-    .homepage-arc { grid-template-columns: 1fr; }
-    .homepage-arc__rail { order: -1; }
-    .journey-block--lifted { margin-top: 0; }
-  }
+  .homepage-arc{width:min(100% - 2rem,1180px);margin-inline:auto;display:grid;grid-template-columns:10.5rem minmax(0,1fr);gap:clamp(2rem,5vw,5rem);padding-block:clamp(4rem,7vw,7rem)}
+  .homepage-arc__rail{align-self:stretch}.homepage-arc__content{min-width:0;display:grid;gap:clamp(4rem,8vw,8rem)}
+  .journey-note{display:grid;gap:.9rem;padding-bottom:1.5rem;border-bottom:1px solid var(--gch-border-light)}.journey-note p{max-width:64ch;margin:0;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
+  .journey-block--lifted{margin-top:clamp(-2rem,-3vw,-4rem);position:relative;z-index:3}.journey-block--gallery{min-width:0;border-top:1px solid var(--gch-border-light);border-bottom:1px solid var(--gch-border-light)}.journey-block--commercial,.journey-block--authority{border-top:1px solid var(--gch-border-light)}.journey-block--pathway{padding-bottom:1rem}
+  @media(max-width:900px){.homepage-arc{grid-template-columns:1fr}.homepage-arc__rail{order:-1}.journey-block--lifted{margin-top:0}}
 </style>
