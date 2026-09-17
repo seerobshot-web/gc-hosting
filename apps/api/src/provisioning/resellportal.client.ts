@@ -22,8 +22,11 @@ export interface ResellPortalService {
  *     only ever be answered by polling GET /services.
  *  2. There is no sandbox environment — test_mode on /orders is the only
  *     way to validate integration code without charging the wallet balance
- *     or provisioning a real cPanel account. Every call from a dev/test
- *     environment MUST set test_mode: true.
+ *     or provisioning a real cPanel account.
+ *
+ * Live ordering is intentionally disabled while ALEPH is being consolidated.
+ * Re-enable it only after the Stripe -> GCH Order -> durable provisioning job
+ * path exists and has an approved release gate.
  */
 @Injectable()
 export class ResellPortalClient {
@@ -89,27 +92,6 @@ export class ResellPortalClient {
   // and need confirming (or a real web_hosting example) before this is
   // trusted in production.
   placeOrder(input: CreateOrderInput) {
-    const nodeEnv = this.config.get<string>("NODE_ENV");
-    let testMode = true;
-
-    if (nodeEnv === "production") {
-      const configuredTestMode = this.config.get<string | boolean>(
-        "RESELLPORTAL_TEST_MODE",
-      );
-
-      if (configuredTestMode !== true && configuredTestMode !== false) {
-        if (configuredTestMode === "true") testMode = true;
-        else if (configuredTestMode === "false") testMode = false;
-        else {
-          throw new Error(
-            "RESELLPORTAL_TEST_MODE must be explicitly set to true or false in production.",
-          );
-        }
-      } else {
-        testMode = configuredTestMode;
-      }
-    }
-
     return this.request<{ order_id: string }>("/orders", {
       method: "POST",
       body: JSON.stringify({
@@ -117,8 +99,7 @@ export class ResellPortalClient {
         client_id: input.clientId,
         cpanel_username: input.cpanelUsername,
         primary_domain: input.primaryDomain,
-        // Never let a dev/test script place a real wholesale order.
-        test_mode: testMode,
+        test_mode: true,
       }),
     });
   }
