@@ -1,0 +1,104 @@
+---
+---
+
+<div class="gch-redesign-preview" data-redesign-preview>
+  <div class="gch-redesign-preview__toolbar" role="group" aria-label="Website transformation state">
+    <button type="button" data-state-button="before" aria-pressed="true">Current state</button>
+    <button type="button" data-state-button="after" aria-pressed="false">GCH rebuild</button>
+  </div>
+
+  <div class="gch-redesign-preview__viewport" data-state="before">
+    <div class="gch-redesign-preview__site gch-redesign-preview__site--before" aria-label="Current website state preview">
+      <div class="gch-redesign-preview__legacy-nav"><span></span><span></span><span></span><span></span></div>
+      <div class="gch-redesign-preview__legacy-hero"><b>WELCOME TO OUR WEBSITE</b><small>Serving our community since 2008</small></div>
+      <div class="gch-redesign-preview__legacy-grid"><span></span><span></span><span></span></div>
+      <div class="gch-redesign-preview__audit">
+        <strong>Current state</strong>
+        <span>Mobile hierarchy · unclear</span>
+        <span>Primary CTA · buried</span>
+        <span>Search structure · fragmented</span>
+      </div>
+    </div>
+
+    <div class="gch-redesign-preview__site gch-redesign-preview__site--after" aria-label="GCH rebuild preview">
+      <div class="gch-redesign-preview__modern-nav"><strong>MINISTRY NAME</strong><span>About · Ministries · Watch · Give</span><i>Plan a visit</i></div>
+      <div class="gch-redesign-preview__modern-hero">
+        <em>WELCOME HOME</em>
+        <b>A clearer path from first visit to next step.</b>
+        <small>Mission-led structure, responsive hierarchy, and conversion paths designed together.</small>
+        <div><span>Plan a visit</span><span>Watch online</span></div>
+      </div>
+      <div class="gch-redesign-preview__modern-grid"><span>Visit</span><span>Watch</span><span>Connect</span></div>
+      <div class="gch-redesign-preview__audit gch-redesign-preview__audit--after">
+        <strong>GCH rebuild</strong>
+        <span>Mobile hierarchy · structured</span>
+        <span>Primary CTA · visible</span>
+        <span>Search foundation · aligned</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="gch-redesign-preview__summary" aria-live="polite">
+    <strong data-summary-label>Current state:</strong>
+    <span data-summary-copy>Dense navigation, weak hierarchy, and no clear conversion path.</span>
+  </p>
+</div>
+
+<script>
+  document.querySelectorAll("[data-redesign-preview]").forEach((root) => {
+    const viewport = root.querySelector(".gch-redesign-preview__viewport");
+    const label = root.querySelector("[data-summary-label]");
+    const copy = root.querySelector("[data-summary-copy]");
+    root.querySelectorAll("[data-state-button]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const state = button.getAttribute("data-state-button") || "before";
+        viewport?.setAttribute("data-state", state);
+        root.querySelectorAll("[data-state-button]").forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+        if (label) label.textContent = state === "after" ? "GCH rebuild:" : "Current state:";
+        if (copy) copy.textContent = state === "after"
+          ? "Responsive hierarchy, visible actions, and search-ready structure working as one system."
+          : "Dense navigation, weak hierarchy, and no clear conversion path.";
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-redesign-preview { position:absolute; inset:0; padding:clamp(1rem,2.5vw,2rem); display:grid; grid-template-rows:auto 1fr auto; gap:1rem; z-index:2; }
+  .gch-redesign-preview__toolbar { display:flex; justify-content:flex-end; gap:.45rem; }
+  .gch-redesign-preview__toolbar button { border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(11,13,18,.7); color:rgba(242,239,232,.72); padding:.55rem .75rem; font:700 .58rem/1 "JetBrains Mono",monospace; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; }
+  .gch-redesign-preview__toolbar button[aria-pressed="true"] { background:var(--gch-gold-dark); color:var(--gch-brand-dark); border-color:var(--gch-gold-dark); }
+  .gch-redesign-preview__toolbar button:focus-visible { outline:2px solid var(--gch-blue-dark-safe); outline-offset:3px; }
+  .gch-redesign-preview__viewport { position:relative; min-height:0; border-radius:.9rem; overflow:hidden; background:#ece8df; }
+  .gch-redesign-preview__site { position:absolute; inset:0; padding:1.2rem; transition:opacity 220ms ease,transform 260ms ease; }
+  .gch-redesign-preview__site--before { background:#ece8df; color:#544d43; }
+  .gch-redesign-preview__site--after { background:#f8f5ef; color:#1a1a22; opacity:0; transform:translateX(2%); }
+  [data-state="after"] .gch-redesign-preview__site--before { opacity:0; transform:translateX(-2%); }
+  [data-state="after"] .gch-redesign-preview__site--after { opacity:1; transform:none; }
+  .gch-redesign-preview__legacy-nav,.gch-redesign-preview__modern-nav { display:flex; align-items:center; gap:.7rem; min-height:2rem; }
+  .gch-redesign-preview__legacy-nav span { width:17%; height:.45rem; background:#9d9588; }
+  .gch-redesign-preview__legacy-hero { height:42%; margin-top:1rem; display:grid; place-content:center; gap:.5rem; text-align:center; border:1px solid #c9c0af; background:#ddd6cb; }
+  .gch-redesign-preview__legacy-hero b { font:700 clamp(.8rem,2vw,1.5rem)/1.1 Arial,sans-serif; }
+  .gch-redesign-preview__legacy-hero small { font:400 .72rem/1.3 Arial,sans-serif; }
+  .gch-redesign-preview__legacy-grid,.gch-redesign-preview__modern-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-top:.8rem; }
+  .gch-redesign-preview__legacy-grid span { height:3.8rem; background:#d3ccc0; border:1px solid #c2b9aa; }
+  .gch-redesign-preview__modern-nav { justify-content:space-between; border-bottom:1px solid #ede9e2; padding-bottom:.6rem; }
+  .gch-redesign-preview__modern-nav strong,.gch-redesign-preview__modern-nav span,.gch-redesign-preview__modern-nav i { font:700 .58rem/1 "JetBrains Mono",monospace; text-transform:uppercase; }
+  .gch-redesign-preview__modern-nav span { color:#857e70; }
+  .gch-redesign-preview__modern-nav i { font-style:normal; padding:.45rem .6rem; border-radius:999px; background:var(--gch-gold); color:#0b0d12; }
+  .gch-redesign-preview__modern-hero { width:68%; padding:clamp(1rem,3vw,2.2rem) .4rem; }
+  .gch-redesign-preview__modern-hero em { color:var(--gch-gold-text); font:700 .58rem/1 "JetBrains Mono",monospace; letter-spacing:.1em; font-style:normal; }
+  .gch-redesign-preview__modern-hero b { display:block; margin:.65rem 0; font:800 clamp(1.25rem,3.4vw,2.5rem)/.98 "JetBrains Mono",monospace; text-transform:uppercase; letter-spacing:-.04em; }
+  .gch-redesign-preview__modern-hero small { display:block; color:#5b564c; font:500 .76rem/1.45 "Outfit",sans-serif; }
+  .gch-redesign-preview__modern-hero div { display:flex; gap:.5rem; margin-top:.8rem; }
+  .gch-redesign-preview__modern-hero div span { padding:.5rem .65rem; border-radius:999px; background:#0b0d12; color:#f2efe8; font:700 .62rem/1 "Outfit",sans-serif; }
+  .gch-redesign-preview__modern-grid span { min-height:3.2rem; display:grid; place-items:center; border:1px solid #ede9e2; background:#fff; color:#5b564c; font:700 .62rem/1 "JetBrains Mono",monospace; text-transform:uppercase; }
+  .gch-redesign-preview__audit { position:absolute; right:1rem; bottom:1rem; display:grid; gap:.25rem; width:min(12rem,40%); padding:.65rem; border-radius:.65rem; background:rgba(11,13,18,.86); color:#f2efe8; }
+  .gch-redesign-preview__audit strong { color:#f0862e; font:700 .58rem/1 "JetBrains Mono",monospace; text-transform:uppercase; }
+  .gch-redesign-preview__audit span { font:500 .62rem/1.3 "Outfit",sans-serif; }
+  .gch-redesign-preview__audit--after strong { color:#e8a020; }
+  .gch-redesign-preview__summary { margin:0; color:rgba(242,239,232,.7); font:500 .72rem/1.45 "Outfit",sans-serif; }
+  .gch-redesign-preview__summary strong { color:var(--gch-gold-dark); font-family:"JetBrains Mono",monospace; text-transform:uppercase; font-size:.6rem; }
+  @media(max-width:620px){ .gch-redesign-preview__modern-nav span{display:none}.gch-redesign-preview__modern-hero{width:100%}.gch-redesign-preview__audit{width:calc(100% - 2rem);}.gch-redesign-preview__legacy-grid,.gch-redesign-preview__modern-grid{display:none} }
+  @media(prefers-reduced-motion:reduce){ .gch-redesign-preview__site{transition:none} }
+</style>
