@@ -1,0 +1,152 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import GCHCategoryRail from "../components/marketing/GCHCategoryRail.astro";
+import GCHPathwayCta from "../components/marketing/GCHPathwayCta.astro";
+import GCHHudLabel from "../components/marketing/GCHHudLabel.astro";
+---
+
+<Layout title="GCH Public Marketing Foundation">
+  <GCHPrimaryNav />
+
+  <main>
+    <section class="foundation-hero" data-gch-surface="dark">
+      <div class="foundation-hero__inner">
+        <GCHHudLabel index="FOUNDATION" label="Public Marketing Wireframe" tone="light" />
+        <h1>One brand system. Distinct visitor journeys.</h1>
+        <p>
+          A coded foundation for the Glory Cloud Hosts public site: faith-forward,
+          tech-confident, accessible, and built to support the 35-journey wireframe system.
+        </p>
+      </div>
+    </section>
+
+    <section class="foundation-shell">
+      <aside>
+        <GCHCategoryRail />
+      </aside>
+
+      <div class="foundation-content">
+        <section id="marketing" class="foundation-demo">
+          <GCHHudLabel index="07" label="Pathway CTA" />
+          <GCHPathwayCta
+            title="Tell us what you're trying to accomplish."
+            body="Start with the outcome, not the product catalog. We’ll guide visitors toward the most relevant GCH path."
+            href="/start"
+            cta="Find my starting point"
+          />
+        </section>
+
+        <section id="ministry" class="foundation-demo foundation-demo--dark">
+          <GCHHudLabel index="07B" label="Dark Surface Variant" tone="light" />
+          <GCHPathwayCta
+            tone="dark"
+            eyebrow="Ministry technology"
+            title="Connect the work happening in the room to the people beyond it."
+            body="Streaming, websites, GLinks, hosting, and digital ministry tools can read as one connected journey instead of separate services."
+            href="/ministry"
+            cta="Explore ministry solutions"
+          />
+        </section>
+
+        <section id="hosting" class="foundation-placeholder">
+          <GCHHudLabel index="03" label="Hosting" />
+          <h2>Technical infrastructure journey placeholder</h2>
+          <p>Reserved for the later hosting architecture visualization and HUD system.</p>
+        </section>
+
+        <section id="tools" class="foundation-placeholder">
+          <GCHHudLabel index="04" label="Tools" tone="blue" />
+          <h2>SaaS showcase journey placeholder</h2>
+          <p>Reserved for GLinks, AI Website Builder, Private AI Box, and future product demos.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .foundation-hero {
+    background:
+      radial-gradient(circle at 78% 20%, rgba(232, 160, 32, 0.14), transparent 30%),
+      var(--gch-brand-dark);
+    color: var(--gch-text-primary-dark);
+  }
+
+  .foundation-hero__inner {
+    width: min(100% - 2rem, 1180px);
+    margin-inline: auto;
+    padding: clamp(5rem, 9vw, 9rem) 0;
+  }
+
+  .foundation-hero h1 {
+    max-width: 13ch;
+    margin: 1rem 0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: clamp(2.4rem, 6vw, 5.8rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+  }
+
+  .foundation-hero p,
+  .foundation-placeholder p {
+    max-width: 62ch;
+    margin: 0;
+    color: var(--gch-text-secondary-dark);
+    font: 400 1.05rem/1.65 "Outfit", system-ui, sans-serif;
+  }
+
+  .foundation-shell {
+    width: min(100% - 2rem, 1180px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-block: 5rem 8rem;
+  }
+
+  .foundation-content {
+    display: grid;
+    gap: 5rem;
+  }
+
+  .foundation-demo {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .foundation-demo--dark {
+    margin-inline: clamp(-1rem, -2vw, -2rem);
+    padding: clamp(1rem, 2vw, 2rem);
+    border-radius: 2rem;
+    background: var(--gch-surface-default);
+  }
+
+  .foundation-placeholder {
+    min-height: 22rem;
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    padding: clamp(2rem, 5vw, 4rem);
+    border: 1px dashed var(--gch-border-strong);
+    border-radius: 1.5rem;
+  }
+
+  .foundation-placeholder h2 {
+    max-width: 18ch;
+    margin: 0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    text-transform: uppercase;
+  }
+
+  .foundation-placeholder p {
+    color: var(--gch-text-secondary);
+  }
+
+  @media (max-width: 900px) {
+    .foundation-shell { grid-template-columns: 1fr; }
+  }
+</style>
