@@ -1,0 +1,139 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+const portals = [
+  { id: "build", index: "01", title: "Build", body: "Brand identity, website design, website redesign, and launch-ready digital foundations.", href: "/marketing", cue: "Brand · Web · Redesign", tone: "gold" },
+  { id: "grow", index: "02", title: "Grow", body: "SEO, Google Business services, content, local visibility, and ongoing marketing support.", href: "/marketing", cue: "SEO · Google · Content", tone: "gold" },
+  { id: "host", index: "03", title: "Host", body: "Domains, managed hosting, migrations, WordPress support, and infrastructure that stays understandable.", href: "/hosting", cue: "Domains · Hosting · Migration", tone: "gold" },
+  { id: "connect", index: "04", title: "Connect", body: "GLinks, ministry tools, streaming experiences, and digital pathways built around connection.", href: "/ministry", cue: "GLinks · Ministry · Streaming", tone: "blue" },
+];
+---
+
+<section class="gch-portals" id="solution-portals" aria-labelledby="gch-portals-title">
+  <header class="gch-portals__header">
+    <GCHHudLabel index="12" label="Solution pathway portals" />
+    <h2 id="gch-portals-title">Choose the kind of work you need.</h2>
+    <p>Each portal opens into a different GCH service path while staying inside one connected brand system.</p>
+  </header>
+
+  <div class="gch-portals__group">
+    {portals.map((portal, index) => (
+      <article
+        id={`portal-${portal.id}`}
+        class={`gch-portal gch-portal--${portal.tone}`}
+        data-portal
+        data-active={index === 0 ? "true" : "false"}
+      >
+        <button class="gch-portal__trigger" type="button" aria-expanded={index === 0 ? "true" : "false"}>
+          <span class="gch-portal__index">{portal.index}</span>
+          <strong>{portal.title}</strong>
+          <span class="gch-portal__plus" aria-hidden="true">+</span>
+        </button>
+
+        <div class="gch-portal__content">
+          <div class="gch-portal__media" aria-hidden="true">
+            <span class="gch-portal__plane"></span>
+            <span class="gch-portal__beam"></span>
+            <span class="gch-portal__badge">{portal.cue}</span>
+          </div>
+          <p>{portal.body}</p>
+          <a href={portal.href}>Explore {portal.title} <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll(".gch-portals__group").forEach((group) => {
+    const portals = Array.from(group.querySelectorAll("[data-portal]"));
+    portals.forEach((portal) => {
+      const trigger = portal.querySelector(".gch-portal__trigger");
+      if (!(trigger instanceof HTMLButtonElement)) return;
+      trigger.addEventListener("click", () => {
+        portals.forEach((item) => {
+          const active = item === portal;
+          item.setAttribute("data-active", active ? "true" : "false");
+          const itemTrigger = item.querySelector(".gch-portal__trigger");
+          if (itemTrigger) itemTrigger.setAttribute("aria-expanded", active ? "true" : "false");
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-portals { padding-block: clamp(4rem,8vw,7rem); }
+  .gch-portals__header { max-width:48rem; margin-bottom:2.5rem; }
+  .gch-portals h2 {
+    max-width:14ch;
+    margin:.85rem 0 1rem;
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:clamp(2rem,4.7vw,4.6rem);
+    line-height:.98;
+    letter-spacing:-.052em;
+    text-transform:uppercase;
+  }
+  .gch-portals__header p { max-width:60ch; margin:0; color:var(--gch-text-secondary); font:400 1rem/1.65 "Outfit",system-ui,sans-serif; }
+
+  .gch-portals__group {
+    display:flex;
+    min-height:34rem;
+    gap:.8rem;
+  }
+  .gch-portal {
+    flex:1 1 0;
+    min-width:0;
+    display:grid;
+    grid-template-rows:auto 1fr;
+    border:1px solid var(--gch-border-light);
+    border-radius:1.4rem;
+    overflow:hidden;
+    background:var(--gch-white);
+    transition:flex-grow 320ms cubic-bezier(.2,.7,.2,1),border-color 180ms ease;
+  }
+  .gch-portal[data-active="true"] { flex-grow:2.8; border-color:color-mix(in srgb,var(--gch-gold) 55%,var(--gch-border-light)); }
+  .gch-portal--blue[data-active="true"] { border-color:color-mix(in srgb,var(--gch-blue) 60%,var(--gch-border-light)); }
+
+  .gch-portal__trigger {
+    width:100%; min-height:5rem;
+    display:grid; grid-template-columns:auto 1fr auto; gap:.75rem; align-items:center;
+    padding:1rem;
+    border:0; border-bottom:1px solid var(--gch-border-light);
+    background:transparent; color:var(--gch-text-primary); text-align:left; cursor:pointer;
+  }
+  .gch-portal__trigger:focus-visible { outline:2px solid var(--gch-blue); outline-offset:-4px; }
+  .gch-portal__index { color:var(--gch-gold-text); font:700 .66rem/1 "JetBrains Mono",monospace; letter-spacing:.08em; }
+  .gch-portal--blue .gch-portal__index { color:var(--gch-blue); }
+  .gch-portal__trigger strong { font:800 1.15rem/1 "JetBrains Mono",monospace; text-transform:uppercase; }
+  .gch-portal__plus { color:var(--gch-text-muted); font-size:1.2rem; transition:transform 220ms ease; }
+  .gch-portal[data-active="true"] .gch-portal__plus { transform:rotate(45deg); }
+
+  .gch-portal__content {
+    display:grid; grid-template-rows:minmax(12rem,1fr) auto auto; gap:1rem;
+    padding:1rem;
+    opacity:.45;
+    transition:opacity 220ms ease;
+  }
+  .gch-portal[data-active="true"] .gch-portal__content { opacity:1; }
+  .gch-portal__media { position:relative; min-height:18rem; border-radius:1rem; overflow:hidden; background:linear-gradient(150deg,#10131a,#2e3347); }
+  .gch-portal--blue .gch-portal__media { background:linear-gradient(150deg,#101b32,#2f4c82); }
+  .gch-portal__plane { position:absolute; inset:14% 10% 20% 18%; border:1px solid rgba(255,255,255,.16); border-radius:.9rem; background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.025)); transform:perspective(700px) rotateY(-9deg); }
+  .gch-portal__beam { position:absolute; left:8%; bottom:18%; width:60%; height:2px; background:var(--gch-gradient-ember); box-shadow:0 0 24px rgba(232,160,32,.35); }
+  .gch-portal--blue .gch-portal__beam { background:var(--gch-blue-dark-safe); box-shadow:0 0 24px rgba(147,180,223,.3); }
+  .gch-portal__badge { position:absolute; right:1rem; top:1rem; max-width:80%; padding:.5rem .6rem; border:1px solid rgba(255,255,255,.12); border-radius:.5rem; background:rgba(11,13,18,.66); color:var(--gch-text-primary-dark); font:600 .58rem/1.2 "JetBrains Mono",monospace; letter-spacing:.06em; text-transform:uppercase; }
+  .gch-portal__content p { margin:0; color:var(--gch-text-secondary); font:400 .92rem/1.55 "Outfit",system-ui,sans-serif; }
+  .gch-portal__content a { width:max-content; color:var(--gch-text-primary); text-decoration:none; font:700 .9rem/1.2 "Outfit",system-ui,sans-serif; }
+  .gch-portal__content a:focus-visible { outline:2px solid var(--gch-blue); outline-offset:4px; }
+
+  @media (max-width:860px) {
+    .gch-portals__group { display:grid; min-height:0; }
+    .gch-portal { display:block; }
+    .gch-portal__content { display:none; opacity:1; }
+    .gch-portal[data-active="true"] .gch-portal__content { display:grid; }
+    .gch-portal__media { min-height:14rem; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .gch-portal,.gch-portal__content,.gch-portal__plus { transition:none; }
+  }
+</style>
