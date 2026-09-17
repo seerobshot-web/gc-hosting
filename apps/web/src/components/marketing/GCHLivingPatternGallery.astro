@@ -1,0 +1,333 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+import GCHViewModeToggle from "./GCHViewModeToggle.astro";
+import GCHProductDemoFrame from "./GCHProductDemoFrame.astro";
+
+const offerings = [
+  {
+    key: "brand-identity",
+    index: "01",
+    category: "Marketing",
+    title: "Brand Identity",
+    promise: "Build a visual system that feels credible before the first conversation starts.",
+    visitorNote: "Logo, typography, color, visual language, and practical applications built as one coherent identity system.",
+    goal: "build",
+    tone: "gold",
+    kind: "brand",
+    demoTitle: "Brand system workspace",
+    demoUrl: "brand.preview.gch",
+    cta: "Explore Brand Identity",
+    href: "/marketing",
+    spec: ["Identity strategy", "Logo system", "Color + typography", "Web/social applications"],
+    components: ["BrandBoard", "AssetTile", "SpecLabel", "ApplicationPreview"],
+    integrations: ["Website design", "Social templates", "Marketing collateral"],
+  },
+  {
+    key: "website-redesign",
+    index: "02",
+    category: "Marketing",
+    title: "Website Redesign",
+    promise: "Turn an outdated site into a clearer path from first impression to action.",
+    visitorNote: "A before-to-after experience focused on structure, mobile hierarchy, trust, conversion, and search foundations.",
+    goal: "build",
+    tone: "gold",
+    kind: "website",
+    demoTitle: "Website transformation preview",
+    demoUrl: "redesign.preview.gch",
+    cta: "Plan a Redesign",
+    href: "/marketing",
+    spec: ["Current-state audit", "Information architecture", "Responsive rebuild", "SEO-ready launch"],
+    components: ["BeforeAfterFrame", "Hero", "ServiceGrid", "ConversionBand"],
+    integrations: ["Analytics", "Search Console", "Forms / CRM"],
+  },
+  {
+    key: "google-business",
+    index: "03",
+    category: "Marketing",
+    title: "Google Business Services",
+    promise: "Make local discovery feel connected to the website, not managed in isolation.",
+    visitorNote: "Profile completeness, service categories, reviews, website alignment, and local-search presentation in one visibility workflow.",
+    goal: "grow",
+    tone: "gold",
+    kind: "local",
+    demoTitle: "Local visibility workspace",
+    demoUrl: "local.preview.gch",
+    cta: "Improve Local Presence",
+    href: "/marketing",
+    spec: ["Profile audit", "Category/service alignment", "Review workflow", "Local landing-page linkage"],
+    components: ["LocalSearchPreview", "ProfileCard", "ReviewRail", "VisibilityChecklist"],
+    integrations: ["Google Business Profile", "Website", "Local SEO content"],
+  },
+  {
+    key: "seo-growth",
+    index: "04",
+    category: "Marketing",
+    title: "SEO + Growth",
+    promise: "Connect questions, content, service pages, and local intent into one search system.",
+    visitorNote: "A living search map showing how pages, People Also Ask topics, local queries, and resources reinforce one another.",
+    goal: "grow",
+    tone: "gold",
+    kind: "seo",
+    demoTitle: "Search authority map",
+    demoUrl: "seo.preview.gch",
+    cta: "Explore SEO",
+    href: "/marketing",
+    spec: ["Technical baseline", "Keyword + intent map", "Content clusters", "Reporting cadence"],
+    components: ["SearchConstellation", "ClusterNode", "MetricReadout", "ResourceRail"],
+    integrations: ["Search Console", "Analytics", "Google Business Profile"],
+  },
+  {
+    key: "managed-hosting",
+    index: "05",
+    category: "Hosting",
+    title: "Managed Hosting",
+    promise: "Keep the technical foundation understandable, monitored, and ready for the work above it.",
+    visitorNote: "Domains, hosting, migrations, SSL, WordPress, and service mapping shown as one connected infrastructure path.",
+    goal: "host",
+    tone: "gold",
+    kind: "hosting",
+    demoTitle: "Hosting control surface",
+    demoUrl: "hosting.preview.gch",
+    cta: "View Hosting",
+    href: "/hosting",
+    spec: ["Domain / DNS", "Managed hosting", "Migration path", "SSL + monitoring"],
+    components: ["ArchitectureFlow", "SystemNode", "StatusChip", "PlanComparison"],
+    integrations: ["Stripe", "ResellPortal", "GCH provisioning"],
+  },
+  {
+    key: "glinks",
+    index: "06",
+    category: "Ministry + Tools",
+    title: "GLinks",
+    promise: "Give ministries one clear, mobile-first place to connect links, media, streams, and next steps.",
+    visitorNote: "A ministry connection layer designed around the reality of services, livestreams, campaigns, giving, events, and shared links.",
+    goal: "connect",
+    tone: "blue",
+    kind: "glinks",
+    demoTitle: "GLinks mobile preview",
+    demoUrl: "glinks.preview.gch",
+    cta: "Explore GLinks",
+    href: "/ministry",
+    spec: ["Mobile-first page", "Video / stream modules", "Links + campaigns", "Ministry-specific calls to action"],
+    components: ["GLinksProfile", "VideoModule", "LinkStack", "MinistryCTA"],
+    integrations: ["Streaming", "Bunny video", "Ministry websites"],
+  },
+];
+---
+
+<section class="gch-pattern-gallery" id="living-pattern-gallery" data-view-mode="marketing" data-active-goal="all" aria-labelledby="gch-gallery-title">
+  <header class="gch-pattern-gallery__intro">
+    <div>
+      <GCHHudLabel index="15" label="Living pattern gallery" />
+      <h2 id="gch-gallery-title">See the offering. Read the blueprint.</h2>
+      <p>
+        Every GCH offering is shown as a controlled preview with the implementation notes beside it.
+        Visitors see the outcome; the build team sees the system behind it.
+      </p>
+    </div>
+    <GCHViewModeToggle targetId="living-pattern-gallery" />
+  </header>
+
+  <div class="gch-pattern-gallery__layout">
+    <aside class="gch-pattern-gallery__annotation" aria-label="Selected offering details">
+      <div class="gch-pattern-gallery__sticky">
+        <div class="gch-pattern-gallery__selection-meta">
+          <span class="gch-pattern-gallery__selection-index">01 / 06</span>
+          <span class="gch-pattern-gallery__selection-category">Marketing</span>
+        </div>
+
+        {offerings.map((offering, index) => (
+          <article
+            class="gch-pattern-gallery__note"
+            data-note={offering.key}
+            data-active={index === 0 ? "true" : "false"}
+            data-goal={offering.goal}
+          >
+            <div class="gch-pattern-gallery__marketing-copy">
+              <GCHHudLabel index={offering.index} label={offering.category} tone={offering.tone === "blue" ? "blue" : "gold"} />
+              <h3>{offering.title}</h3>
+              <p class="gch-pattern-gallery__promise">{offering.promise}</p>
+              <p>{offering.visitorNote}</p>
+            </div>
+
+            <div class="gch-pattern-gallery__blueprint-copy">
+              <GCHHudLabel index="SPEC" label="Build blueprint" tone={offering.tone === "blue" ? "blue" : "gold"} />
+              <h3>{offering.title}</h3>
+              <dl>
+                <div><dt>Layout / deliverables</dt><dd>{offering.spec.join(" · ")}</dd></div>
+                <div><dt>Reusable components</dt><dd>{offering.components.join(" · ")}</dd></div>
+                <div><dt>Integrations</dt><dd>{offering.integrations.join(" · ")}</dd></div>
+              </dl>
+            </div>
+
+            <a class="gch-pattern-gallery__cta" href={offering.href}>{offering.cta}<span aria-hidden="true">→</span></a>
+          </article>
+        ))}
+
+        <div class="gch-pattern-gallery__selector" role="list" aria-label="Offerings">
+          {offerings.map((offering, index) => (
+            <button
+              type="button"
+              class="gch-pattern-gallery__selector-button"
+              data-select={offering.key}
+              data-goal={offering.goal}
+              aria-pressed={index === 0 ? "true" : "false"}
+            >
+              <span>{offering.index}</span>{offering.title}
+            </button>
+          ))}
+        </div>
+      </div>
+    </aside>
+
+    <div class="gch-pattern-gallery__stage" aria-live="polite">
+      {offerings.map((offering, index) => (
+        <div
+          class="gch-pattern-gallery__preview"
+          data-preview={offering.key}
+          data-goal={offering.goal}
+          data-active={index === 0 ? "true" : "false"}
+        >
+          <GCHProductDemoFrame
+            title={offering.demoTitle}
+            urlLabel={offering.demoUrl}
+            tone={offering.tone}
+            kind={offering.kind}
+          />
+          <div class="gch-pattern-gallery__preview-caption">
+            <span>{offering.title}</span>
+            <small>{offering.category}</small>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const gallery = document.getElementById("living-pattern-gallery");
+  if (gallery) {
+    const notes = Array.from(gallery.querySelectorAll("[data-note]"));
+    const previews = Array.from(gallery.querySelectorAll("[data-preview]"));
+    const buttons = Array.from(gallery.querySelectorAll("[data-select]"));
+    const indexLabel = gallery.querySelector(".gch-pattern-gallery__selection-index");
+    const categoryLabel = gallery.querySelector(".gch-pattern-gallery__selection-category");
+
+    const setActive = (key) => {
+      const activeIndex = previews.findIndex((preview) => preview.getAttribute("data-preview") === key);
+      previews.forEach((preview) => preview.setAttribute("data-active", preview.getAttribute("data-preview") === key ? "true" : "false"));
+      notes.forEach((note) => note.setAttribute("data-active", note.getAttribute("data-note") === key ? "true" : "false"));
+      buttons.forEach((button) => button.setAttribute("aria-pressed", button.getAttribute("data-select") === key ? "true" : "false"));
+      if (indexLabel && activeIndex >= 0) indexLabel.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(previews.length).padStart(2, "0")}`;
+      const activeButton = buttons.find((button) => button.getAttribute("data-select") === key);
+      const activeNote = notes.find((note) => note.getAttribute("data-note") === key);
+      const category = activeNote?.querySelector(".gch-hud-label span:last-child")?.textContent;
+      if (categoryLabel && category) categoryLabel.textContent = category;
+      activeButton?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setActive(button.getAttribute("data-select")));
+    });
+
+    window.addEventListener("gch:goal-change", (event) => {
+      const goal = event.detail?.goal || "all";
+      gallery.setAttribute("data-active-goal", goal);
+      const match = buttons.find((button) => button.getAttribute("data-goal") === goal);
+      if (match) setActive(match.getAttribute("data-select"));
+    });
+  }
+</script>
+
+<style>
+  .gch-pattern-gallery { padding-block: clamp(5rem,9vw,9rem); }
+  .gch-pattern-gallery__intro {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 2rem;
+    align-items: end;
+    margin-bottom: clamp(2.5rem,5vw,4.5rem);
+  }
+  .gch-pattern-gallery__intro h2 {
+    max-width: 14ch;
+    margin: .85rem 0 1rem;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: clamp(2.1rem,5vw,4.8rem);
+    line-height: .96;
+    letter-spacing: -.055em;
+    text-transform: uppercase;
+  }
+  .gch-pattern-gallery__intro p { max-width: 66ch; margin: 0; color: var(--gch-text-secondary); font: 400 1rem/1.65 "Outfit",system-ui,sans-serif; }
+
+  .gch-pattern-gallery__layout {
+    display: grid;
+    grid-template-columns: minmax(17rem, .55fr) minmax(0, 1.45fr);
+    gap: clamp(2rem,5vw,5rem);
+    align-items: start;
+  }
+  .gch-pattern-gallery__sticky { position: sticky; top: 6.5rem; }
+  .gch-pattern-gallery__selection-meta { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: .8rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--gch-border-light); color: var(--gch-text-muted); font: 700 .62rem/1 "JetBrains Mono",monospace; letter-spacing: .09em; text-transform: uppercase; }
+
+  .gch-pattern-gallery__note { display: none; }
+  .gch-pattern-gallery__note[data-active="true"] { display: block; }
+  .gch-pattern-gallery__note h3 { margin: .8rem 0 1rem; font-family: "JetBrains Mono",ui-monospace,monospace; font-size: clamp(1.7rem,3.4vw,3.25rem); line-height: 1; letter-spacing: -.045em; text-transform: uppercase; }
+  .gch-pattern-gallery__note p { margin: .7rem 0 0; color: var(--gch-text-secondary); font: 400 .98rem/1.62 "Outfit",system-ui,sans-serif; }
+  .gch-pattern-gallery__promise { color: var(--gch-text-primary) !important; font-weight: 600 !important; }
+  .gch-pattern-gallery__blueprint-copy { display: none; }
+  [data-view-mode="blueprint"] .gch-pattern-gallery__marketing-copy { display: none; }
+  [data-view-mode="blueprint"] .gch-pattern-gallery__blueprint-copy { display: block; }
+  .gch-pattern-gallery__blueprint-copy dl { display: grid; gap: .9rem; margin: 1.2rem 0 0; }
+  .gch-pattern-gallery__blueprint-copy dl div { padding: .85rem 0; border-top: 1px solid var(--gch-border-light); }
+  .gch-pattern-gallery__blueprint-copy dt { margin-bottom: .35rem; color: var(--gch-text-muted); font: 700 .6rem/1 "JetBrains Mono",monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .gch-pattern-gallery__blueprint-copy dd { margin: 0; color: var(--gch-text-secondary); font: 500 .88rem/1.55 "Outfit",system-ui,sans-serif; }
+
+  .gch-pattern-gallery__cta { display: inline-flex; align-items: center; gap: .65rem; margin-top: 1.4rem; color: var(--gch-text-primary); text-decoration: none; font: 700 .9rem/1 "Outfit",system-ui,sans-serif; }
+  .gch-pattern-gallery__cta span { display: inline-grid; place-items: center; width: 2rem; aspect-ratio: 1; border-radius: 999px; background: var(--gch-gold); color: var(--gch-brand-dark); }
+  .gch-pattern-gallery__cta:focus-visible { outline: 2px solid var(--gch-blue); outline-offset: 4px; border-radius: .3rem; }
+
+  .gch-pattern-gallery__selector { display: grid; gap: .3rem; margin-top: 2rem; }
+  .gch-pattern-gallery__selector-button { display: grid; grid-template-columns: 2.1rem 1fr; align-items: center; gap: .55rem; width: 100%; padding: .72rem .6rem; border: 0; border-radius: .5rem; background: transparent; color: var(--gch-text-secondary); text-align: left; cursor: pointer; font: 600 .82rem/1.2 "Outfit",system-ui,sans-serif; }
+  .gch-pattern-gallery__selector-button span { color: var(--gch-text-muted); font: 700 .58rem/1 "JetBrains Mono",monospace; }
+  .gch-pattern-gallery__selector-button[aria-pressed="true"] { background: var(--gch-white); color: var(--gch-text-primary); box-shadow: inset 3px 0 0 var(--gch-gold); }
+  .gch-pattern-gallery__selector-button[data-goal="connect"][aria-pressed="true"] { box-shadow: inset 3px 0 0 var(--gch-blue); }
+  .gch-pattern-gallery__selector-button:focus-visible { outline: 2px solid var(--gch-blue); outline-offset: 2px; }
+
+  .gch-pattern-gallery__stage { position: relative; min-height: clamp(30rem,62vw,48rem); }
+  .gch-pattern-gallery__preview { position: absolute; inset: 0; opacity: 0; pointer-events: none; transform: translateY(12px) scale(.992); transition: opacity 260ms ease, transform 260ms ease; }
+  .gch-pattern-gallery__preview[data-active="true"] { opacity: 1; pointer-events: auto; transform: none; }
+  .gch-pattern-gallery__preview-caption { display: flex; justify-content: space-between; gap: 1rem; padding: .8rem .15rem 0; color: var(--gch-text-secondary); }
+  .gch-pattern-gallery__preview-caption span { font: 700 .8rem/1 "Outfit",system-ui,sans-serif; }
+  .gch-pattern-gallery__preview-caption small { color: var(--gch-text-muted); font: 700 .58rem/1 "JetBrains Mono",monospace; letter-spacing: .08em; text-transform: uppercase; }
+
+  [data-view-mode="blueprint"] .gch-pattern-gallery__stage::after {
+    content: "BLUEPRINT VIEW · COMPONENT BOUNDARIES ACTIVE";
+    position: absolute;
+    inset: .7rem .7rem auto auto;
+    z-index: 4;
+    padding: .5rem .6rem;
+    border: 1px solid rgba(147,180,223,.35);
+    border-radius: .45rem;
+    background: rgba(11,13,18,.78);
+    color: var(--gch-blue-dark-safe);
+    font: 700 .55rem/1 "JetBrains Mono",monospace;
+    letter-spacing: .08em;
+  }
+
+  @media (max-width: 900px) {
+    .gch-pattern-gallery__intro { grid-template-columns: 1fr; align-items: start; }
+    .gch-pattern-gallery__layout { grid-template-columns: 1fr; }
+    .gch-pattern-gallery__sticky { position: static; }
+    .gch-pattern-gallery__selector { display: flex; overflow-x: auto; padding-bottom: .35rem; }
+    .gch-pattern-gallery__selector-button { min-width: 12rem; grid-template-columns: 1.7rem 1fr; }
+    .gch-pattern-gallery__stage { min-height: 34rem; }
+  }
+
+  @media (max-width: 620px) {
+    .gch-pattern-gallery__stage { min-height: 30rem; }
+    [data-view-mode="blueprint"] .gch-pattern-gallery__stage::after { position: static; display: block; margin-bottom: .6rem; width: max-content; max-width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-pattern-gallery__preview { transition: none; transform: none; }
+  }
+</style>

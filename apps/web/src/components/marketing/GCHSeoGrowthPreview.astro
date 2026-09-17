@@ -1,0 +1,70 @@
+---
+const clusters = [
+  { key: "service", label: "Service pages", note: "Commercial intent pages connect the offer to search demand." },
+  { key: "paa", label: "People Also Ask", note: "Question-led resources capture the language visitors are already using." },
+  { key: "local", label: "Local queries", note: "Location-aware searches reinforce business profile and landing-page relevance." },
+  { key: "resources", label: "Resources", note: "Guides and comparisons create internal paths into higher-intent pages." },
+];
+---
+
+<div class="gch-seo-preview" data-seo-preview>
+  <div class="gch-seo-preview__map" aria-label="SEO growth search constellation">
+    <button class="gch-seo-preview__node gch-seo-preview__node--center" type="button" data-seo-node="site" aria-pressed="true"><small>Core</small><strong>Website</strong></button>
+    <button class="gch-seo-preview__node gch-seo-preview__node--service" type="button" data-seo-node="service" aria-pressed="false"><small>01</small><strong>Service pages</strong></button>
+    <button class="gch-seo-preview__node gch-seo-preview__node--paa" type="button" data-seo-node="paa" aria-pressed="false"><small>02</small><strong>PAA</strong></button>
+    <button class="gch-seo-preview__node gch-seo-preview__node--local" type="button" data-seo-node="local" aria-pressed="false"><small>03</small><strong>Local</strong></button>
+    <button class="gch-seo-preview__node gch-seo-preview__node--resources" type="button" data-seo-node="resources" aria-pressed="false"><small>04</small><strong>Resources</strong></button>
+    <span class="gch-seo-preview__line gch-seo-preview__line--a" aria-hidden="true"></span>
+    <span class="gch-seo-preview__line gch-seo-preview__line--b" aria-hidden="true"></span>
+    <span class="gch-seo-preview__line gch-seo-preview__line--c" aria-hidden="true"></span>
+    <span class="gch-seo-preview__line gch-seo-preview__line--d" aria-hidden="true"></span>
+  </div>
+
+  <div class="gch-seo-preview__insight" aria-live="polite">
+    <span data-seo-kicker>SEARCH SYSTEM</span>
+    <strong data-seo-title>Website</strong>
+    <p data-seo-copy>Search visibility improves when service pages, questions, local intent, and useful resources reinforce one another instead of competing as isolated content.</p>
+    <div class="gch-seo-preview__metrics" aria-label="Illustrative search system metrics">
+      <div><small>Topic groups</small><b>04</b></div>
+      <div><small>Intent layers</small><b>03</b></div>
+      <div><small>System</small><b>1</b></div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ clusters }}>
+  document.querySelectorAll("[data-seo-preview]").forEach((root) => {
+    const title = root.querySelector("[data-seo-title]");
+    const copy = root.querySelector("[data-seo-copy]");
+    const kicker = root.querySelector("[data-seo-kicker]");
+    root.querySelectorAll("[data-seo-node]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.getAttribute("data-seo-node") || "site";
+        root.querySelectorAll("[data-seo-node]").forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+        if (key === "site") {
+          if (kicker) kicker.textContent = "SEARCH SYSTEM";
+          if (title) title.textContent = "Website";
+          if (copy) copy.textContent = "Search visibility improves when service pages, questions, local intent, and useful resources reinforce one another instead of competing as isolated content.";
+          return;
+        }
+        const cluster = clusters.find((item) => item.key === key);
+        if (cluster && title && copy) {
+          if (kicker) kicker.textContent = "ACTIVE CLUSTER";
+          title.textContent = cluster.label;
+          copy.textContent = cluster.note;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-seo-preview{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(12rem,.65fr);gap:1rem;padding:clamp(1rem,2.2vw,1.8rem)}
+  .gch-seo-preview__map{position:relative;min-height:0;border-radius:1rem;background:radial-gradient(circle at 50% 48%,rgba(232,160,32,.08),transparent 28%),linear-gradient(150deg,#0b0d12,#151a24);overflow:hidden}
+  .gch-seo-preview__node{position:absolute;z-index:2;display:grid;place-items:center;gap:.2rem;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:#171c26;color:#f2efe8;cursor:pointer;box-shadow:0 0 0 0 rgba(232,160,32,0);transition:transform 180ms ease,border-color 180ms ease,box-shadow 180ms ease}.gch-seo-preview__node small{color:#e8a020;font:700 .5rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}.gch-seo-preview__node strong{font:700 .62rem/1.1 "Outfit",sans-serif;text-align:center}.gch-seo-preview__node[aria-pressed="true"],.gch-seo-preview__node:hover,.gch-seo-preview__node:focus-visible{border-color:#e8a020;transform:scale(1.04);box-shadow:0 0 28px rgba(232,160,32,.16)}.gch-seo-preview__node:focus-visible{outline:2px solid #93b4df;outline-offset:3px}
+  .gch-seo-preview__node--center{left:42%;top:37%;width:8.2rem;height:8.2rem}.gch-seo-preview__node--service{left:9%;top:16%;width:6.1rem;height:6.1rem}.gch-seo-preview__node--paa{right:10%;top:13%;width:5.2rem;height:5.2rem}.gch-seo-preview__node--local{left:12%;bottom:11%;width:5.4rem;height:5.4rem}.gch-seo-preview__node--resources{right:10%;bottom:12%;width:6.5rem;height:6.5rem}
+  .gch-seo-preview__line{position:absolute;height:1px;background:linear-gradient(90deg,rgba(232,160,32,.08),rgba(232,160,32,.72),rgba(232,160,32,.08));transform-origin:left center;opacity:.8}.gch-seo-preview__line--a{left:21%;top:31%;width:25%;transform:rotate(20deg)}.gch-seo-preview__line--b{left:55%;top:35%;width:28%;transform:rotate(-19deg)}.gch-seo-preview__line--c{left:22%;top:66%;width:25%;transform:rotate(-20deg)}.gch-seo-preview__line--d{left:56%;top:65%;width:27%;transform:rotate(18deg)}
+  .gch-seo-preview__insight{align-self:end;display:grid;gap:.65rem;padding:1rem;border:1px solid rgba(255,255,255,.08);border-radius:1rem;background:rgba(11,13,18,.78);color:#f2efe8}.gch-seo-preview__insight>span{color:#e8a020;font:700 .54rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;text-transform:uppercase}.gch-seo-preview__insight>strong{font:800 1rem/1.05 "JetBrains Mono",monospace;text-transform:uppercase}.gch-seo-preview__insight>p{margin:0;color:rgba(242,239,232,.7);font:500 .72rem/1.45 "Outfit",sans-serif}.gch-seo-preview__metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-top:.3rem}.gch-seo-preview__metrics div{padding:.55rem;border:1px solid rgba(255,255,255,.07);border-radius:.55rem;background:#151a24}.gch-seo-preview__metrics small,.gch-seo-preview__metrics b{display:block}.gch-seo-preview__metrics small{color:#93b4df;font:700 .48rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-seo-preview__metrics b{margin-top:.35rem;color:#f2efe8;font:700 .9rem/1 "Space Mono",monospace}
+  @media(max-width:700px){.gch-seo-preview{grid-template-columns:1fr}.gch-seo-preview__insight{display:none}.gch-seo-preview__node--center{left:38%;top:37%;width:7rem;height:7rem}.gch-seo-preview__node--service{left:4%;top:14%}.gch-seo-preview__node--paa{right:5%;top:12%}.gch-seo-preview__node--local{left:5%;bottom:9%}.gch-seo-preview__node--resources{right:4%;bottom:8%}}
+  @media(prefers-reduced-motion:reduce){.gch-seo-preview__node{transition:none}.gch-seo-preview__node[aria-pressed="true"],.gch-seo-preview__node:hover,.gch-seo-preview__node:focus-visible{transform:none}}
+</style>

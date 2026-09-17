@@ -1,0 +1,171 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+const goals = [
+  { key: "build", code: "GOAL-01", label: "Build", summary: "Launch a website, redesign an existing presence, or establish a brand system.", href: "#portal-build", accent: "gold" },
+  { key: "grow", code: "GOAL-02", label: "Grow", summary: "Improve discovery through SEO, Google Business, content, and ongoing marketing.", href: "#portal-grow", accent: "gold" },
+  { key: "stream", code: "GOAL-03", label: "Stream", summary: "Connect worship, teaching, events, and live ministry to people beyond the room.", href: "#portal-connect", accent: "blue" },
+  { key: "host", code: "GOAL-04", label: "Host", summary: "Move domains, sites, and infrastructure into a managed GCH hosting relationship.", href: "#portal-host", accent: "gold" },
+  { key: "connect", code: "GOAL-05", label: "Connect", summary: "Use GLinks and ministry-focused tools to connect people, content, and next steps.", href: "#portal-connect", accent: "blue" },
+];
+---
+
+<section class="gch-goals" id="goal-selector" aria-labelledby="gch-goals-title" data-goal-selector>
+  <div class="gch-goals__heading">
+    <GCHHudLabel index="11" label="Goal / intent selector" />
+    <h2 id="gch-goals-title">I want to...</h2>
+    <p>Choose the outcome first. GCH can then narrow the services, tools, and next steps that matter.</p>
+  </div>
+
+  <div class="gch-goals__grid">
+    <div class="gch-goals__controls" role="group" aria-label="Choose a goal">
+      {goals.map((goal, index) => (
+        <button
+          type="button"
+          class={`gch-goals__button gch-goals__button--${goal.accent}`}
+          data-goal-button={goal.key}
+          aria-pressed={index === 0 ? "true" : "false"}
+        >
+          <span>{goal.code}</span>
+          <strong>{goal.label}</strong>
+        </button>
+      ))}
+    </div>
+
+    <div class="gch-goals__preview" aria-live="polite">
+      {goals.map((goal, index) => (
+        <article data-goal-panel={goal.key} hidden={index !== 0}>
+          <div class={`gch-goals__visual gch-goals__visual--${goal.key}`} aria-hidden="true">
+            <span class="gch-goals__signal"></span>
+            <span class="gch-goals__frame"></span>
+            <span class="gch-goals__node"></span>
+          </div>
+          <GCHHudLabel index={goal.code} label={`${goal.label} pathway`} tone={goal.accent === "blue" ? "blue" : "gold"} />
+          <p>{goal.summary}</p>
+          <a href={goal.href}>Show my options <span aria-hidden="true">→</span></a>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll("[data-goal-selector]").forEach((root) => {
+    const buttons = Array.from(root.querySelectorAll("[data-goal-button]"));
+    const panels = Array.from(root.querySelectorAll("[data-goal-panel]"));
+
+    const activate = (key) => {
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.getAttribute("data-goal-button") === key ? "true" : "false");
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.getAttribute("data-goal-panel") !== key;
+      });
+      root.dispatchEvent(new CustomEvent("gch:goal-change", { bubbles: true, detail: { goal: key } }));
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => activate(button.getAttribute("data-goal-button")));
+    });
+  });
+</script>
+
+<style>
+  .gch-goals {
+    padding: clamp(3rem,6vw,6rem);
+    border-radius: 2rem;
+    background: var(--gch-cream-dim);
+    overflow:hidden;
+  }
+
+  .gch-goals__heading { max-width: 48rem; }
+  .gch-goals h2 {
+    margin: .8rem 0 .75rem;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: clamp(2.2rem,5vw,4.8rem);
+    line-height:.96;
+    letter-spacing:-.055em;
+    text-transform:uppercase;
+  }
+  .gch-goals__heading p {
+    max-width:58ch;
+    margin:0;
+    color:var(--gch-text-secondary);
+    font:400 1rem/1.65 "Outfit",system-ui,sans-serif;
+  }
+
+  .gch-goals__grid {
+    display:grid;
+    grid-template-columns:minmax(15rem,.72fr) minmax(0,1.28fr);
+    gap:clamp(2rem,5vw,5rem);
+    align-items:stretch;
+    margin-top:3rem;
+  }
+
+  .gch-goals__controls { display:grid; align-content:start; gap:.65rem; }
+  .gch-goals__button {
+    display:grid;
+    grid-template-columns:6.2rem 1fr;
+    gap:.8rem;
+    align-items:center;
+    width:100%;
+    padding:1rem 1.1rem;
+    border:1px solid var(--gch-border-light);
+    border-radius:1rem;
+    background:rgba(255,255,255,.55);
+    color:var(--gch-text-primary);
+    text-align:left;
+    cursor:pointer;
+    transition:transform 180ms ease,background-color 180ms ease,border-color 180ms ease;
+  }
+  .gch-goals__button span { color:var(--gch-text-muted); font:600 .62rem/1 "JetBrains Mono",monospace; letter-spacing:.07em; }
+  .gch-goals__button strong { font:700 1.05rem/1.1 "Outfit",system-ui,sans-serif; }
+  .gch-goals__button[aria-pressed="true"] { background:var(--gch-white); transform:translateX(4px); }
+  .gch-goals__button--gold[aria-pressed="true"] { border-color:var(--gch-gold); }
+  .gch-goals__button--blue[aria-pressed="true"] { border-color:var(--gch-blue); }
+  .gch-goals__button:focus-visible { outline:2px solid var(--gch-blue); outline-offset:3px; }
+
+  .gch-goals__preview {
+    min-height:31rem;
+    border-radius:1.5rem;
+    overflow:hidden;
+    background:var(--gch-white);
+    border:1px solid var(--gch-border-light);
+  }
+  .gch-goals__preview article { min-height:31rem; display:grid; grid-template-rows:1fr auto auto auto; align-content:end; gap:.9rem; padding:1.25rem; }
+  .gch-goals__preview article[hidden] { display:none; }
+  .gch-goals__preview p { max-width:50ch; margin:0; color:var(--gch-text-secondary); font:400 1rem/1.6 "Outfit",system-ui,sans-serif; }
+  .gch-goals__preview a { width:max-content; color:var(--gch-text-primary); text-decoration:none; font:700 .92rem/1.2 "Outfit",system-ui,sans-serif; }
+  .gch-goals__preview a:focus-visible { outline:2px solid var(--gch-blue); outline-offset:4px; }
+
+  .gch-goals__visual {
+    position:relative;
+    min-height:17rem;
+    border-radius:1.1rem;
+    overflow:hidden;
+    background:linear-gradient(145deg,#151923,#2e3347);
+  }
+  .gch-goals__visual--grow { background:linear-gradient(145deg,#f8f5ef,#e9dfcc); }
+  .gch-goals__visual--stream,
+  .gch-goals__visual--connect { background:linear-gradient(145deg,#101b32,#233a63); }
+  .gch-goals__visual--host { background:linear-gradient(145deg,#0b0d12,#2e3347); }
+  .gch-goals__signal { position:absolute; left:10%; top:17%; width:40%; height:2px; background:var(--gch-gradient-ember); box-shadow:0 0 26px rgba(232,160,32,.5); }
+  .gch-goals__frame { position:absolute; right:9%; top:16%; width:58%; height:58%; border:1px solid rgba(255,255,255,.2); border-radius:.9rem; background:rgba(255,255,255,.08); box-shadow:0 24px 50px rgba(0,0,0,.16); }
+  .gch-goals__visual--grow .gch-goals__frame { border-color:rgba(26,26,34,.15); background:#fff; }
+  .gch-goals__node { position:absolute; left:18%; bottom:18%; width:2.8rem; aspect-ratio:1; border-radius:50%; background:var(--gch-gold-dark); box-shadow:0 0 0 12px rgba(232,160,32,.08); }
+  .gch-goals__visual--stream .gch-goals__node,
+  .gch-goals__visual--connect .gch-goals__node { background:var(--gch-blue-dark-safe); box-shadow:0 0 0 12px rgba(147,180,223,.08); }
+
+  @media (max-width:820px) {
+    .gch-goals { padding:2rem 1rem; border-radius:1.5rem; }
+    .gch-goals__grid { grid-template-columns:1fr; }
+    .gch-goals__controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .gch-goals__button { grid-template-columns:1fr; }
+    .gch-goals__button[aria-pressed="true"] { transform:none; }
+  }
+  @media (max-width:520px) {
+    .gch-goals__controls { display:flex; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:.35rem; }
+    .gch-goals__button { min-width:9rem; scroll-snap-align:start; }
+  }
+  @media (prefers-reduced-motion:reduce) { .gch-goals__button { transition:none; } }
+</style>

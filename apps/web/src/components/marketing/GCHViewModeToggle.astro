@@ -1,0 +1,128 @@
+---
+interface Props {
+  defaultMode?: "marketing" | "blueprint";
+  targetId: string;
+}
+
+const { defaultMode = "marketing", targetId } = Astro.props;
+---
+
+<div class="gch-view-toggle" role="group" aria-label="Preview mode" data-view-toggle data-target={targetId}>
+  <button
+    type="button"
+    class="gch-view-toggle__button"
+    data-mode="marketing"
+    aria-pressed={defaultMode === "marketing" ? "true" : "false"}
+  >
+    <span class="gch-view-toggle__cue">EXP</span>
+    Marketing
+  </button>
+  <span class="gch-view-toggle__track" aria-hidden="true">
+    <span class="gch-view-toggle__thumb"></span>
+  </span>
+  <button
+    type="button"
+    class="gch-view-toggle__button"
+    data-mode="blueprint"
+    aria-pressed={defaultMode === "blueprint" ? "true" : "false"}
+  >
+    <span class="gch-view-toggle__cue">SPEC</span>
+    Blueprint
+  </button>
+</div>
+
+<script>
+  document.querySelectorAll("[data-view-toggle]").forEach((toggle) => {
+    const targetId = toggle.getAttribute("data-target");
+    const target = targetId ? document.getElementById(targetId) : null;
+    if (!target) return;
+
+    const buttons = Array.from(toggle.querySelectorAll("button[data-mode]"));
+    const setMode = (mode) => {
+      target.setAttribute("data-view-mode", mode);
+      toggle.setAttribute("data-active-mode", mode);
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.getAttribute("data-mode") === mode ? "true" : "false");
+      });
+      target.dispatchEvent(new CustomEvent("gch:view-mode-change", { bubbles: true, detail: { mode } }));
+    };
+
+    const pressed = buttons.find((button) => button.getAttribute("aria-pressed") === "true");
+    setMode(pressed?.getAttribute("data-mode") || "marketing");
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setMode(button.getAttribute("data-mode") || "marketing"));
+    });
+  });
+</script>
+
+<style>
+  .gch-view-toggle {
+    --toggle-accent: var(--gch-gold);
+    display: inline-grid;
+    grid-template-columns: auto 3rem auto;
+    align-items: center;
+    gap: .65rem;
+    padding: .45rem .55rem;
+    border: 1px solid var(--gch-border-light);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--gch-white) 92%, transparent);
+  }
+
+  .gch-view-toggle__button {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 2.25rem;
+    padding: .4rem .55rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--gch-text-secondary);
+    cursor: pointer;
+    font: 700 .76rem/1 "Outfit", system-ui, sans-serif;
+  }
+
+  .gch-view-toggle__button[aria-pressed="true"] { color: var(--gch-text-primary); }
+  .gch-view-toggle__button:focus-visible { outline: 2px solid var(--gch-blue); outline-offset: 2px; }
+
+  .gch-view-toggle__cue {
+    font: 700 .58rem/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: .08em;
+    color: var(--gch-text-muted);
+  }
+
+  .gch-view-toggle__track {
+    position: relative;
+    width: 3rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    background: var(--gch-cream-dim);
+    border: 1px solid var(--gch-border-light);
+  }
+
+  .gch-view-toggle__thumb {
+    position: absolute;
+    top: 50%;
+    left: .2rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    background: var(--toggle-accent);
+    transform: translateY(-50%);
+    transition: transform 180ms ease;
+  }
+
+  .gch-view-toggle[data-active-mode="blueprint"] .gch-view-toggle__thumb {
+    transform: translate(1.45rem, -50%);
+  }
+
+  @media (max-width: 620px) {
+    .gch-view-toggle { width: 100%; grid-template-columns: 1fr 3rem 1fr; }
+    .gch-view-toggle__button { justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-view-toggle__thumb { transition: none; }
+  }
+</style>

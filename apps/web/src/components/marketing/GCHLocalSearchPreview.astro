@@ -1,0 +1,72 @@
+---
+const steps = [
+  { key: "search", label: "Search", title: "Discovery", copy: "A local query should lead into a complete, trustworthy presence instead of a disconnected result." },
+  { key: "profile", label: "Profile", title: "Business profile", copy: "Categories, services, photos, reviews, and business information should reinforce what the website promises." },
+  { key: "visibility", label: "Visibility", title: "Connected local presence", copy: "Profile activity, reviews, local landing pages, and search intent work together as one system." },
+];
+---
+
+<div class="gch-local-preview" data-local-preview>
+  <div class="gch-local-preview__tabs" role="tablist" aria-label="Local visibility preview steps">
+    {steps.map((step, index) => (
+      <button type="button" role="tab" data-local-tab={step.key} aria-selected={index === 0 ? "true" : "false"}>{step.label}</button>
+    ))}
+  </div>
+
+  <div class="gch-local-preview__stage" data-local-state="search">
+    <section class="gch-local-preview__panel gch-local-preview__panel--search" data-local-panel="search" role="tabpanel">
+      <div class="gch-local-preview__searchbar">christian web design near me <span>⌕</span></div>
+      <div class="gch-local-preview__result"><small>Sponsored-free local result</small><strong>Glory Cloud Hosts</strong><span>Web design · Hosting · Ministry technology</span><p>Faith-forward digital systems for ministries, nonprofits, and mission-driven organizations.</p></div>
+      <div class="gch-local-preview__map" aria-hidden="true"><i></i><i></i><i></i><b>LOCAL AREA</b></div>
+    </section>
+
+    <section class="gch-local-preview__panel" data-local-panel="profile" role="tabpanel" hidden>
+      <div class="gch-local-preview__profile-card">
+        <div class="gch-local-preview__profile-head"><i aria-hidden="true">GC</i><div><strong>Glory Cloud Hosts</strong><span>Website designer · Marketing service</span></div></div>
+        <div class="gch-local-preview__profile-score"><b>Profile completeness</b><strong>92%</strong></div>
+        <div class="gch-local-preview__profile-bars"><span style="--p:92%"></span><span style="--p:78%"></span><span style="--p:88%"></span></div>
+        <div class="gch-local-preview__profile-meta"><span>Services aligned</span><span>Reviews active</span><span>Website connected</span></div>
+      </div>
+    </section>
+
+    <section class="gch-local-preview__panel" data-local-panel="visibility" role="tabpanel" hidden>
+      <div class="gch-local-preview__flow" aria-label="Local search system diagram">
+        <span>Search intent</span><i aria-hidden="true">→</i><span>Business profile</span><i aria-hidden="true">→</i><span>Reviews</span><i aria-hidden="true">→</i><span>Local landing page</span>
+      </div>
+      <div class="gch-local-preview__visibility-grid"><article><small>Review cadence</small><strong>Active</strong></article><article><small>Service match</small><strong>Aligned</strong></article><article><small>Website linkage</small><strong>Connected</strong></article></div>
+    </section>
+  </div>
+
+  <div class="gch-local-preview__caption" aria-live="polite"><span data-local-title>{steps[0].title}</span><p data-local-copy>{steps[0].copy}</p></div>
+</div>
+
+<script define:vars={{ steps }}>
+  document.querySelectorAll("[data-local-preview]").forEach((root) => {
+    const stage = root.querySelector(".gch-local-preview__stage");
+    const title = root.querySelector("[data-local-title]");
+    const copy = root.querySelector("[data-local-copy]");
+    root.querySelectorAll("[data-local-tab]").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const key = tab.getAttribute("data-local-tab") || "search";
+        stage?.setAttribute("data-local-state", key);
+        root.querySelectorAll("[data-local-tab]").forEach((item) => item.setAttribute("aria-selected", item === tab ? "true" : "false"));
+        root.querySelectorAll("[data-local-panel]").forEach((panel) => {
+          const active = panel.getAttribute("data-local-panel") === key;
+          if (active) panel.removeAttribute("hidden"); else panel.setAttribute("hidden", "");
+        });
+        const step = steps.find((item) => item.key === key);
+        if (step && title && copy) { title.textContent = step.title; copy.textContent = step.copy; }
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-local-preview{position:absolute;inset:0;z-index:2;padding:clamp(1rem,2.2vw,1.8rem);display:grid;grid-template-rows:auto 1fr auto;gap:.9rem}
+  .gch-local-preview__tabs{display:flex;gap:.4rem;justify-content:flex-end}.gch-local-preview__tabs button{border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(11,13,18,.7);color:rgba(242,239,232,.7);padding:.5rem .7rem;font:700 .56rem/1 "JetBrains Mono",monospace;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}.gch-local-preview__tabs button[aria-selected="true"]{background:var(--gch-gold-dark);border-color:var(--gch-gold-dark);color:#0b0d12}.gch-local-preview__tabs button:focus-visible{outline:2px solid var(--gch-blue-dark-safe);outline-offset:3px}
+  .gch-local-preview__stage{min-height:0;display:grid}.gch-local-preview__panel{min-height:0;border-radius:.9rem;background:#f8f5ef;color:#1a1a22;padding:clamp(1rem,2vw,1.6rem);overflow:hidden}.gch-local-preview__panel--search{display:grid;grid-template-columns:1.1fr .9fr;grid-template-rows:auto 1fr;gap:.8rem}.gch-local-preview__searchbar{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;border:1px solid #d7d0c5;border-radius:999px;background:#fff;padding:.7rem 1rem;color:#5b564c;font:500 .72rem/1 "Outfit",sans-serif}.gch-local-preview__result{align-self:start;border:1px solid #ede9e2;border-radius:.75rem;background:#fff;padding:1rem}.gch-local-preview__result small{display:block;color:#857e70;font:700 .52rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-local-preview__result strong{display:block;margin:.6rem 0 .3rem;font:800 1rem/1.1 "JetBrains Mono",monospace}.gch-local-preview__result span{display:block;color:var(--gch-gold-text);font:700 .6rem/1.2 "JetBrains Mono",monospace}.gch-local-preview__result p{margin:.65rem 0 0;color:#5b564c;font:500 .7rem/1.45 "Outfit",sans-serif}.gch-local-preview__map{position:relative;min-height:12rem;border-radius:.75rem;background:linear-gradient(135deg,#eef3fa,#dce7f5);overflow:hidden}.gch-local-preview__map:before,.gch-local-preview__map:after{content:"";position:absolute;inset:0;background:linear-gradient(25deg,transparent 48%,rgba(72,114,184,.2) 49% 51%,transparent 52%),linear-gradient(95deg,transparent 46%,rgba(72,114,184,.16) 47% 49%,transparent 50%)}.gch-local-preview__map i{position:absolute;width:.65rem;aspect-ratio:1;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#4872b8;z-index:2}.gch-local-preview__map i:nth-child(1){left:24%;top:35%}.gch-local-preview__map i:nth-child(2){left:56%;top:22%}.gch-local-preview__map i:nth-child(3){right:19%;bottom:24%;background:#d4900c}.gch-local-preview__map b{position:absolute;left:.8rem;bottom:.8rem;color:#2f4c82;font:700 .55rem/1 "JetBrains Mono",monospace;letter-spacing:.08em;z-index:2}
+  .gch-local-preview__profile-card{max-width:26rem;margin:auto;display:grid;gap:1rem}.gch-local-preview__profile-head{display:flex;gap:.8rem;align-items:center}.gch-local-preview__profile-head>i{display:grid;place-items:center;width:3rem;aspect-ratio:1;border-radius:.8rem;background:#d4900c;color:#0b0d12;font:800 .75rem/1 "JetBrains Mono",monospace;font-style:normal}.gch-local-preview__profile-head strong,.gch-local-preview__profile-head span{display:block}.gch-local-preview__profile-head strong{font:800 .9rem/1.1 "JetBrains Mono",monospace}.gch-local-preview__profile-head span{margin-top:.25rem;color:#857e70;font:500 .65rem/1.2 "Outfit",sans-serif}.gch-local-preview__profile-score{display:flex;justify-content:space-between;align-items:end;padding-top:1rem;border-top:1px solid #ede9e2}.gch-local-preview__profile-score b{font:700 .56rem/1 "JetBrains Mono",monospace;text-transform:uppercase;color:#857e70}.gch-local-preview__profile-score strong{font:700 1.5rem/1 "Space Mono",monospace;color:#d4900c}.gch-local-preview__profile-bars{display:grid;gap:.5rem}.gch-local-preview__profile-bars span{height:.45rem;border-radius:999px;background:linear-gradient(90deg,#d4900c var(--p),#ede9e2 var(--p))}.gch-local-preview__profile-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}.gch-local-preview__profile-meta span{padding:.65rem;border:1px solid #ede9e2;border-radius:.5rem;text-align:center;color:#5b564c;font:600 .58rem/1.2 "Outfit",sans-serif}
+  .gch-local-preview__flow{min-height:12rem;display:flex;align-items:center;justify-content:center;gap:.55rem;flex-wrap:wrap}.gch-local-preview__flow span{padding:.75rem .8rem;border:1px solid #ede9e2;border-radius:.65rem;background:#fff;font:700 .6rem/1.2 "JetBrains Mono",monospace;text-transform:uppercase}.gch-local-preview__flow i{color:#d4900c;font-style:normal}.gch-local-preview__visibility-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem}.gch-local-preview__visibility-grid article{padding:.8rem;border-radius:.6rem;background:#0b0d12;color:#f2efe8}.gch-local-preview__visibility-grid small,.gch-local-preview__visibility-grid strong{display:block}.gch-local-preview__visibility-grid small{color:#93b4df;font:700 .52rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-local-preview__visibility-grid strong{margin-top:.5rem;font:700 .8rem/1 "Outfit",sans-serif}
+  .gch-local-preview__caption{display:grid;grid-template-columns:auto 1fr;gap:.7rem;align-items:start;color:rgba(242,239,232,.7)}.gch-local-preview__caption span{color:var(--gch-gold-dark);font:700 .56rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.gch-local-preview__caption p{margin:0;font:500 .7rem/1.4 "Outfit",sans-serif}
+  @media(max-width:640px){.gch-local-preview__panel--search{grid-template-columns:1fr}.gch-local-preview__map{display:none}.gch-local-preview__visibility-grid{grid-template-columns:1fr}.gch-local-preview__caption{grid-template-columns:1fr}}
+</style>

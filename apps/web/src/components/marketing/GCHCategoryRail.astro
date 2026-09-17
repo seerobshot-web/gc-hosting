@@ -1,0 +1,134 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+
+interface Item {
+  index: string;
+  label: string;
+  href: string;
+}
+
+interface Props {
+  items?: Item[];
+}
+
+const {
+  items = [
+    { index: "01", label: "Marketing", href: "#marketing" },
+    { index: "02", label: "Ministry", href: "#ministry" },
+    { index: "03", label: "Hosting", href: "#hosting" },
+    { index: "04", label: "Tools", href: "#tools" },
+  ],
+} = Astro.props;
+---
+
+<nav class="gch-category-rail" aria-label="Offering categories">
+  <span class="gch-category-rail__track" aria-hidden="true"></span>
+  <div class="gch-category-rail__items">
+    {items.map((item) => (
+      <a class="gch-category-rail__item" href={item.href}>
+        <span class="gch-category-rail__dot" aria-hidden="true"></span>
+        <GCHHudLabel index={item.index} label={item.label} tone="muted" />
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .gch-category-rail {
+    position: sticky;
+    top: 6.5rem;
+    display: grid;
+    grid-template-columns: 1px 1fr;
+    gap: 1.1rem;
+    align-self: start;
+    min-width: 10rem;
+    padding-block: 0.35rem;
+  }
+
+  .gch-category-rail__track {
+    width: 1px;
+    min-height: 100%;
+    background: linear-gradient(
+      to bottom,
+      var(--gch-gold) 0 24%,
+      var(--gch-border-light) 24% 100%
+    );
+  }
+
+  .gch-category-rail__items {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .gch-category-rail__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 1.4rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .gch-category-rail__dot {
+    position: absolute;
+    left: -1.37rem;
+    width: 0.45rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--gch-cream);
+    border: 1px solid var(--gch-border-strong);
+    transition: background-color 180ms ease, transform 180ms ease;
+  }
+
+  .gch-category-rail__item:first-child .gch-category-rail__dot {
+    background: var(--gch-gold);
+    border-color: var(--gch-gold);
+  }
+
+  .gch-category-rail__item:hover .gch-category-rail__dot,
+  .gch-category-rail__item:focus-visible .gch-category-rail__dot {
+    background: var(--gch-gold);
+    border-color: var(--gch-gold);
+    transform: scale(1.25);
+  }
+
+  .gch-category-rail__item:focus-visible {
+    outline: 2px solid var(--gch-blue);
+    outline-offset: 4px;
+    border-radius: 0.3rem;
+  }
+
+  @media (max-width: 900px) {
+    .gch-category-rail {
+      position: static;
+      grid-template-columns: 1fr;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scrollbar-width: thin;
+    }
+
+    .gch-category-rail__track { display: none; }
+
+    .gch-category-rail__items {
+      display: flex;
+      min-width: max-content;
+      gap: 0.65rem;
+    }
+
+    .gch-category-rail__item {
+      padding: 0.72rem 0.9rem;
+      border: 1px solid var(--gch-border-light);
+      border-radius: 999px;
+      background: var(--gch-white);
+    }
+
+    .gch-category-rail__dot { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-category-rail__dot { transition: none; }
+    .gch-category-rail__item:hover .gch-category-rail__dot,
+    .gch-category-rail__item:focus-visible .gch-category-rail__dot { transform: none; }
+  }
+</style>
