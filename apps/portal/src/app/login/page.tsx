@@ -27,7 +27,7 @@ export default function LoginPage() {
       setError("Invalid email or password.");
       return;
     }
-    router.push("/dashboard/glinks");
+    router.push("/dashboard");
     router.refresh();
   }
 
