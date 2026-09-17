@@ -54,7 +54,9 @@ jobs:
         run: pnpm typecheck
 
       - name: Test
+        if: always()
         run: pnpm test
 
       - name: Audit production dependencies
+        if: always()
         run: pnpm audit --prod --audit-level=high
