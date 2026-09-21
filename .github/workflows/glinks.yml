@@ -1,0 +1,65 @@
+name: GLINKS verification
+on:
+  pull_request:
+    paths: ['apps/glinks/**', 'infra/glinks/**', '.github/workflows/glinks.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  glinks:
+    runs-on: ubuntu-latest
+    env:
+      database_default_hostname: 127.0.0.1
+      database_default_port: 5432
+      database_default_database: glinks_test
+      database_default_username: glinks
+      database_default_password: glinks_ci_only
+      database_tests_hostname: 127.0.0.1
+      database_tests_port: 5432
+      database_tests_database: glinks_test
+      database_tests_username: glinks
+      database_tests_password: glinks_ci_only
+      GLINKS_SMTP_TEST: 'true'
+      PGPASSWORD: glinks_ci_only
+      GLINKS_TEST_DATABASE_URL: postgresql://glinks:glinks_ci_only@127.0.0.1:5432/glinks_test
+    services:
+      mail:
+        image: axllent/mailpit:v1.31.1
+        ports: ['1025:1025', '8025:8025']
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_DB: glinks_test
+          POSTGRES_USER: glinks
+          POSTGRES_PASSWORD: glinks_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U glinks -d glinks_test"
+          --health-interval 5s --health-timeout 3s --health-retries 15
+    defaults:
+      run:
+        working-directory: apps/glinks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: intl, mbstring, pdo_pgsql, pgsql
+          coverage: none
+      - run: composer validate --strict
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer audit
+      - run: php -n tests/domain.php
+      - run: psql -h localhost -U glinks -d glinks_test -v ON_ERROR_STOP=1 -f tests/database.sql
+      - run: php spark migrate --all
+      - run: php vendor/phpunit/phpunit/phpunit tests/feature --no-coverage
+      - run: bash tests/concurrency.sh
+      - run: bash tests/http-startup.sh
+      - run: bash tests/http-startup.sh open
+      - run: php spark routes
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: glinks-http-startup-log
+          path: apps/glinks/writable/logs/http-startup.log
+          if-no-files-found: ignore

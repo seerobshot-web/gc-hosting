@@ -15,6 +15,7 @@ monorepo (see `pnpm-workspace.yaml`). Workspaces live under `apps/*`, `packages/
 | `apps/api` | `@gch/api` | NestJS (Fastify) backend — orgs, clients, auth, billing/Stripe webhooks, provisioning, audit. The orchestration surface. |
 | `apps/portal` | `@gch/portal` | Next.js 14 (App Router) customer/operator portal. |
 | `apps/web` | `@gch/web` | Astro marketing / dashboard-preview site. |
+| `apps/glinks` | — (not a pnpm workspace) | GLINKS — GCH's nonprofit link-in-bio and hosted-video product. An independent PHP 8.5 / CodeIgniter 4 modular monolith with its own PostgreSQL database, migrations, and Composer-based CI (`.github/workflows/glinks.yml`). See `docs/glinks/` (architecture, status, verification) and `infra/glinks/` (local Docker Compose + Caddy). Ported from `seerobshot-web/gch_alep2` on 2026-09-21 once its native verification gate first passed. |
 | `packages/database` | `@gch/database` | Prisma schema + generated client (MySQL). The `db` package. |
 | `packages/permissions` | `@gch/permissions` | Shared RBAC permission map and types. |
 | `packages/motion` | `@gch/motion` | Shared UI motion primitives. |
@@ -48,6 +49,7 @@ The governance and architecture docs live in [`docs/architecture/`](./docs/archi
 | --- | --- |
 | [AUTHORITY-BOUNDARIES.md](./docs/architecture/AUTHORITY-BOUNDARIES.md) | The three-authority model (Stripe / ResellPortal / GCH), the cardinal rule, and the order-lifecycle state machine. |
 | [GLINKS-INTEGRATION.md](./docs/architecture/GLINKS-INTEGRATION.md) | Isolation of the legacy GLINKS VPS and its HMAC-signed, versioned internal API. |
+| [GLINKS-RECONCILIATION.md](./docs/architecture/GLINKS-RECONCILIATION.md) | Design (not yet implemented) for importing legacy GLINKS links into `GLink`: job lifecycle, conflict rules, idempotency keys, audit events, retry behavior, and the GLINKS endpoint contract. |
 | [ENVIRONMENT-STRATEGY.md](./docs/architecture/ENVIRONMENT-STRATEGY.md) | The four environments, credential tiers, and zero-downtime secret rotation. |
 | [IDEMPOTENCY.md](./docs/architecture/IDEMPOTENCY.md) | Deterministic idempotency keys and the `IdempotencyRecord` TTL policy. |
 | [RESELLERSPANEL-ERROR-CODES.md](./docs/architecture/RESELLERSPANEL-ERROR-CODES.md) | RSP numeric error-code reference (debugging context only). |
