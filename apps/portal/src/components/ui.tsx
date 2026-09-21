@@ -11,8 +11,20 @@ export function Eyebrow({ children, className = "" }: { children: ReactNode; cla
   );
 }
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl bg-white p-5 shadow-card ${className}`}>{children}</div>;
+export function Card({
+  children,
+  className = "",
+  id,
+}: {
+  children: ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  return (
+    <div id={id} className={`rounded-2xl bg-white p-5 shadow-card ${className}`}>
+      {children}
+    </div>
+  );
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
