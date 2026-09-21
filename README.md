@@ -15,6 +15,7 @@ monorepo (see `pnpm-workspace.yaml`). Workspaces live under `apps/*`, `packages/
 | `apps/api` | `@gch/api` | NestJS (Fastify) backend — orgs, clients, auth, billing/Stripe webhooks, provisioning, audit. The orchestration surface. |
 | `apps/portal` | `@gch/portal` | Next.js 14 (App Router) customer/operator portal. |
 | `apps/web` | `@gch/web` | Astro marketing / dashboard-preview site. |
+| `apps/glinks` | — (not a pnpm workspace) | GLINKS — GCH's nonprofit link-in-bio and hosted-video product. An independent PHP 8.5 / CodeIgniter 4 modular monolith with its own PostgreSQL database, migrations, and Composer-based CI (`.github/workflows/glinks.yml`). See `docs/glinks/` (architecture, status, verification) and `infra/glinks/` (local Docker Compose + Caddy). Ported from `seerobshot-web/gch_alep2` on 2026-09-21 once its native verification gate first passed. |
 | `packages/database` | `@gch/database` | Prisma schema + generated client (MySQL). The `db` package. |
 | `packages/permissions` | `@gch/permissions` | Shared RBAC permission map and types. |
 | `packages/motion` | `@gch/motion` | Shared UI motion primitives. |
