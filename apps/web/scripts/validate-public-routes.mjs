@@ -1,8 +1,10 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
+const rootPath = fileURLToPath(root);
 const srcDir = new URL("./src/", root);
 const pagesDir = new URL("./src/pages/", root);
 
@@ -17,6 +19,19 @@ const routeFiles = new Map([
   ["/portal", "portal.astro"],
   ["/dashboard-preview", "dashboard-preview.astro"],
   ["/marketing-foundation", "marketing-foundation.astro"],
+]);
+
+const siteRouteRefs = new Map([
+  ["home", "/"],
+  ["marketing", "/marketing"],
+  ["ministry", "/ministry"],
+  ["hosting", "/hosting"],
+  ["tools", "/tools"],
+  ["resources", "/resources"],
+  ["start", "/start"],
+  ["portal", "/portal"],
+  ["dashboardPreview", "/dashboard-preview"],
+  ["marketingFoundation", "/marketing-foundation"],
 ]);
 
 async function exists(url) {
@@ -49,15 +64,34 @@ for (const [route, file] of routeFiles) {
 
 const sourceFiles = await walk(srcDir);
 const staticHrefPattern = /href\s*=\s*["'](\/[^"'#?]*)[^"']*["']/g;
+const siteRouteHrefPatterns = [
+  /href\s*=\s*\{\s*siteRoutes\.([A-Za-z0-9_]+)\s*\}/g,
+  /href\s*=\s*\{\s*`[^`]*\$\{siteRoutes\.([A-Za-z0-9_]+)\}[^`]*`\s*\}/g,
+];
+
+function validateRoute(route, filePath, kind) {
+  if (!routeFiles.has(route)) {
+    failures.push(`Unregistered ${kind} ${route} in ${filePath}`);
+  }
+}
 
 for (const fileUrl of sourceFiles) {
   const source = await readFile(fileUrl, "utf8");
+  const filePath = relative(rootPath, fileURLToPath(fileUrl)).split(sep).join("/");
   let match;
   while ((match = staticHrefPattern.exec(source))) {
     const href = match[1].replace(/\/$/, "") || "/";
-    if (!routeFiles.has(href)) {
-      const filePath = relative(new URL(".", root).pathname, fileUrl.pathname).split(sep).join("/");
-      failures.push(`Unregistered static href ${href} in ${filePath}`);
+    validateRoute(href, filePath, "static href");
+  }
+
+  for (const pattern of siteRouteHrefPatterns) {
+    while ((match = pattern.exec(source))) {
+      const route = siteRouteRefs.get(match[1]);
+      if (!route) {
+        failures.push(`Unknown siteRoutes reference ${match[1]} in ${filePath}`);
+        continue;
+      }
+      validateRoute(route, filePath, "siteRoutes href");
     }
   }
 }
