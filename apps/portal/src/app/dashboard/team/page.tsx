@@ -173,7 +173,8 @@ export default async function TeamPage({
               </button>
             </form>
             <p className="mt-2.5 text-xs text-ink-muted">
-              Invites expire after 7 days. Admins can manage products and billing; members can view.
+              Invites expire after 7 days. Admins can manage products and team members; only the
+              workspace owner can manage billing.
             </p>
           </Card>
 

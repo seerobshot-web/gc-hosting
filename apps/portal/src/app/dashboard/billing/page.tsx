@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, Chip, PageHeader, SectionTitle, StatusDot, buttonPrimary, linkGold } from "@/components/ui";
+import { Card, Chip, PageHeader, SectionTitle, StatusDot, buttonPrimary, linkGold, type Tone } from "@/components/ui";
 import { can, getSession } from "@/lib/session";
 import { getBillingSubscription, getInvoices, getPlans } from "@/lib/api-client";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -8,7 +8,25 @@ import { openBillingPortal, startCheckout } from "./actions";
 export const metadata: Metadata = { title: "Billing | GCH Client Portal" };
 
 const LIVE = new Set(["active", "trialing", "past_due"]);
-const OPEN_INVOICE = new Set(["open", "uncollectible", "past_due"]);
+
+function subscriptionTone(status: string, cancelAtPeriodEnd: boolean): Tone {
+  if (status === "past_due") return "warning";
+  if (cancelAtPeriodEnd) return "warning";
+  return "success";
+}
+
+const INVOICE_TONE: Record<string, Tone> = {
+  paid: "success",
+  open: "warning",
+  uncollectible: "warning",
+  past_due: "warning",
+  draft: "muted",
+  void: "muted",
+};
+
+function invoiceLabel(status: string): string {
+  return status === "open" || status === "uncollectible" ? "Unpaid" : status;
+}
 
 export default async function BillingPage({
   searchParams,
@@ -81,7 +99,7 @@ export default async function BillingPage({
             <dt className="text-ink-muted">Status</dt>
             <dd>
               <StatusDot
-                tone={subscription.cancelAtPeriodEnd ? "warning" : "success"}
+                tone={subscriptionTone(subscription.status, subscription.cancelAtPeriodEnd)}
                 label={subscription.cancelAtPeriodEnd ? `${subscription.status} · cancels at period end` : subscription.status}
               />
             </dd>
@@ -156,7 +174,6 @@ export default async function BillingPage({
             </thead>
             <tbody>
               {invoices.map((inv) => {
-                const open = OPEN_INVOICE.has(inv.status);
                 return (
                   <tr key={inv.id} className="border-t border-ink/10">
                     <td className="py-3 pr-3 text-ink">
@@ -166,7 +183,7 @@ export default async function BillingPage({
                       {formatMoney(inv.amountDueCents, inv.currency)}
                     </td>
                     <td className="py-3 pr-3">
-                      <Chip tone={open ? "warning" : "success"}>{open ? "Unpaid" : inv.status}</Chip>
+                      <Chip tone={INVOICE_TONE[inv.status] ?? "muted"}>{invoiceLabel(inv.status)}</Chip>
                     </td>
                     <td className="py-3 text-right">
                       {inv.hostedInvoiceUrl && (
