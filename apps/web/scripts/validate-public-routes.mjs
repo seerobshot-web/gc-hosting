@@ -64,6 +64,15 @@ for (const [route, file] of routeFiles) {
 
 const sourceFiles = await walk(srcDir);
 const staticHrefPattern = /href\s*=\s*["'](\/[^"'#?]*)[^"']*["']/g;
+
+for (const fileUrl of sourceFiles) {
+  const source = await readFile(fileUrl, "utf8");
+  let match;
+  while ((match = staticHrefPattern.exec(source))) {
+    const href = match[1].replace(/\/$/, "") || "/";
+    if (!routeFiles.has(href)) {
+      const filePath = relative(new URL(".", root).pathname, fileUrl.pathname).split(sep).join("/");
+      failures.push(`Unregistered static href ${href} in ${filePath}`);
 const siteRouteHrefPatterns = [
   /href\s*=\s*\{\s*siteRoutes\.([A-Za-z0-9_]+)\s*\}/g,
   /href\s*=\s*\{\s*`[^`]*\$\{siteRoutes\.([A-Za-z0-9_]+)\}[^`]*`\s*\}/g,
