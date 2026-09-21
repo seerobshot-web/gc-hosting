@@ -1,0 +1,14 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import GCHSolutionFinder from "../components/marketing/GCHSolutionFinder.astro";
+---
+<Layout title="Find Your Starting Point | Glory Cloud Hosts">
+  <GCHPrimaryNav />
+  <main class="gch-start">
+    <GCHSolutionFinder />
+  </main>
+</Layout>
+<style>
+  .gch-start{width:min(100% - 2rem,1180px);margin-inline:auto;padding-block:clamp(3rem,7vw,7rem)}
+</style>

@@ -57,7 +57,7 @@ jobs:
       - run: bash tests/http-startup.sh
       - run: bash tests/http-startup.sh open
       - run: php spark routes
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: glinks-http-startup-log
