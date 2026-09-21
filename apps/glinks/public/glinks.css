@@ -50,3 +50,14 @@ p[role=alert]{border-left:4px solid #A83E1B;padding:1rem}
 #add-link{background:transparent;color:#A83E1B;border:1px dashed #A83E1B}
 .slug-hint{color:#8F8672;font-size:.8rem;margin:-.3rem 0 0}
 noscript p[role=alert]{margin:1rem 0}
+
+/* Public page */
+.public-profile{text-align:center}
+.public-profile__header h1{margin:0 0 .5rem;font-size:1.6rem}
+.public-profile__header p{color:#8F8672;margin:0 0 2rem}
+.public-profile__empty{color:#8F8672}
+.public-profile__links{list-style:none;margin:0;padding:0;display:grid;gap:.8rem}
+.public-profile__links a{display:flex;align-items:center;justify-content:center;gap:.6rem;
+  padding:1rem;border:1px solid #8F8672;border-radius:.7rem;background:#fff;
+  color:#2C231C;text-decoration:none;font-weight:600}
+.public-profile__links a:hover{border-color:#A83E1B}
