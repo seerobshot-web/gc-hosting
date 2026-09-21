@@ -38,7 +38,7 @@ const { defaultMode = "marketing", targetId } = Astro.props;
     if (!target) return;
 
     const buttons = Array.from(toggle.querySelectorAll("button[data-mode]"));
-    const setMode = (mode) => {
+    const setMode = (mode: "marketing" | "blueprint") => {
       target.setAttribute("data-view-mode", mode);
       toggle.setAttribute("data-active-mode", mode);
       buttons.forEach((button) => {
@@ -48,10 +48,10 @@ const { defaultMode = "marketing", targetId } = Astro.props;
     };
 
     const pressed = buttons.find((button) => button.getAttribute("aria-pressed") === "true");
-    setMode(pressed?.getAttribute("data-mode") || "marketing");
+    setMode((pressed?.getAttribute("data-mode") as "marketing" | "blueprint" | null) || "marketing");
 
     buttons.forEach((button) => {
-      button.addEventListener("click", () => setMode(button.getAttribute("data-mode") || "marketing"));
+      button.addEventListener("click", () => setMode((button.getAttribute("data-mode") as "marketing" | "blueprint" | null) || "marketing"));
     });
   });
 </script>
