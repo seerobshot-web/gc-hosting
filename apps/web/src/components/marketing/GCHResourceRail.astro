@@ -15,7 +15,7 @@ import { siteRoutes } from "../../config/site-routes";
 
   <div class="gch-resource-rail__track">
     {resourceBriefs.map((resource, index) => (
-      <article key={resource.id} class="gch-resource-card">
+      <article class="gch-resource-card">
         <div class="gch-resource-card__visual" aria-hidden="true">
           <span>{String(index + 1).padStart(2, "0")}</span>
         </div>

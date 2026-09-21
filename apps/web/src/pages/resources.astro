@@ -18,7 +18,7 @@ import { resourceBriefs, contentSources } from "../content/marketing-content";
 
     <section class="resources-page__grid" aria-label="Resource briefs">
       {resourceBriefs.map((resource) => (
-        <article key={resource.id} id={resource.id} class="resource-brief">
+        <article id={resource.id} class="resource-brief">
           <GCHHudLabel label={resource.type} tone="muted" />
           <h2>{resource.title}</h2>
           <dl>
