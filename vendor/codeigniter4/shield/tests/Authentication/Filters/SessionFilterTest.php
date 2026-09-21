@@ -1,0 +1,151 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * This file is part of CodeIgniter Shield.
+ *
+ * (c) CodeIgniter Foundation <admin@codeigniter.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+namespace Tests\Authentication\Filters;
+
+use CodeIgniter\I18n\Time;
+use CodeIgniter\Shield\Authentication\Authenticators\Session;
+use CodeIgniter\Shield\Filters\SessionAuth;
+use CodeIgniter\Shield\Models\UserIdentityModel;
+use CodeIgniter\Shield\Models\UserModel;
+use CodeIgniter\Test\DatabaseTestTrait;
+use Tests\Support\AdminEmailActivator;
+
+/**
+ * @internal
+ */
+final class SessionFilterTest extends AbstractFilterTestCase
+{
+    use DatabaseTestTrait;
+
+    protected string $alias     = 'sessionAuth';
+    protected string $classname = SessionAuth::class;
+
+    public function testFilterNotAuthorized(): void
+    {
+        $result = $this->call('get', 'protected-route');
+
+        $result->assertRedirectTo('/login');
+
+        $result = $this->get('open-route');
+        $result->assertStatus(200);
+        $result->assertSee('Open');
+    }
+
+    public function testFilterSuccess(): void
+    {
+        $user                   = fake(UserModel::class);
+        $_SESSION['user']['id'] = $user->id;
+
+        $result = $this->withSession(['user' => ['id' => $user->id]])
+            ->get('protected-route');
+
+        $result->assertStatus(200);
+        $result->assertSee('Protected');
+
+        $this->assertSame($user->id, auth('session')->id());
+        $this->assertSame($user->id, auth('session')->user()->id);
+        // Last Active should have been updated
+        $this->assertInstanceOf(Time::class, auth('session')->user()->last_active);
+    }
+
+    public function testRecordActiveDate(): void
+    {
+        $user                   = fake(UserModel::class);
+        $_SESSION['user']['id'] = $user->id;
+
+        $this->withSession(['user' => ['id' => $user->id]])
+            ->get('protected-route');
+
+        // Last Active should be greater than 'updated_at' column
+        $this->assertGreaterThan(auth('session')->user()->updated_at, auth('session')->user()->last_active);
+    }
+
+    public function testBlocksInactiveUsersAndRedirectsToAuthAction(): void
+    {
+        $user = fake(UserModel::class, ['active' => false]);
+
+        // Activation only required with email activation
+        setting('Auth.actions', ['register' => null]);
+
+        $result = $this->actingAs($user)
+            ->get('protected-route');
+
+        $result->assertStatus(200);
+        $result->assertSee('Protected');
+
+        // Now require user activation and try again
+        setting('Auth.actions', ['register' => '\CodeIgniter\Shield\Authentication\Actions\EmailActivator']);
+
+        $result = $this->actingAs($user)
+            ->get('protected-route');
+
+        $result->assertRedirectTo('/auth/a/show');
+        // User should be logged out
+        $this->assertNull(auth('session')->id());
+
+        setting('Auth.actions', ['register' => null]);
+    }
+
+    public function testBlocksInactiveUsersWhenConditionalActivatorDoesNotApply(): void
+    {
+        $user = fake(UserModel::class, ['active' => false]);
+
+        setting('Auth.actions', ['register' => AdminEmailActivator::class]);
+
+        $result = $this->actingAs($user)
+            ->get('protected-route');
+
+        $result->assertRedirectTo(config('Auth')->logoutRedirect());
+        $result->assertSessionHas('error', lang('Auth.activationBlocked'));
+        $this->assertNull(auth('session')->id());
+
+        setting('Auth.actions', ['register' => null]);
+    }
+
+    public function testRedirectsInactiveUsersToStoredConditionalActivationAction(): void
+    {
+        $user = fake(UserModel::class, ['active' => false]);
+
+        setting('Auth.actions', ['register' => AdminEmailActivator::class]);
+
+        model(UserIdentityModel::class)->insert([
+            'user_id' => $user->id,
+            'type'    => Session::ID_TYPE_EMAIL_ACTIVATE,
+            'secret'  => '123456',
+            'name'    => 'register',
+            'extra'   => lang('Auth.needVerification'),
+        ]);
+
+        /** @var Session $authenticator */
+        $authenticator = auth('session')->getAuthenticator();
+        $this->assertTrue($authenticator->hasAction($user->id));
+
+        $result = $this->get('protected-route');
+
+        $result->assertRedirectTo('/auth/a/show');
+
+        setting('Auth.actions', ['register' => null]);
+    }
+
+    public function testStoreRedirectsToEntraceUrlIntoSession(): void
+    {
+        $result = $this->call('get', 'protected-route');
+
+        $result->assertRedirectTo('/login');
+
+        $session = session();
+        $this->assertNotEmpty($session->get('beforeLoginUrl'));
+        $this->assertSame(site_url('protected-route'), $session->get('beforeLoginUrl'));
+    }
+}

@@ -1,0 +1,23 @@
+name: Psalm
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '**.php'
+      - 'composer.*'
+      - 'psalm*'
+      - '.github/workflows/psalm.yml'
+  push:
+    branches:
+      - develop
+    paths:
+      - '**.php'
+      - 'composer.*'
+      - 'psalm*'
+      - '.github/workflows/psalm.yml'
+
+jobs:
+  psalm:
+    uses: codeigniter4/.github/.github/workflows/psalm.yml@CI47

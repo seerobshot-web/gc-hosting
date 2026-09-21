@@ -1,0 +1,23 @@
+name: PHPStan
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '**.php'
+      - 'composer.*'
+      - 'phpstan*'
+      - '.github/workflows/phpstan.yml'
+  push:
+    branches:
+      - develop
+    paths:
+      - '**.php'
+      - 'composer.*'
+      - 'phpstan*'
+      - '.github/workflows/phpstan.yml'
+
+jobs:
+  phpstan:
+    uses: codeigniter4/.github/.github/workflows/phpstan.yml@CI47

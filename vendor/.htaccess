@@ -1,0 +1,8 @@
+# This directory must never be served directly — it sits inside the web
+# root only because this host's deploy pipeline can't place files outside
+# public_html. All requests are routed through index.php instead.
+Require all denied
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>
