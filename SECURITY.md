@@ -1,24 +1,21 @@
 # Security Policy
 
-## Reporting a vulnerability
+## Supported Versions
 
-Please do not open a public issue for a suspected security vulnerability.
+Use this section to tell people about which versions of your project are
+currently being supported with security updates.
 
-Report it privately to the repository owner through GitHub's private vulnerability reporting feature when available, or use the contact channel published by Glory Cloud Hosts. Include affected component, reproduction steps, impact, and any suggested mitigation. Do not include live credentials or customer data.
+| Version | Supported          |
+| ------- | ------------------ |
+| 5.1.x   | :white_check_mark: |
+| 5.0.x   | :x:                |
+| 4.0.x   | :white_check_mark: |
+| < 4.0   | :x:                |
 
-The maintainers will acknowledge a report, assess it, and coordinate remediation. Avoid publicly disclosing the issue until a fix and release plan are agreed.
+## Reporting a Vulnerability
 
-## Supported branches
+Use this section to tell people how to report a vulnerability.
 
-Security fixes are applied to `main` and then released through the normal reviewed deployment process.
-
-## Repository safeguards
-
-- Pull requests should pass the CI and CodeQL workflows before merge.
-- Dependency updates are proposed by Dependabot and should be reviewed promptly.
-- Production credentials must be stored in the deployment platform or GitHub environment secrets, never in the repository or workflow logs.
-- Deployments are manually gated; a successful CI run is not authorization to deploy.
-
-## Recommended repository settings
-
-Repository administrators should require pull-request reviews and the `Verify workspace` and CodeQL checks for `main`, restrict who can dismiss reviews, and enable private vulnerability reporting, Dependabot alerts, secret scanning, and push protection.
+Tell them where to go, how often they can expect to get an update on a
+reported vulnerability, what to expect if the vulnerability is accepted or
+declined, etc.
