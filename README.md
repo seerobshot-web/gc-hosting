@@ -48,6 +48,7 @@ The governance and architecture docs live in [`docs/architecture/`](./docs/archi
 | --- | --- |
 | [AUTHORITY-BOUNDARIES.md](./docs/architecture/AUTHORITY-BOUNDARIES.md) | The three-authority model (Stripe / ResellPortal / GCH), the cardinal rule, and the order-lifecycle state machine. |
 | [GLINKS-INTEGRATION.md](./docs/architecture/GLINKS-INTEGRATION.md) | Isolation of the legacy GLINKS VPS and its HMAC-signed, versioned internal API. |
+| [GLINKS-RECONCILIATION.md](./docs/architecture/GLINKS-RECONCILIATION.md) | Design (not yet implemented) for importing legacy GLINKS links into `GLink`: job lifecycle, conflict rules, idempotency keys, audit events, retry behavior, and the GLINKS endpoint contract. |
 | [ENVIRONMENT-STRATEGY.md](./docs/architecture/ENVIRONMENT-STRATEGY.md) | The four environments, credential tiers, and zero-downtime secret rotation. |
 | [IDEMPOTENCY.md](./docs/architecture/IDEMPOTENCY.md) | Deterministic idempotency keys and the `IdempotencyRecord` TTL policy. |
 | [RESELLERSPANEL-ERROR-CODES.md](./docs/architecture/RESELLERSPANEL-ERROR-CODES.md) | RSP numeric error-code reference (debugging context only). |
