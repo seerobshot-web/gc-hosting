@@ -1,8 +1,10 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
+const rootPath = fileURLToPath(root);
 const srcDir = new URL("./src/", root);
 const pagesDir = new URL("./src/pages/", root);
 
@@ -75,7 +77,7 @@ function validateRoute(route, filePath, kind) {
 
 for (const fileUrl of sourceFiles) {
   const source = await readFile(fileUrl, "utf8");
-  const filePath = relative(new URL(".", root).pathname, fileUrl.pathname).split(sep).join("/");
+  const filePath = relative(rootPath, fileURLToPath(fileUrl)).split(sep).join("/");
   let match;
   while ((match = staticHrefPattern.exec(source))) {
     const href = match[1].replace(/\/$/, "") || "/";

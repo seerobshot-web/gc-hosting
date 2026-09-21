@@ -29,7 +29,7 @@ import { primaryNavItems, siteRoutes } from "../config/site-routes";
       <h2 id="home-routes-title">Choose a path.</h2>
       <div class="home-safe__grid">
         {primaryNavItems.map((item) => (
-          <a href={item.href}>
+          <a key={item.href} href={item.href}>
             <span>{item.index}</span>
             <strong>{item.label}</strong>
             <small>Open public route →</small>
