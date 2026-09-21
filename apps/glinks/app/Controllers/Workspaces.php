@@ -29,8 +29,11 @@ final class Workspaces extends BaseController
     {
         $db = GlinksDatabase::connect();
         $id = $this->principal($db);
-        $query = $db->prepare('SELECT w.id,w.name,m.role FROM glinks.workspaces w
-            JOIN glinks.memberships m ON m.workspace_id=w.id WHERE m.user_id=? ORDER BY w.id');
+        $query = $db->prepare('SELECT w.id,w.name,m.role,COUNT(p.id) AS page_count
+            FROM glinks.workspaces w
+            JOIN glinks.memberships m ON m.workspace_id=w.id
+            LEFT JOIN glinks.pages p ON p.workspace_id=w.id
+            WHERE m.user_id=? GROUP BY w.id,w.name,m.role ORDER BY w.id');
         $query->execute([$id]);
         return $this->response->setHeader('Cache-Control','private, no-store')
             ->setBody(view('workspaces/index',['workspaces'=>$query->fetchAll()]));

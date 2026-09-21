@@ -29,7 +29,11 @@ final class Pages extends BaseController
         $db=GlinksDatabase::connect();
         try {
             $role=(new WorkspaceAccess($db))->requireRole($this->principal($db),(int)$workspace,'read');
-            $q=$db->prepare('SELECT id,handle FROM glinks.pages WHERE workspace_id=? ORDER BY id');
+            $q=$db->prepare('SELECT p.id,p.handle,(p.published_publication_id IS NOT NULL)::int AS published,
+                COUNT(l.id) FILTER (WHERE l.deleted_at IS NULL) AS link_count
+                FROM glinks.pages p
+                LEFT JOIN glinks.links l ON l.page_id=p.id AND l.workspace_id=p.workspace_id
+                WHERE p.workspace_id=? GROUP BY p.id,p.handle,p.published_publication_id ORDER BY p.id');
             $q->execute([(int)$workspace]);
             return view('pages/index',['workspace'=>$workspace,'pages'=>$q->fetchAll(),'canEdit'=>$role->allows('edit')]);
         } catch (ResourceUnavailable $e) { return $this->failure($e); }
