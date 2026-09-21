@@ -1,0 +1,56 @@
+name: gch-glinks
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: glinks
+      POSTGRES_USER: glinks
+      POSTGRES_PASSWORD: ${GLINKS_DB_PASSWORD:?Set GLINKS_DB_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glinks -d glinks"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  app:
+    build:
+      context: ../../apps/glinks
+      dockerfile: Dockerfile
+    environment:
+      CI_ENVIRONMENT: development
+      app_baseURL: http://localhost:8088/
+      database_default_hostname: db
+      database_default_database: glinks
+      database_default_username: glinks
+      database_default_password: ${GLINKS_DB_PASSWORD:?Set GLINKS_DB_PASSWORD}
+      database_default_DBDriver: Postgre
+      database_default_port: 5432
+      database_default_charset: utf8
+      email_protocol: smtp
+      email_SMTPHost: mail
+      email_SMTPPort: 1025
+      email_SMTPCrypto: ''
+      email_fromEmail: glinks@example.test
+      email_fromName: GLINKS
+    volumes:
+      - writable:/var/www/glinks/writable
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    image: caddy:2-alpine
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+  mail:
+    image: axllent/mailpit:v1.31.1
+    profiles: ["mail"]
+    ports:
+      - "127.0.0.1:8028:8025"
+volumes:
+  database:
+  writable:
