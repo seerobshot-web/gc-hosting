@@ -21,8 +21,8 @@ export default async function InvitePage({
       err instanceof ApiError ? err.message : "This invitation link isn't valid.";
     return (
       <main className="mx-auto max-w-sm px-6 py-16">
-        <h1 className="font-display text-2xl text-hearth-ink">Invitation</h1>
-        <p className="mt-4 text-hearth-ink/80">{message}</p>
+        <h1 className="font-display text-2xl text-ink">Invitation</h1>
+        <p className="mt-4 text-ink-sub">{message}</p>
       </main>
     );
   }
@@ -32,20 +32,20 @@ export default async function InvitePage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="font-display text-2xl text-hearth-ink">Join {preview.orgName}</h1>
-      <p className="mt-2 text-sm text-hearth-ink/80">
+      <h1 className="font-display text-2xl text-ink">Join {preview.orgName}</h1>
+      <p className="mt-2 text-sm text-ink-sub">
         {preview.invitedBy} invited <strong>{preview.email}</strong> to join as{" "}
         {preview.role.toLowerCase()}.
       </p>
 
       {error && (
-        <p className="mt-4 rounded-md border border-ember-core px-4 py-3 text-sm text-ember-core">
+        <p className="mt-4 rounded-md border border-danger px-4 py-3 text-sm text-danger">
           {error}
         </p>
       )}
 
       {signedInAsSomeoneElse ? (
-        <p className="mt-6 text-sm text-hearth-ink/80">
+        <p className="mt-6 text-sm text-ink-sub">
           You&apos;re signed in as {session.email}. Sign out and open this link again to accept it
           as {preview.email}.
         </p>
@@ -56,12 +56,12 @@ export default async function InvitePage({
           {!signedInAsInvitee && (
             <>
               {!preview.hasAccount && (
-                <label className="flex flex-col gap-1 text-sm text-hearth-ink">
+                <label className="flex flex-col gap-1 text-sm text-ink">
                   Your name
-                  <input name="name" className="rounded-md border border-ash-stone px-3 py-2" />
+                  <input name="name" className="rounded-md border border-ink/10 px-3 py-2" />
                 </label>
               )}
-              <label className="flex flex-col gap-1 text-sm text-hearth-ink">
+              <label className="flex flex-col gap-1 text-sm text-ink">
                 {preview.hasAccount ? "Your password" : "Choose a password"}
                 <input
                   type="password"
@@ -69,17 +69,17 @@ export default async function InvitePage({
                   required
                   minLength={8}
                   autoComplete={preview.hasAccount ? "current-password" : "new-password"}
-                  className="rounded-md border border-ash-stone px-3 py-2"
+                  className="rounded-md border border-ink/10 px-3 py-2"
                 />
               </label>
-              <p className="text-xs text-hearth-ink/60">
+              <p className="text-xs text-ink-muted">
                 {preview.hasAccount
                   ? "You already have a portal account with this email — sign in to accept."
                   : "This creates your portal account."}
               </p>
             </>
           )}
-          <button type="submit" className="rounded-md bg-ember-core px-4 py-2 text-cloudlight">
+          <button type="submit" className="rounded-md bg-gold px-4 py-2 text-brand">
             Accept invitation
           </button>
         </form>
