@@ -17,7 +17,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-mariadb": "7.10.0",
     "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
