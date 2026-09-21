@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import GCHHudLabel from "../components/marketing/GCHHudLabel.astro";
+import { resourceBriefs, contentSources } from "../content/marketing-content";
+---
+<Layout title="Resources | Glory Cloud Hosts">
+  <GCHPrimaryNav />
+  <main class="resources-page">
+    <header class="resources-page__hero">
+      <GCHHudLabel index="RESOURCES" label="Editorial source queue" />
+      <h1>Useful content should come from approved source material.</h1>
+      <p>
+        This route is live, but the cards below are editorial briefs rather than published articles.
+        Public URLs, read times, publication dates, and claims will be added only after the content is approved.
+      </p>
+    </header>
+
+    <section class="resources-page__grid" aria-label="Resource briefs">
+      {resourceBriefs.map((resource) => (
+        <article id={resource.id} class="resource-brief">
+          <GCHHudLabel label={resource.type} tone="muted" />
+          <h2>{resource.title}</h2>
+          <dl>
+            <div><dt>Status</dt><dd>{resource.status}</dd></div>
+            <div><dt>Source</dt><dd>{contentSources[resource.source].label}</dd></div>
+          </dl>
+        </article>
+      ))}
+    </section>
+  </main>
+</Layout>
+<style>
+  .resources-page{width:min(100% - 2rem,1180px);margin-inline:auto;padding-block:clamp(4rem,8vw,8rem)}
+  .resources-page__hero{max-width:54rem}.resources-page__hero h1{max-width:13ch;margin:1rem 0;font:800 clamp(2.5rem,5.6vw,5.3rem)/.97 "Outfit",system-ui,sans-serif;letter-spacing:-.05em}.resources-page__hero p{max-width:65ch;color:var(--gch-text-secondary);font:400 1.05rem/1.65 "Outfit",system-ui,sans-serif}
+  .resources-page__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:3rem}.resource-brief{padding:1.3rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}.resource-brief h2{margin:.8rem 0 1.2rem;font:700 1.2rem/1.25 "Outfit",system-ui,sans-serif}.resource-brief dl{display:grid;gap:.6rem;margin:0}.resource-brief dl div{display:grid;grid-template-columns:5rem 1fr;gap:.6rem;padding-top:.6rem;border-top:1px solid var(--gch-border-light)}.resource-brief dt{color:var(--gch-text-muted);font:700 .58rem/1 "JetBrains Mono",monospace;text-transform:uppercase}.resource-brief dd{margin:0;color:var(--gch-text-secondary);font:500 .85rem/1.35 "Outfit",system-ui,sans-serif}@media(max-width:700px){.resources-page__grid{grid-template-columns:1fr}}
+</style>
