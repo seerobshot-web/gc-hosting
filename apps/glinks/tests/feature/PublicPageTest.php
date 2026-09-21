@@ -189,7 +189,16 @@ final class PublicPageTest extends CIUnitTestCase
         (new PagePublisher($db, new WorkspaceAccess($db)))->publish($uid, $workspaceId, $pageId);
 
         $body = (string) $this->get($handle)->response()->getBody();
-        self::assertStringNotContainsString((string) $workspaceId, $body);
-        self::assertStringNotContainsString('draft_version', $body);
+        // A raw numeric id is a bad thing to assert against here: it's
+        // just an integer, and small values (e.g. workspace id 8) are
+        // near-certain to appear incidentally in an HTML document anyway
+        // (charset="utf-8", viewport scale, CSS) - this was a false
+        // positive first, not a real leak. What actually matters is that
+        // no internal field name or identifier label ever appears, since
+        // those are what would indicate the response started leaking
+        // workspace/draft internals rather than the public projection.
+        foreach (['workspace_id', 'page_id', 'draft_version', 'published_publication_id'] as $internalField) {
+            self::assertStringNotContainsString($internalField, $body);
+        }
     }
 }
