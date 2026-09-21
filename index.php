@@ -48,8 +48,14 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
 
 // LOAD OUR PATHS CONFIG FILE
 // This is the line that might need to be changed, depending on your folder structure.
-require FCPATH . '../app/Config/Paths.php';
-// ^^^ Change this line if you move your application folder
+//
+// Adjusted from the framework default (`../app/...`): this deploy tree
+// flattens CodeIgniter's public/ contents into the document root itself
+// (Hostinger's file/git-deploy APIs only reach inside public_html, so
+// app/, vendor/, and writable/ live as siblings of this file rather than
+// siblings of a public/ subfolder one level up). See app/.htaccess,
+// vendor/.htaccess, and writable/.htaccess for how those stay unserved.
+require FCPATH . 'app/Config/Paths.php';
 
 $paths = new Paths();
 

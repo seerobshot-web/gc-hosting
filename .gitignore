@@ -1,1 +1,7 @@
 .env
+.env.test
+writable/logs/*.log
+writable/session/glinks_session*
+writable/cache/*
+!writable/cache/.gitkeep
+!writable/cache/index.html
