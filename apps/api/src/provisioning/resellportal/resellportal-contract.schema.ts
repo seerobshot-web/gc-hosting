@@ -57,6 +57,18 @@ export const productMappingRecordSchema = z
       });
     }
 
+    if (record.verificationStatus === "verified") {
+      for (const key of ["externalProductId", "billingCycle", "approvedOrderDestination"] as const) {
+        if (!record[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [key],
+            message: `Verified mappings require ${key}.`,
+          });
+        }
+      }
+    }
+
     if (!record.purchaseEnabled) {
       return;
     }

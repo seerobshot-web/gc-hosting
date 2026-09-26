@@ -52,6 +52,19 @@ describe("assertVerifiedPurchaseMapping", () => {
     );
   });
 
+  it("fails closed when the mapping has an external key but the observed contract does not", () => {
+    assert.throws(
+      () =>
+        assertVerifiedPurchaseMapping("web-hosting", "monthly", {
+          registry: [createProductMappingFixture({ externalProductKey: "web_hosting" })],
+          observedContract: createProductContractFixture(),
+        }),
+      (error: unknown) =>
+        error instanceof ResellPortalContractGapError &&
+        error.diagnostic.missingFacts.includes("product-identifier-semantics"),
+    );
+  });
+
   it("fails closed when an enabled mapping is missing a billing cycle", () => {
     assert.throws(
       () => productMappingRecordSchema.parse(createProductMappingFixture({ billingCycle: null })),
@@ -128,6 +141,19 @@ describe("assertVerifiedPurchaseMapping", () => {
     assert.equal(verified.gchSlug, "web-hosting");
     assert.equal(verified.purchaseEnabled, true);
     assert.equal(isPurchaseEnabled("web-hosting", "monthly", [verified]), true);
+  });
+
+  it("fails closed when a verified mapping omits required fields even if purchase stays disabled", () => {
+    assert.throws(
+      () =>
+        productMappingRecordSchema.parse(
+          createProductMappingFixture({
+            purchaseEnabled: false,
+            externalProductId: null,
+          }),
+        ),
+      /externalProductId/,
+    );
   });
 });
 

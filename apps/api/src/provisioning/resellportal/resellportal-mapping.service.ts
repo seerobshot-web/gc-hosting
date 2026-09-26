@@ -118,6 +118,9 @@ export function assertVerifiedPurchaseMapping(
     if (contract.externalKey && mapping.externalProductKey !== contract.externalKey) {
       missingFacts.push("product-identifier-semantics");
     }
+    if (!contract.externalKey && mapping.externalProductKey) {
+      missingFacts.push("product-identifier-semantics");
+    }
   }
 
   if (missingFacts.length > 0) {
