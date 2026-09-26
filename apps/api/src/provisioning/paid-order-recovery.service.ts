@@ -53,7 +53,7 @@ export class PaidOrderRecoveryService {
       .update(`order:${candidate.id}:paid-recovery-review:v1`)
       .digest("hex");
     try {
-      await prisma.$transaction(async (tx) => {
+      const claimed = await prisma.$transaction(async (tx) => {
         // Recheck under the transaction: a concurrent listener may have begun
         // provisioning after the discovery query. No provider work is claimed.
         const current = await tx.order.findUnique({
@@ -66,7 +66,7 @@ export class PaidOrderRecoveryService {
           current.orgId !== candidate.orgId ||
           !current.stripePaymentId ||
           current.providerService
-        ) return;
+        ) return false;
 
         // The unique key is the concurrency guard. If the transaction fails,
         // neither the marker nor audit is committed, so the next sweep retries.
@@ -89,8 +89,9 @@ export class PaidOrderRecoveryService {
             fulfillmentVerified: false,
           },
         }, tx);
+        return true;
       });
-      return true;
+      return claimed;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
         return false;
