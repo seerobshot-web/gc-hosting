@@ -17,6 +17,7 @@ permissions:
 jobs:
   analyze:
     name: Analyze JavaScript and TypeScript
+    if: vars.CODE_SCANNING_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
