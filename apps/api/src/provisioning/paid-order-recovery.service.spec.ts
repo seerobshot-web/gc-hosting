@@ -21,11 +21,11 @@ describe("PaidOrderRecoveryService", { concurrency: false }, () => {
   function setup(options: { active?: boolean; failAudit?: boolean } = {}) {
     const keys = new Set<string>();
     const audit = {
-      logAction: mock.fn(async () => {
+      logAction: mock.fn(async (_input: unknown) => {
         if (options.failAudit) throw new Error("audit unavailable");
       }),
     } as unknown as AuditService & { logAction: ReturnType<typeof mock.fn> };
-    const findMany = mock.fn(async () => [{
+    const findMany = mock.fn(async (_args: unknown) => [{
       id: "order_1", orgId: "org_1", updatedAt: new Date("2026-01-01T00:00:00Z"),
     }]);
     prisma.order.findMany = findMany as never;
