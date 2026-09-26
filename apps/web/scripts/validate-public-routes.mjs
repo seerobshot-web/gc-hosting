@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { relative, sep } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
@@ -14,6 +14,7 @@ const routeFiles = new Map([
   ["/ministry", "ministry.astro"],
   ["/hosting", "hosting.astro"],
   ["/tools", "tools.astro"],
+  ["/tools/[slug]", "tools/[slug].astro"],
   ["/resources", "resources.astro"],
   ["/start", "start.astro"],
   ["/portal", "portal.astro"],
@@ -54,6 +55,10 @@ async function walk(dirUrl) {
   return files;
 }
 
+function normalizeRoute(path) {
+  return path.replace(/\/$/, "") || "/";
+}
+
 const failures = [];
 
 for (const [route, file] of routeFiles) {
@@ -79,10 +84,9 @@ for (const fileUrl of sourceFiles) {
   const source = await readFile(fileUrl, "utf8");
   const filePath = relative(rootPath, fileURLToPath(fileUrl)).split(sep).join("/");
   let match;
-  staticHrefPattern.lastIndex = 0;
+
   while ((match = staticHrefPattern.exec(source))) {
-    const href = match[1].replace(/\/$/, "") || "/";
-    validateRoute(href, filePath, "static href");
+    validateRoute(normalizeRoute(match[1]), filePath, "static href");
   }
 
   for (const pattern of siteRouteHrefPatterns) {
@@ -93,6 +97,7 @@ for (const fileUrl of sourceFiles) {
         failures.push(`Unknown siteRoutes reference ${match[1]} in ${filePath}`);
         continue;
       }
+
       validateRoute(route, filePath, "siteRoutes href");
     }
   }
