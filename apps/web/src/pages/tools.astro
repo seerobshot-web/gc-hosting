@@ -1,10 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import GCHCategoryLanding from "../components/marketing/GCHCategoryLanding.astro";
-import { publicCategoryContent, contentSources } from "../content/marketing-content";
-const content = publicCategoryContent.tools;
-const source = contentSources[content.source];
+import GCHToolsCatalogPage from "../components/marketing/GCHToolsCatalogPage.astro";
+import { siteRoutes } from "../config/site-routes";
 ---
-<Layout title="Tools | Glory Cloud Hosts">
-  <GCHCategoryLanding {...content} sourceLabel={source.label} />
+<Layout
+  title="Tools | Glory Cloud Hosts"
+  description="Read-only public catalog for the current GCH tools allowlist."
+  canonicalPath={siteRoutes.tools}
+>
+  <GCHToolsCatalogPage />
 </Layout>

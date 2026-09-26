@@ -1,0 +1,129 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+import GCHPrimaryNav from "./GCHPrimaryNav.astro";
+import GCHFinalConversion from "./GCHFinalConversion.astro";
+import type { ToolCardProjection } from "../../content/tools/toolTypes";
+
+interface Props {
+  tool: ToolCardProjection;
+}
+
+const { tool } = Astro.props;
+---
+
+<GCHPrimaryNav />
+<main class="gch-tool-detail">
+  <section class="gch-tool-detail__hero" data-gch-surface="dark">
+    <div class="gch-tool-detail__hero-inner">
+      <div>
+        <GCHHudLabel index="TOOL" label={tool.displayName} tone="light" />
+        <h1>{tool.displayName}</h1>
+        <p>{tool.summary}</p>
+      </div>
+      <aside class="gch-tool-detail__status" aria-label="Product detail status">
+        <div>
+          <span>Audience</span>
+          <strong>{tool.audience}</strong>
+        </div>
+        <div>
+          <span>Pricing</span>
+          <strong>{tool.pricing.value}</strong>
+        </div>
+        <div>
+          <span>Availability</span>
+          <strong>{tool.availability.value}</strong>
+        </div>
+        <div>
+          <span>Last reviewed</span>
+          <strong>{tool.lastReviewed}</strong>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="gch-tool-detail__content">
+    <div class="gch-tool-detail__content-inner">
+      <article class="gch-tool-detail__article">
+        <section aria-labelledby="tool-outcome-title">
+          <GCHHudLabel index="01" label="What this tool supports" tone="muted" />
+          <h2 id="tool-outcome-title">A cautious public projection of the current offer.</h2>
+          <p>{tool.teaser}</p>
+        </section>
+
+        <section aria-labelledby="tool-features-title">
+          <GCHHudLabel index="02" label="Main features" tone="muted" />
+          <h2 id="tool-features-title">Main features supported by approved editorial content</h2>
+          <ul>
+            {tool.features.map((feature) => (
+              <li>{feature}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="tool-prerequisites-title">
+          <GCHHudLabel index="03" label="Before you start" tone="muted" />
+          <h2 id="tool-prerequisites-title">Before you start</h2>
+          <ul>
+            {tool.prerequisites.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="tool-limitations-title">
+          <GCHHudLabel index="04" label="Limits and verification" tone="muted" />
+          <h2 id="tool-limitations-title">Current limitations and contract guards</h2>
+          <ul>
+            {tool.limitations.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+          <p>{tool.mapping.statusNote}</p>
+        </section>
+      </article>
+
+      <aside class="gch-tool-detail__aside">
+        <div class="gch-tool-detail__panel">
+          <GCHHudLabel index="SOURCE" label="Data source classification" tone="muted" />
+          <p>{tool.sourceLabel}</p>
+        </div>
+        <div class="gch-tool-detail__panel">
+          <GCHHudLabel index="NEXT" label="Safe next step" tone="muted" />
+          <p>
+            Public purchase CTAs stay disabled until identifiers and storefront targets are verified.
+            Use the guided starting point to talk with GCH instead.
+          </p>
+          <a href={tool.contactHref}>Contact GCH</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <GCHFinalConversion
+    title={`Need help deciding if ${tool.displayName} fits?`}
+    body="Tell GCH what you are trying to launch, automate, or improve, and the guided starting point will keep the next step inside the current public journey."
+  />
+</main>
+
+<style>
+  .gch-tool-detail{background:var(--gch-cream);color:var(--gch-text-primary)}
+  .gch-tool-detail__hero{background:radial-gradient(circle at 80% 18%,rgba(232,160,32,.14),transparent 28%),var(--gch-brand-dark);color:var(--gch-text-primary-dark)}
+  .gch-tool-detail__hero-inner,.gch-tool-detail__content-inner{width:min(100% - 2rem,1180px);margin-inline:auto}
+  .gch-tool-detail__hero-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(18rem,22rem);gap:2rem;align-items:end;padding:clamp(4rem,9vw,7rem) 0}
+  .gch-tool-detail__hero h1{margin:1rem 0;font:800 clamp(2.6rem,5.8vw,5.4rem)/.95 "Outfit",system-ui,sans-serif;letter-spacing:-.055em}
+  .gch-tool-detail__hero p{max-width:62ch;margin:0;color:var(--gch-text-secondary-dark);font:400 1.02rem/1.7 "Outfit",system-ui,sans-serif}
+  .gch-tool-detail__status{display:grid;gap:.9rem;padding:1rem;border:1px solid var(--gch-border-dark);border-radius:1rem;background:rgba(255,255,255,.04)}
+  .gch-tool-detail__status div{display:grid;gap:.3rem}
+  .gch-tool-detail__status span{color:var(--gch-text-secondary-dark);font:700 .62rem/1.35 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+  .gch-tool-detail__status strong{font:700 .95rem/1.45 "Outfit",system-ui,sans-serif}
+  .gch-tool-detail__content{padding:clamp(3rem,7vw,5rem) 0}
+  .gch-tool-detail__content-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(18rem,22rem);gap:2rem}
+  .gch-tool-detail__article,.gch-tool-detail__aside{display:grid;gap:1.5rem}
+  .gch-tool-detail__article section,.gch-tool-detail__panel{display:grid;gap:.9rem;padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}
+  .gch-tool-detail__article h2{margin:0;font:800 clamp(1.6rem,3.8vw,2.8rem)/1.02 "Outfit",system-ui,sans-serif;letter-spacing:-.04em}
+  .gch-tool-detail__article p,.gch-tool-detail__panel p,.gch-tool-detail__article li{color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
+  .gch-tool-detail__article ul{display:grid;gap:.7rem;margin:0;padding-left:1.2rem}
+  .gch-tool-detail__panel a{display:inline-flex;align-items:center;justify-content:center;min-height:2.6rem;padding:0 .95rem;border-radius:999px;background:var(--gch-gold);color:var(--gch-brand-dark);text-decoration:none;font:700 .84rem/1 "Outfit",system-ui,sans-serif}
+  .gch-tool-detail__panel a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
+  @media(max-width:960px){.gch-tool-detail__hero-inner,.gch-tool-detail__content-inner{grid-template-columns:1fr}}
+</style>
