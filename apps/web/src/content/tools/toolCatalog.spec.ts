@@ -5,9 +5,9 @@ import {
   getToolBySlug,
   getToolsByCategory,
   toolCatalog,
-} from "./toolCatalog.ts";
-import { toolEditorialRecords } from "./toolEditorial.ts";
-import { toolMappings } from "./toolMappings.ts";
+} from "./toolCatalog";
+import { toolEditorialRecords } from "./toolEditorial";
+import { toolMappings } from "./toolMappings";
 
 const approvedSlugs = [
   "business-website",
