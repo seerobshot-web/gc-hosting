@@ -45,7 +45,7 @@ export class BillingController {
   @Post("orgs/:orgId/billing/product-checkout-session")
   @HttpCode(200)
   @RequirePermission("billing:manage")
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
   createProductCheckoutSession(
     @Tenant() tenant: TenantContext,
     @Body() dto: CreateProductCheckoutSessionDto,

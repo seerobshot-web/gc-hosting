@@ -103,6 +103,7 @@ export const productMappingRecordSchema = z
 export const verifiedProductMappingSchema = productMappingRecordSchema
   .safeExtend({
     externalProductId: z.string().min(1),
+    externalProductKey: z.string().min(1).nullable(),
     billingCycle: z.string().min(1),
     approvedOrderDestination: z.string().min(1),
     verificationStatus: z.literal("verified"),
