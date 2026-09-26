@@ -197,7 +197,7 @@ export const toolEditorialRecords = [
     ],
   },
   {
-    slug: "reputation-review-management",
+    slug: "reputation-reviews",
     displayName: "Reputation and Review Management",
     category: "marketing-growth",
     audience: "Organizations that need more consistent review visibility and response workflows.",
@@ -278,7 +278,7 @@ export const toolEditorialRecords = [
     homepageFeatured: true,
   },
   {
-    slug: "document-signing-platform",
+    slug: "document-signing",
     displayName: "Document Signing Platform",
     category: "business-operations",
     audience: "Teams that need a managed document-signing workflow without exposing unverified claims.",
@@ -339,7 +339,7 @@ export const toolEditorialRecords = [
     ],
   },
   {
-    slug: "cpanel-email-file-management",
+    slug: "cpanel-email-files",
     displayName: "cPanel Email and File Management",
     category: "business-operations",
     audience: "Customers who need practical access to email and file-management tasks in a hosting workflow.",

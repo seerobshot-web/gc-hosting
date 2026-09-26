@@ -7,6 +7,7 @@
     "build": "astro build",
     "start": "astro preview --port 3000",
     "lint": "eslint src --ext .astro,.ts,.tsx",
+    "test": "node --import ../api/node_modules/tsx/dist/loader.mjs --test src/content/tools/*.spec.ts",
     "typecheck": "astro check",
     "validate:routes": "node scripts/validate-public-routes.mjs"
   },
