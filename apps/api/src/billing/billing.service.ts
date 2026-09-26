@@ -10,6 +10,9 @@ import { prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
 import type { TenantContext } from "../rbac/tenant.decorator";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
+import { ResellPortalContractGapError } from "../provisioning/resellportal/resellportal-contract-gap.error";
+import { assertVerifiedPurchaseMapping } from "../provisioning/resellportal/resellportal-mapping.service";
+import type { CreateProductCheckoutSessionDto } from "./dto";
 import { StripeService } from "./stripe.service";
 
 /** Stripe statuses under which seats are billable and a plan is in force. */
@@ -154,6 +157,33 @@ export class BillingService {
     });
 
     return { url: session.url };
+  }
+
+  async createProductCheckoutSession(
+    tenant: TenantContext,
+    input: CreateProductCheckoutSessionDto,
+  ) {
+    try {
+      assertVerifiedPurchaseMapping(input.gchSlug, input.billingCycle);
+    } catch (error) {
+      if (error instanceof ResellPortalContractGapError) {
+        this.logger.warn(
+          `Blocked product checkout for org ${tenant.orgId}: ${input.gchSlug} (${input.billingCycle})`,
+        );
+        throw new ConflictException({
+          code: error.code,
+          message: error.message,
+          gchSlug: input.gchSlug,
+          billingCycle: input.billingCycle,
+          missingFacts: error.diagnostic.missingFacts,
+        });
+      }
+      throw error;
+    }
+
+    throw new ConflictException(
+      "Verified product checkout activation is intentionally deferred until a later phase.",
+    );
   }
 
   async createPortalSession(tenant: TenantContext) {
