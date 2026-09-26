@@ -1,0 +1,23 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import GCHToolDetailPage from "../../components/marketing/GCHToolDetailPage.astro";
+import { toolCatalog } from "../../content/tools/toolCatalog";
+import { toolDetailRoute } from "../../config/site-routes";
+
+export function getStaticPaths() {
+  return toolCatalog.map((tool) => ({
+    params: { slug: tool.slug },
+    props: { tool },
+  }));
+}
+
+const { tool } = Astro.props;
+---
+
+<Layout
+  title={`${tool.displayName} | Glory Cloud Hosts`}
+  description={tool.teaser}
+  canonicalPath={toolDetailRoute(tool.slug)}
+>
+  <GCHToolDetailPage tool={tool} />
+</Layout>

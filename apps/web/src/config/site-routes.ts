@@ -1,4 +1,5 @@
-const basePath = import.meta.env.BASE_URL === "/" ? "" : import.meta.env.BASE_URL.replace(/\/$/, "");
+const baseUrl = import.meta.env?.BASE_URL ?? "/";
+const basePath = baseUrl === "/" ? "" : baseUrl.replace(/\/$/, "");
 
 const withBase = (path: string) => path === "/" ? `${basePath}/` : `${basePath}${path}`;
 
@@ -14,6 +15,8 @@ export const siteRoutes = {
   dashboardPreview: withBase("/dashboard-preview"),
   marketingFoundation: withBase("/marketing-foundation"),
 } as const;
+
+export const toolDetailRoute = (slug: string) => withBase(`/tools/${slug}`);
 
 export type SiteRouteKey = keyof typeof siteRoutes;
 
