@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, it } from "node:test";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -371,10 +372,10 @@ describe("ResellPortalClient.getServiceById", () => {
 describe("credential literal regression", () => {
   it("contains no hardcoded ResellPortal or Stripe credential-shaped literals in updated files", () => {
     const files = [
-      { label: "resellportal.client.ts", path: new URL("./resellportal.client.ts", import.meta.url) },
+      { label: "resellportal.client.ts", path: resolve(__dirname, "resellportal.client.ts") },
       {
         label: "resellportal.client.spec.ts",
-        path: new URL("./resellportal.client.spec.ts", import.meta.url),
+        path: resolve(__dirname, "resellportal.client.spec.ts"),
       },
     ];
     const hardcodedHeaderSecretPattern = /["']X-API-(Key|Secret)["']\s*:\s*["'][^"']+["']/;
