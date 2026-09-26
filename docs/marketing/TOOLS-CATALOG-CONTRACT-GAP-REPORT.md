@@ -20,7 +20,7 @@ Status: repository-verified on 2026-09-26.
 ## Differences from the intended design
 
 1. The repository does **not** already have an `apps/api/src/integrations/` tree, so this phase introduces the read-only catalog scaffold there while leaving the existing provisioning adapter untouched.
-2. The current `/tools` route is a placeholder landing page, not a product catalog.
+2. The current `/tools` route is a static allowlisted catalog backed by repository editorial records, not a verified live ResellPortal catalog feed.
 3. The repository includes public route hardening guidance, but the static route validator script was already broken before this phase and had to be repaired to make route checks useful again.
 4. The portal remains a separate Next.js app; no authenticated catalog or purchase flow is moved into Astro in this phase.
 

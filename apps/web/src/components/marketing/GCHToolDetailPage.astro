@@ -50,8 +50,14 @@ const { tool } = Astro.props;
           <p>{tool.teaser}</p>
         </section>
 
+        <section aria-labelledby="tool-audience-title">
+          <GCHHudLabel index="02" label="Who it is for" tone="muted" />
+          <h2 id="tool-audience-title">Who it is for</h2>
+          <p>{tool.audience}</p>
+        </section>
+
         <section aria-labelledby="tool-features-title">
-          <GCHHudLabel index="02" label="Main features" tone="muted" />
+          <GCHHudLabel index="03" label="Main features" tone="muted" />
           <h2 id="tool-features-title">Main features supported by approved editorial content</h2>
           <ul>
             {tool.features.map((feature) => (
@@ -61,8 +67,8 @@ const { tool } = Astro.props;
         </section>
 
         <section aria-labelledby="tool-prerequisites-title">
-          <GCHHudLabel index="03" label="Before you start" tone="muted" />
-          <h2 id="tool-prerequisites-title">Before you start</h2>
+          <GCHHudLabel index="04" label="Setup and onboarding" tone="muted" />
+          <h2 id="tool-prerequisites-title">Setup and onboarding expectations</h2>
           <ul>
             {tool.prerequisites.map((item) => (
               <li>{item}</li>
@@ -70,8 +76,18 @@ const { tool } = Astro.props;
           </ul>
         </section>
 
+        <section aria-labelledby="tool-pricing-title">
+          <GCHHudLabel index="05" label="Pricing and checkout" tone="muted" />
+          <h2 id="tool-pricing-title">Pricing and checkout disclosure</h2>
+          <p>{tool.pricing.note}</p>
+          <p>
+            Billing cadence, cancellation terms, and storefront handoff remain withheld until the
+            ResellPortal catalog contract and approved storefront target are verified.
+          </p>
+        </section>
+
         <section aria-labelledby="tool-limitations-title">
-          <GCHHudLabel index="04" label="Limits and verification" tone="muted" />
+          <GCHHudLabel index="06" label="Limits and verification" tone="muted" />
           <h2 id="tool-limitations-title">Current limitations and contract guards</h2>
           <ul>
             {tool.limitations.map((item) => (
@@ -79,6 +95,34 @@ const { tool } = Astro.props;
             ))}
           </ul>
           <p>{tool.mapping.statusNote}</p>
+        </section>
+
+        <section aria-labelledby="tool-faq-title">
+          <GCHHudLabel index="07" label="FAQ" tone="muted" />
+          <h2 id="tool-faq-title">Frequently asked questions</h2>
+          <dl class="gch-tool-detail__faq">
+            <div>
+              <dt>Can I order this online today?</dt>
+              <dd>
+                No. Public ordering stays disabled until identifiers and storefront targets are
+                verified against the approved catalog contract.
+              </dd>
+            </div>
+            <div>
+              <dt>Where will pricing come from?</dt>
+              <dd>
+                Public price claims will come from verified catalog data or approved GCH pricing
+                configuration, not from guessed or stale upstream values.
+              </dd>
+            </div>
+            <div>
+              <dt>What should I prepare before onboarding?</dt>
+              <dd>
+                Review the setup expectations above and bring the organization, account, or content
+                details needed for this tool before the next GCH conversation.
+              </dd>
+            </div>
+          </dl>
         </section>
       </article>
 
@@ -123,6 +167,10 @@ const { tool } = Astro.props;
   .gch-tool-detail__article h2{margin:0;font:800 clamp(1.6rem,3.8vw,2.8rem)/1.02 "Outfit",system-ui,sans-serif;letter-spacing:-.04em}
   .gch-tool-detail__article p,.gch-tool-detail__panel p,.gch-tool-detail__article li{color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
   .gch-tool-detail__article ul{display:grid;gap:.7rem;margin:0;padding-left:1.2rem}
+  .gch-tool-detail__faq{display:grid;gap:1rem;margin:0}
+  .gch-tool-detail__faq div{display:grid;gap:.35rem}
+  .gch-tool-detail__faq dt{font:700 .95rem/1.45 "Outfit",system-ui,sans-serif}
+  .gch-tool-detail__faq dd{margin:0;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
   .gch-tool-detail__panel a{display:inline-flex;align-items:center;justify-content:center;min-height:2.6rem;padding:0 .95rem;border-radius:999px;background:var(--gch-gold);color:var(--gch-brand-dark);text-decoration:none;font:700 .84rem/1 "Outfit",system-ui,sans-serif}
   .gch-tool-detail__panel a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
   @media(max-width:960px){.gch-tool-detail__hero-inner,.gch-tool-detail__content-inner{grid-template-columns:1fr}}
