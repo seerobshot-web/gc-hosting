@@ -62,7 +62,10 @@ describe("Phase 3 mock-only contract boundaries", () => {
       [product, { ...payment, evidenceRef: "" }, fulfillment],
       [product, payment, { ...fulfillment, evidenceRef: "  " }],
     ] as const) {
-      assert.equal(assessEntitlementReadiness(orderId, orgId, ...facts).reason, "evidence_missing");
+      const [mappedProduct, observedPayment, observedFulfillment] = facts;
+      assert.equal(assessEntitlementReadiness(
+        orderId, orgId, mappedProduct, observedPayment, observedFulfillment,
+      ).reason, "evidence_missing");
     }
     assert.equal(assessEntitlementReadiness(
       orderId, orgId, product, payment, fulfillment,
