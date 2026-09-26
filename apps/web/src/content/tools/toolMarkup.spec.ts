@@ -31,5 +31,5 @@ test("tool detail view exposes semantic sections and labeled status metadata", (
 
 test("tools teaser links visitors to the full catalog route", () => {
   assert.match(teaserComponent, /href=\{siteRoutes\.tools\}/);
-  assert.match(teaserComponent, /Explore the full Tools catalog/);
+  assert.match(teaserComponent, /Open the complete public Tools catalog/);
 });
