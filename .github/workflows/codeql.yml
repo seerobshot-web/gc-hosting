@@ -11,22 +11,17 @@ on:
 
 permissions:
   contents: read
-  security-events: write
   actions: read
 
 jobs:
-  analyze:
-    name: Analyze JavaScript and TypeScript
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
+  probe:
+    name: Detect Code Scanning availability
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    permissions:
+      security-events: read
+    outputs:
+      enabled: ${{ steps.code-scanning.outputs.enabled }}
     steps:
-      - name: Check out source
-        uses: actions/checkout@v7
-
       - name: Detect Code Scanning availability
         id: code-scanning
         env:
@@ -50,13 +45,25 @@ jobs:
             exit 1
           fi
 
+  analyze:
+    name: Analyze JavaScript and TypeScript
+    needs: probe
+    if: needs.probe.outputs.enabled == 'true'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
       - name: Initialize CodeQL
-        if: steps.code-scanning.outputs.enabled == 'true'
         uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
           build-mode: none
 
       - name: Analyze
-        if: steps.code-scanning.outputs.enabled == 'true'
         uses: github/codeql-action/analyze@v4
