@@ -1,0 +1,139 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+import GCHPrimaryNav from "./GCHPrimaryNav.astro";
+import GCHCategoryRail from "./GCHCategoryRail.astro";
+import GCHFinalConversion from "./GCHFinalConversion.astro";
+import {
+  getToolsByCategory,
+  toolsContractStatus,
+  toolsLastReviewed,
+  toolsSourceLabel,
+} from "../../content/tools/toolCatalog";
+
+const categories = getToolsByCategory();
+const railItems = categories.map((category) => ({
+  index: category.index,
+  label: category.title,
+  href: `#${category.id}`,
+}));
+---
+
+<GCHPrimaryNav />
+<main class="gch-tools-page">
+  <section class="gch-tools-page__hero" data-gch-surface="dark">
+    <div class="gch-tools-page__hero-inner">
+      <div>
+        <GCHHudLabel index="PUBLIC" label="Tools" tone="light" />
+        <h1>Read-only catalog for the current GCH Tools allowlist.</h1>
+        <p>
+          This public catalog preserves the current GCH wireframe and journey while keeping
+          ordering, pricing, and storefront handoff disabled until the verified ResellPortal
+          catalog contract is available.
+        </p>
+      </div>
+      <aside class="gch-tools-page__hero-card" aria-label="Catalog status">
+        <strong>{toolsSourceLabel}</strong>
+        <p>{toolsContractStatus}</p>
+        <small>Last reviewed: {toolsLastReviewed}</small>
+      </aside>
+    </div>
+  </section>
+
+  <section class="gch-tools-page__content" aria-labelledby="gch-tools-catalog-title">
+    <div class="gch-tools-page__content-inner">
+      <GCHCategoryRail items={railItems} />
+      <div class="gch-tools-page__catalog">
+        <header class="gch-tools-page__intro">
+          <GCHHudLabel index="ALLOWLIST" label="Catalog sections" tone="muted" />
+          <h2 id="gch-tools-catalog-title">Every public tool is allowlisted explicitly.</h2>
+          <p>
+            Unknown upstream products do not become public cards or indexable pages. Every entry
+            below uses GCH-owned editorial copy, an explicit mapping record, and safe placeholders
+            whenever the upstream contract is missing or unverified.
+          </p>
+        </header>
+
+        <nav class="gch-tools-page__jump" aria-label="Tools catalog categories">
+          {categories.map((category) => (
+            <a href={`#${category.id}`}>{category.title}</a>
+          ))}
+        </nav>
+
+        {categories.map((category) => (
+          <section class="gch-tools-page__group" id={category.id} aria-labelledby={`${category.id}-title`}>
+            <header class="gch-tools-page__group-head">
+              <GCHHudLabel index={category.index} label={category.title} tone="muted" />
+              <h3 id={`${category.id}-title`}>{category.title}</h3>
+              <p>{category.description}</p>
+            </header>
+
+            <div class="gch-tools-page__grid">
+              {category.tools.map((tool) => (
+                <article class="gch-tool-card">
+                  <div class="gch-tool-card__meta">
+                    <span>{tool.availability.value}</span>
+                    <small>{tool.pricing.value}</small>
+                  </div>
+                  <h4>{tool.displayName}</h4>
+                  <p>{tool.teaser}</p>
+                  <dl>
+                    <div>
+                      <dt>Audience</dt>
+                      <dd>{tool.audience}</dd>
+                    </div>
+                    <div>
+                      <dt>Catalog status</dt>
+                      <dd>{tool.mapping.statusNote}</dd>
+                    </div>
+                  </dl>
+                  <div class="gch-tool-card__actions">
+                    <a href={tool.detailHref}>View details</a>
+                    <a href={tool.contactHref}>Contact GCH</a>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <GCHFinalConversion
+    title="Need help picking the right tool?"
+    body="Use the guided starting point to tell GCH what you are trying to run, fix, or grow. Public ordering stays disabled until the catalog contract is verified."
+  />
+</main>
+
+<style>
+  .gch-tools-page{background:var(--gch-cream);color:var(--gch-text-primary)}
+  .gch-tools-page__hero{background:radial-gradient(circle at 78% 18%,rgba(232,160,32,.14),transparent 28%),var(--gch-brand-dark);color:var(--gch-text-primary-dark)}
+  .gch-tools-page__hero-inner,.gch-tools-page__content-inner{width:min(100% - 2rem,1180px);margin-inline:auto}
+  .gch-tools-page__hero-inner{display:grid;grid-template-columns:minmax(0,1fr) minmax(18rem,24rem);gap:2rem;align-items:end;padding:clamp(4.5rem,9vw,8rem) 0}
+  .gch-tools-page__hero h1{max-width:11ch;margin:1rem 0;font:800 clamp(2.7rem,6vw,5.8rem)/.95 "Outfit",system-ui,sans-serif;letter-spacing:-.055em}
+  .gch-tools-page__hero p{max-width:64ch;margin:0;color:var(--gch-text-secondary-dark);font:400 1.02rem/1.7 "Outfit",system-ui,sans-serif}
+  .gch-tools-page__hero-card{display:grid;gap:.65rem;padding:1rem;border:1px solid var(--gch-border-dark);border-radius:1rem;background:rgba(255,255,255,.04)}
+  .gch-tools-page__hero-card strong,.gch-tools-page__hero-card small{font:700 .64rem/1.4 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+  .gch-tools-page__hero-card p{color:var(--gch-text-secondary-dark);font:400 .95rem/1.55 "Outfit",system-ui,sans-serif}
+  .gch-tools-page__content{padding:clamp(3rem,7vw,5rem) 0}
+  .gch-tools-page__content-inner{display:grid;grid-template-columns:minmax(9rem,11rem) minmax(0,1fr);gap:2rem}
+  .gch-tools-page__catalog{display:grid;gap:2rem}
+  .gch-tools-page__intro h2,.gch-tools-page__group h3{margin:.8rem 0 0;font:800 clamp(1.8rem,4vw,3.4rem)/1 "Outfit",system-ui,sans-serif;letter-spacing:-.045em}
+  .gch-tools-page__intro p,.gch-tools-page__group-head p{max-width:70ch;margin:1rem 0 0;color:var(--gch-text-secondary);font:400 1rem/1.65 "Outfit",system-ui,sans-serif}
+  .gch-tools-page__jump{display:flex;flex-wrap:wrap;gap:.7rem}
+  .gch-tools-page__jump a,.gch-tool-card__actions a{display:inline-flex;align-items:center;justify-content:center;min-height:2.6rem;padding:0 .95rem;border:1px solid var(--gch-border-light);border-radius:999px;background:var(--gch-white);color:var(--gch-text-primary);text-decoration:none;font:700 .84rem/1 "Outfit",system-ui,sans-serif}
+  .gch-tools-page__jump a:focus-visible,.gch-tool-card__actions a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
+  .gch-tools-page__group{display:grid;gap:1.2rem}
+  .gch-tools-page__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+  .gch-tool-card{display:grid;gap:.9rem;padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}
+  .gch-tool-card__meta{display:flex;justify-content:space-between;gap:1rem;align-items:start}
+  .gch-tool-card__meta span,.gch-tool-card__meta small,.gch-tool-card dt{font:700 .62rem/1.35 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+  .gch-tool-card__meta span{color:var(--gch-gold-text)}
+  .gch-tool-card__meta small,.gch-tool-card dt{color:var(--gch-text-muted)}
+  .gch-tool-card h4{margin:0;font:800 1.15rem/1.08 "Outfit",system-ui,sans-serif}
+  .gch-tool-card p,.gch-tool-card dd{margin:0;color:var(--gch-text-secondary);font:400 .95rem/1.6 "Outfit",system-ui,sans-serif}
+  .gch-tool-card dl{display:grid;gap:.7rem;margin:0}
+  .gch-tool-card dl div{display:grid;gap:.25rem}
+  .gch-tool-card__actions{display:flex;flex-wrap:wrap;gap:.7rem}
+  @media(max-width:960px){.gch-tools-page__hero-inner,.gch-tools-page__content-inner{grid-template-columns:1fr}.gch-tools-page__grid{grid-template-columns:1fr}}
+</style>

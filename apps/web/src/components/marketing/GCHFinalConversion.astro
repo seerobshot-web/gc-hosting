@@ -1,5 +1,6 @@
 ---
 import GCHHudLabel from "./GCHHudLabel.astro";
+import { siteRoutes } from "../../config/site-routes";
 
 interface Props {
   title?: string;
@@ -12,9 +13,9 @@ const {
 } = Astro.props;
 
 const actions = [
-  { label: "Start a project", href: "/start" },
-  { label: "Explore products", href: "/tools" },
-  { label: "Talk with GCH", href: "/contact" },
+  { label: "Start a project", href: siteRoutes.start },
+  { label: "Explore products", href: siteRoutes.tools },
+  { label: "Talk with GCH", href: siteRoutes.start },
 ];
 ---
 
