@@ -29,6 +29,24 @@ describe("ResellPortal product mapping registry", () => {
     assert.equal(getProductMapping("not-a-real-tool"), undefined);
     assert.equal(isPurchaseEnabled("not-a-real-tool"), false);
   });
+
+  it("allows pending mappings to keep null contract fields", () => {
+    const pending = productMappingRecordSchema.parse({
+      gchSlug: "web-hosting",
+      externalProductId: null,
+      externalProductKey: null,
+      billingCycle: null,
+      approvedOrderDestination: null,
+      verificationStatus: "pending-verification",
+      purchaseEnabled: false,
+      sourceEvidence: "missing-contract",
+    });
+
+    assert.equal(pending.verificationStatus, "pending-verification");
+    assert.equal(pending.externalProductId, null);
+    assert.equal(pending.billingCycle, null);
+    assert.equal(pending.approvedOrderDestination, null);
+  });
 });
 
 describe("assertVerifiedPurchaseMapping", () => {

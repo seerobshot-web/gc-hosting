@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import type { AuthenticatedUser } from "../auth/jwt.strategy";
 import { CurrentUser } from "../auth/current-user.decorator";
@@ -45,6 +45,7 @@ export class BillingController {
   @Post("orgs/:orgId/billing/product-checkout-session")
   @HttpCode(200)
   @RequirePermission("billing:manage")
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   createProductCheckoutSession(
     @Tenant() tenant: TenantContext,
     @Body() dto: CreateProductCheckoutSessionDto,
