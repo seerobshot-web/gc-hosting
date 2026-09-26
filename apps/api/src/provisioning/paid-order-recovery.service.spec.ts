@@ -18,7 +18,7 @@ describe("PaidOrderRecoveryService", { concurrency: false }, () => {
     prisma.idempotencyRecord.create = original.create;
   });
 
-  function setup(options: { active?: boolean; failAudit?: boolean } = {}) {
+  function setup(options: { active?: boolean; failAudit?: boolean; wrongOrg?: boolean } = {}) {
     const keys = new Set<string>();
     const audit = {
       logAction: mock.fn(async (_input: unknown) => {
@@ -31,7 +31,7 @@ describe("PaidOrderRecoveryService", { concurrency: false }, () => {
     prisma.order.findMany = findMany as never;
     prisma.order.findUnique = mock.fn(async () => ({
       status: options.active ? OrderStatus.ACTIVE : OrderStatus.PAID,
-      orgId: "org_1",
+      orgId: options.wrongOrg ? "org_other" : "org_1",
       stripePaymentId: "pi_fixture",
       providerService: options.active ? { id: "svc_1" } : null,
     })) as never;
@@ -83,6 +83,13 @@ describe("PaidOrderRecoveryService", { concurrency: false }, () => {
 
   it("skips a candidate whose order has advanced since discovery", async () => {
     const { service, audit, create } = setup({ active: true });
+    assert.equal(await service.discoverStrandedOrders(new Date("2026-01-01T00:10:00Z")), 0);
+    assert.equal(create.mock.callCount(), 0);
+    assert.equal(audit.logAction.mock.callCount(), 0);
+  });
+
+  it("does not attribute a changed tenant's order to the discovered tenant", async () => {
+    const { service, audit, create } = setup({ wrongOrg: true });
     assert.equal(await service.discoverStrandedOrders(new Date("2026-01-01T00:10:00Z")), 0);
     assert.equal(create.mock.callCount(), 0);
     assert.equal(audit.logAction.mock.callCount(), 0);
