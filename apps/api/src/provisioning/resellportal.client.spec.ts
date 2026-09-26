@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { afterEach, describe, it } from "node:test";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -198,5 +199,206 @@ describe("ResellPortalClient mutating requests", () => {
       headers?.["Idempotency-Key"],
       ResellPortalClient.idempotencyKey("provisioning_order", "client-1", "placeOrder"),
     );
+  });
+});
+
+describe("ResellPortalClient.safePlaceOrder", () => {
+  const creds = { RESELLPORTAL_API_KEY: "api-key", RESELLPORTAL_API_SECRET: "api-secret" };
+  const fixtureProductKey = "fixture_product_key";
+
+  it("returns an already-fulfilled result from the pre-check and skips POST /orders", async () => {
+    const calls: Array<{ url: string; method: string | undefined }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({ url: String(input), method: init?.method });
+      return new Response(
+        JSON.stringify([
+          {
+            id: "svc-existing",
+            deployment_status: "active",
+            next_billing_date: null,
+            product_key: fixtureProductKey,
+            billing_cycle: "monthly",
+          },
+        ]),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+      billingCycle: "monthly",
+      orderPayload: { fixture_option: true },
+    });
+
+    assert.deepEqual(result, {
+      kind: "already-fulfilled",
+      serviceId: "svc-existing",
+      source: "precheck",
+    });
+    assert.equal(calls.length, 1);
+    assert.ok(calls[0]?.url.endsWith("/services?client_id=client-1"));
+  });
+
+  it("calls POST /orders exactly once when pre-check finds no matching service", async () => {
+    const calls: Array<{ url: string; init: RequestInit | undefined }> = [];
+    globalThis.fetch = async (input, init) => {
+      calls.push({ url: String(input), init });
+      if (String(input).includes("/services?")) {
+        return new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          service_id: "svc-created",
+          amount_charged: "9.99",
+          new_balance: "90.01",
+          extra_field: "kept",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+      orderPayload: { fixture_option: "value" },
+      skipClientEmail: true,
+    });
+
+    assert.equal(result.kind, "placed");
+    if (result.kind === "placed") {
+      assert.equal(result.order.service_id, "svc-created");
+      assert.equal(result.order.extra_field, "kept");
+    }
+
+    const orderCalls = calls.filter((call) => call.url.endsWith("/orders"));
+    assert.equal(orderCalls.length, 1);
+    const body = JSON.parse(String(orderCalls[0]?.init?.body)) as Record<string, unknown>;
+    assert.equal(body.test_mode, true);
+    assert.equal(body.skip_client_email, true);
+    assert.equal(body.client_id, "client-1");
+    assert.equal(body.product_key, fixtureProductKey);
+  });
+
+  it("normalizes 409 duplicate_service into already-fulfilled", async () => {
+    globalThis.fetch = async (input) => {
+      if (String(input).includes("/services?")) {
+        return new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({
+          code: "duplicate_service",
+          service_id: "svc-duplicate",
+        }),
+        { status: 409, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+    });
+
+    assert.deepEqual(result, {
+      kind: "already-fulfilled",
+      serviceId: "svc-duplicate",
+      source: "duplicate_service",
+    });
+  });
+
+  it("rejects malformed POST /orders responses", async () => {
+    globalThis.fetch = async (input) => {
+      if (String(input).includes("/services?")) {
+        return new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ order_id: "legacy-only" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+    const client = clientFor(creds);
+
+    await assert.rejects(
+      client.safePlaceOrder({ clientId: "client-1", productKey: fixtureProductKey }),
+      /unexpected shape/,
+    );
+  });
+
+  it("rejects malformed GET /services responses during pre-check", async () => {
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ not: "an-array" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    const client = clientFor(creds);
+
+    await assert.rejects(
+      client.safePlaceOrder({ clientId: "client-1", productKey: fixtureProductKey }),
+      /unexpected shape/,
+    );
+  });
+});
+
+describe("ResellPortalClient.getServiceById", () => {
+  const creds = { RESELLPORTAL_API_KEY: "api-key", RESELLPORTAL_API_SECRET: "api-secret" };
+
+  it("rejects malformed GET /services/{id} responses", async () => {
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ service_id: "svc-1" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    const client = clientFor(creds);
+
+    await assert.rejects(client.getServiceById("svc-1"), /unexpected shape/);
+  });
+});
+
+describe("credential literal regression", () => {
+  it("contains no hardcoded ResellPortal or Stripe credential-shaped literals in updated files", () => {
+    const files = [
+      { label: "resellportal.client.ts", path: new URL("./resellportal.client.ts", import.meta.url) },
+      {
+        label: "resellportal.client.spec.ts",
+        path: new URL("./resellportal.client.spec.ts", import.meta.url),
+      },
+    ];
+    const hardcodedHeaderSecretPattern = /["']X-API-(Key|Secret)["']\s*:\s*["'][^"']+["']/;
+    const stripeSecretPattern = /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{16,}\b/;
+    const resellPortalEnvLiteralPattern = /RESELLPORTAL_API_(KEY|SECRET)\s*=\s*[^\s]+/;
+
+    for (const file of files) {
+      const contents = readFileSync(file.path, "utf8");
+
+      assert.equal(
+        hardcodedHeaderSecretPattern.test(contents),
+        false,
+        `Found hardcoded X-API-* credential in ${file.label}`,
+      );
+      assert.equal(
+        stripeSecretPattern.test(contents),
+        false,
+        `Found Stripe credential-shaped literal in ${file.label}`,
+      );
+      assert.equal(
+        resellPortalEnvLiteralPattern.test(contents),
+        false,
+        `Found ResellPortal env credential assignment in ${file.label}`,
+      );
+    }
   });
 });

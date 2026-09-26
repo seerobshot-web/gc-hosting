@@ -10,6 +10,25 @@ export interface CreateOrderInput {
   primaryDomain: string;
 }
 
+export interface SafePlaceOrderInput {
+  clientId: string;
+  productKey: string;
+  billingCycle?: string;
+  skipClientEmail?: boolean;
+  orderPayload?: Record<string, unknown>;
+}
+
+export type SafePlaceOrderResult =
+  | {
+      kind: "placed";
+      order: ResellPortalOrderResponse;
+    }
+  | {
+      kind: "already-fulfilled";
+      serviceId: string;
+      source: "precheck" | "duplicate_service";
+    };
+
 // Responses from ResellPortal are never trusted blindly — each is parsed
 // through the matching zod schema before it reaches the rest of the app, so
 // a shape change surfaces as a clear validation error at the boundary
@@ -23,14 +42,37 @@ const placeOrderSchema = z.object({
   order_id: z.string(),
 });
 
+const orderResponseSchema = z
+  .object({
+    service_id: z.string(),
+    amount_charged: z.union([z.string(), z.number()]).optional(),
+    new_balance: z.union([z.string(), z.number()]).optional(),
+    client_credentials: z.unknown().optional(),
+    client_access_url: z.string().optional(),
+  })
+  .passthrough();
+
+const duplicateServiceSchema = z
+  .object({
+    service_id: z.string(),
+    code: z.string().optional(),
+    error: z.string().optional(),
+  })
+  .passthrough();
+
 const serviceSchema = z.object({
   id: z.string(),
+  status: z.string().optional(),
   deployment_status: z.string(),
+  product_key: z.string().optional(),
+  billing_cycle: z.string().nullable().optional(),
+  service_data: z.record(z.string(), z.unknown()).optional(),
   next_billing_date: z.string().nullable(),
 });
 const servicesSchema = z.array(serviceSchema);
 
 export type ResellPortalService = z.infer<typeof serviceSchema>;
+export type ResellPortalOrderResponse = z.infer<typeof orderResponseSchema>;
 
 // Response shape for the lifecycle endpoints used by the GCH-ALEPH provisioning
 // orchestrator (create / suspend / reactivate / terminate / status). Kept
@@ -127,7 +169,7 @@ export class ResellPortalClient {
     });
 
     if (!res.ok) {
-      const body = await res.text();
+      const body = this.redactSecrets(await res.text());
       throw new Error(`ResellPortal ${path} failed: ${res.status} ${body}`);
     }
 
@@ -139,6 +181,37 @@ export class ResellPortalClient {
       );
     }
     return parsed.data;
+  }
+
+  private async requestWithStatus(
+    path: string,
+    init: RequestInit = {},
+  ): Promise<{ status: number; ok: boolean; bodyText: string; bodyJson: unknown | undefined }> {
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": this.apiKey,
+        "X-API-Secret": this.apiSecret,
+        ...init.headers,
+      },
+    });
+
+    const bodyText = await res.text();
+    let bodyJson: unknown | undefined;
+    try {
+      bodyJson = bodyText.length > 0 ? JSON.parse(bodyText) : undefined;
+    } catch {
+      bodyJson = undefined;
+    }
+
+    return { status: res.status, ok: res.ok, bodyText: this.redactSecrets(bodyText), bodyJson };
+  }
+
+  private redactSecrets(value: string): string {
+    return value
+      .replaceAll(this.apiKey, "[REDACTED]")
+      .replaceAll(this.apiSecret, "[REDACTED]");
   }
 
   findOrCreateClient(input: { email: string; name: string }) {
@@ -191,6 +264,71 @@ export class ResellPortalClient {
       `/services?client_id=${encodeURIComponent(clientId)}`,
       servicesSchema,
     );
+  }
+
+  getServiceById(serviceId: string) {
+    return this.request(`/services/${encodeURIComponent(serviceId)}`, serviceSchema);
+  }
+
+  async findExistingServiceForProduct(
+    clientId: string,
+    productKey: string,
+    billingCycle?: string,
+  ): Promise<ResellPortalService | null> {
+    const services = await this.getServices(clientId);
+    const match = services.find((service) =>
+      matchesProductKeyAndCycle(service, productKey, billingCycle),
+    );
+    return match ?? null;
+  }
+
+  async safePlaceOrder(input: SafePlaceOrderInput): Promise<SafePlaceOrderResult> {
+    const existing = await this.findExistingServiceForProduct(
+      input.clientId,
+      input.productKey,
+      input.billingCycle,
+    );
+    if (existing) {
+      return { kind: "already-fulfilled", serviceId: existing.id, source: "precheck" };
+    }
+
+    const response = await this.requestWithStatus("/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        ...(input.orderPayload ?? {}),
+        client_id: input.clientId,
+        product_key: input.productKey,
+        test_mode: true,
+        ...(input.skipClientEmail === undefined
+          ? {}
+          : { skip_client_email: input.skipClientEmail }),
+      }),
+    });
+
+    if (response.status === 409) {
+      const duplicate = duplicateServiceSchema.safeParse(response.bodyJson);
+      if (
+        duplicate.success &&
+        (duplicate.data.code === "duplicate_service" || duplicate.data.error === "duplicate_service")
+      ) {
+        return {
+          kind: "already-fulfilled",
+          serviceId: duplicate.data.service_id,
+          source: "duplicate_service",
+        };
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(`ResellPortal /orders failed: ${response.status} ${response.bodyText}`);
+    }
+
+    const parsed = orderResponseSchema.safeParse(response.bodyJson);
+    if (!parsed.success) {
+      throw new Error(`ResellPortal /orders returned an unexpected shape: ${parsed.error.message}`);
+    }
+
+    return { kind: "placed", order: parsed.data };
   }
 
   // ---------------------------------------------------------------------------
@@ -271,4 +409,28 @@ export class ResellPortalClient {
       { headers: { "Idempotency-Key": idempotencyKey } },
     );
   }
+}
+
+function matchesProductKeyAndCycle(
+  service: ResellPortalService,
+  productKey: string,
+  billingCycle?: string,
+): boolean {
+  const topLevelProductKey = service.product_key;
+  const serviceDataProductKey =
+    typeof service.service_data?.product_key === "string" ? service.service_data.product_key : null;
+  const serviceDataServiceType =
+    typeof service.service_data?.service_type === "string"
+      ? service.service_data.service_type
+      : null;
+
+  const productMatches =
+    topLevelProductKey === productKey ||
+    serviceDataProductKey === productKey ||
+    serviceDataServiceType === productKey;
+  if (!productMatches) return false;
+
+  if (!billingCycle) return true;
+  if (!service.billing_cycle) return true;
+  return service.billing_cycle === billingCycle;
 }
