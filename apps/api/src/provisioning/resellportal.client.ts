@@ -15,6 +15,7 @@ export interface SafePlaceOrderInput {
   productKey: string;
   billingCycle?: string;
   skipClientEmail?: boolean;
+  testMode?: boolean;
   orderPayload?: Record<string, unknown>;
 }
 
@@ -70,6 +71,7 @@ const serviceSchema = z.object({
   next_billing_date: z.string().nullable(),
 });
 const servicesSchema = z.array(serviceSchema);
+const blockedDeploymentStatuses = new Set(["cancelled", "terminated", "failed", "suspended", "inactive"]);
 
 export type ResellPortalService = z.infer<typeof serviceSchema>;
 export type ResellPortalOrderResponse = z.infer<typeof orderResponseSchema>;
@@ -298,7 +300,7 @@ export class ResellPortalClient {
         ...(input.orderPayload ?? {}),
         client_id: input.clientId,
         product_key: input.productKey,
-        test_mode: true,
+        test_mode: input.testMode ?? true,
         ...(input.skipClientEmail === undefined
           ? {}
           : { skip_client_email: input.skipClientEmail }),
@@ -416,6 +418,8 @@ function matchesProductKeyAndCycle(
   productKey: string,
   billingCycle?: string,
 ): boolean {
+  if (!isFulfillableService(service)) return false;
+
   const topLevelProductKey = service.product_key;
   const serviceDataProductKey =
     typeof service.service_data?.product_key === "string" ? service.service_data.product_key : null;
@@ -431,6 +435,13 @@ function matchesProductKeyAndCycle(
   if (!productMatches) return false;
 
   if (!billingCycle) return true;
-  if (!service.billing_cycle) return true;
   return service.billing_cycle === billingCycle;
+}
+
+function isFulfillableService(service: ResellPortalService): boolean {
+  if (service.status && service.status !== "active") {
+    return false;
+  }
+
+  return !blockedDeploymentStatuses.has(service.deployment_status.toLowerCase());
 }

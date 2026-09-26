@@ -287,6 +287,82 @@ describe("ResellPortalClient.safePlaceOrder", () => {
     assert.equal(body.product_key, fixtureProductKey);
   });
 
+  it("does not treat a cycle-less service as a match when a billing cycle is requested", async () => {
+    const calls: Array<{ url: string }> = [];
+    globalThis.fetch = async (input) => {
+      calls.push({ url: String(input) });
+      if (String(input).includes("/services?")) {
+        return new Response(
+          JSON.stringify([
+            {
+              id: "svc-without-cycle",
+              deployment_status: "active",
+              next_billing_date: null,
+              product_key: fixtureProductKey,
+            },
+          ]),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      return new Response(JSON.stringify({ service_id: "svc-created" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+      billingCycle: "monthly",
+    });
+
+    assert.equal(result.kind, "placed");
+    assert.equal(calls.filter((call) => call.url.endsWith("/orders")).length, 1);
+  });
+
+  it("ignores inactive matching services during pre-check", async () => {
+    const calls: Array<{ url: string }> = [];
+    globalThis.fetch = async (input) => {
+      calls.push({ url: String(input) });
+      if (String(input).includes("/services?")) {
+        return new Response(
+          JSON.stringify([
+            {
+              id: "svc-inactive",
+              status: "cancelled",
+              deployment_status: "terminated",
+              next_billing_date: null,
+              product_key: fixtureProductKey,
+              billing_cycle: "monthly",
+            },
+          ]),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      return new Response(JSON.stringify({ service_id: "svc-created" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+      billingCycle: "monthly",
+    });
+
+    assert.equal(result.kind, "placed");
+    assert.equal(calls.filter((call) => call.url.endsWith("/orders")).length, 1);
+  });
+
   it("normalizes 409 duplicate_service into already-fulfilled", async () => {
     globalThis.fetch = async (input) => {
       if (String(input).includes("/services?")) {
@@ -316,6 +392,33 @@ describe("ResellPortalClient.safePlaceOrder", () => {
       serviceId: "svc-duplicate",
       source: "duplicate_service",
     });
+  });
+
+  it("allows callers to override safePlaceOrder test_mode when explicitly requested", async () => {
+    let capturedBody: Record<string, unknown> | undefined;
+    globalThis.fetch = async (input, init) => {
+      if (String(input).includes("/services?")) {
+        return new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      capturedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ service_id: "svc-created" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const client = clientFor(creds);
+    const result = await client.safePlaceOrder({
+      clientId: "client-1",
+      productKey: fixtureProductKey,
+      testMode: false,
+    });
+
+    assert.equal(result.kind, "placed");
+    assert.equal(capturedBody?.test_mode, false);
   });
 
   it("rejects malformed POST /orders responses", async () => {
