@@ -35,7 +35,7 @@ jobs:
 
           if [ "$status" = "200" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
-          elif { [ "$status" = "403" ] || [ "$status" = "404" ]; } && \
+          elif [ "$status" = "403" ] && \
             grep -Eqi 'code scanning is not enabled|advanced security must be enabled' /tmp/code-scanning-response.json; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "Code scanning is not enabled for this repository; skipping CodeQL analysis."
