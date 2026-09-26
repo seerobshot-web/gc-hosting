@@ -90,6 +90,7 @@ for (const fileUrl of sourceFiles) {
   }
 
   for (const pattern of siteRouteHrefPatterns) {
+    pattern.lastIndex = 0;
     while ((match = pattern.exec(source))) {
       const route = siteRouteRefs.get(match[1]);
       if (!route) {

@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpCode, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthenticatedUser } from "../auth/jwt.strategy";
+import { CurrentUser } from "../auth/current-user.decorator";
 import { RequirePermission } from "../rbac/require-permission.decorator";
 import { Tenant, type TenantContext } from "../rbac/tenant.decorator";
 import { BillingService } from "./billing.service";
-import { CreateCheckoutSessionDto } from "./dto";
+import { CreateCheckoutSessionDto, CreateProductCheckoutSessionDto } from "./dto";
 
 @ApiTags("billing")
 @ApiBearerAuth()
@@ -40,6 +40,17 @@ export class BillingController {
     @Body() dto: CreateCheckoutSessionDto,
   ) {
     return this.billing.createCheckoutSession(tenant, dto.planId, user.email);
+  }
+
+  @Post("orgs/:orgId/billing/product-checkout-session")
+  @HttpCode(200)
+  @RequirePermission("billing:manage")
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+  createProductCheckoutSession(
+    @Tenant() tenant: TenantContext,
+    @Body() dto: CreateProductCheckoutSessionDto,
+  ) {
+    return this.billing.createProductCheckoutSession(tenant, dto);
   }
 
   @Post("orgs/:orgId/billing/portal-session")

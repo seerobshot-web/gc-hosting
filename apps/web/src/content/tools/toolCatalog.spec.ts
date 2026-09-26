@@ -9,9 +9,34 @@ import {
 import { toolEditorialRecords } from "./toolEditorial";
 import { toolMappings } from "./toolMappings";
 
+const approvedSlugs = [
+  "business-website",
+  "ai-website-builder",
+  "web-hosting",
+  "web-builder",
+  "domain-registration",
+  "plugin-theme-white-label",
+  "managed-seo",
+  "social-media-automation",
+  "social-media-marketing",
+  "reputation-reviews",
+  "link-in-bio",
+  "business-phone",
+  "appointment-booking",
+  "document-signing",
+  "windows-vpn",
+  "esim-packages",
+  "cpanel-email-files",
+  "private-ai-box",
+] as const;
+
 test("tool editorial records cover all 18 approved products with unique slugs", () => {
   assert.equal(toolEditorialRecords.length, 18);
   assert.equal(new Set(toolEditorialRecords.map((record) => record.slug)).size, 18);
+  assert.deepEqual(
+    toolEditorialRecords.map((record) => record.slug).sort(),
+    [...approvedSlugs].sort(),
+  );
 });
 
 test("every editorial record has an explicit mapping and ordering stays disabled", () => {
