@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
-import { describe, it, mock } from "node:test";
+import { afterEach, describe, it, mock } from "node:test";
+import { prisma } from "@gch/database";
 import { approvedPhaseOneToolSlugs } from "./resellportal/resellportal-mapping.registry";
 import type { ProductMappingRecord } from "./resellportal/resellportal-contract.types";
+import { assessEntitlementReadiness } from "./phase3-contract-boundaries";
 import { phase3Evidence, phase3PurchaseEnabled, productEvidence } from "./phase3-evidence.registry";
 import { assessPurchaseGate, blockedPurchaseInput, type PurchaseGateInput } from "./phase3-purchase-gate";
+import { Phase3StripePaymentVerificationPort } from "./phase3-payment-verification.port";
+import { Phase3ResellPortalFulfillmentVerificationPort } from "./phase3-fulfillment-verification.port";
+import type { StripeService } from "../billing/stripe.service";
+import type { ResellPortalClient } from "./resellportal.client";
 
 const id = "order-test", org = "org-test";
 const fixtureMapping: ProductMappingRecord = {
@@ -83,6 +89,58 @@ describe("Phase 3 evidence registry and purchase preflight", () => {
     assert.equal(evaluate({ ...fixtureInput(), contracts: approved, policyApproved: false }).reason,
       "entitlement_policy_unapproved");
     assert.equal(evaluate({ ...fixtureInput(), contracts: approved }).reason, "feature_disabled");
+  });
+
+  it("Phase 11: the real Stripe + ResellPortal ports reporting fully verified still cannot unlock a purchase", async () => {
+    // Best-case observations from the actual new ports (Phase 11), not
+    // synthetic fixtures — a succeeded Stripe PaymentIntent and a
+    // provider-confirmed active ResellPortal service.
+    const originalOrderFind = prisma.order.findUnique;
+    try {
+      prisma.order.findUnique = mock.fn(async ({ include }: { include?: { providerService?: boolean } }) =>
+        include?.providerService
+          ? { id, orgId: org, providerService: { id: "svc-1", resellPortalId: "rp-svc-1" } }
+          : { id, orgId: org, stripePaymentId: "pi_verified" },
+      ) as never;
+
+      const stripe = {
+        retrievePaymentState: mock.fn(async () => (
+          { kind: "payment_intent", verified: true, rawStatus: "succeeded" }
+        )),
+      } as unknown as StripeService;
+      const resellPortal = {
+        getServiceStatus: mock.fn(async () => ({ service_id: "rp-svc-1", status: "active" })),
+      } as unknown as ResellPortalClient;
+
+      const payment = await new Phase3StripePaymentVerificationPort(stripe).verify(id, org);
+      const fulfillment = await new Phase3ResellPortalFulfillmentVerificationPort(resellPortal).verify(id, org);
+      assert.equal(payment.verified, true);
+      assert.equal(fulfillment.verified, true);
+
+      // These real observations are "good enough" for the entitlement math
+      // itself — proving the ports work, not that they're too weak to matter.
+      const readiness = assessEntitlementReadiness(
+        id, org,
+        { orderId: id, orgId: org, approved: true, mappingEvidenceRef: "fixture" },
+        payment, fulfillment,
+      );
+      assert.equal(readiness.ready, true, "expected the entitlement math itself to be satisfied");
+
+      // Yet assessPurchaseGate — fed these exact real observations — is
+      // still blocked, because phase3PurchaseEnabled/phase3Evidence (never
+      // touched by either port) are the only things that can ever flip it.
+      const gateResult = evaluate({
+        ...fixtureInput(),
+        payment, fulfillment,
+        paymentSafety: "verified", fulfillmentSafety: "verified",
+      });
+      assert.equal(gateResult.ready, false);
+      assert.notEqual(gateResult.reason, "payment_unverified");
+      assert.notEqual(gateResult.reason, "fulfillment_unverified");
+      assert.equal(phase3PurchaseEnabled, false);
+    } finally {
+      prisma.order.findUnique = originalOrderFind;
+    }
   });
 
   it("keeps repeated concurrent assessments deterministic and mutation free", async () => {
