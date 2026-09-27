@@ -18,6 +18,7 @@ export class OrderReadinessService {
     const observations = unconfiguredObservations(order.id, order.orgId);
     return {
       orderId: order.id,
+      status: "blocked" as const,
       localOrderStatus: order.status,
       paymentVerified: false,
       fulfillmentVerified: false,
