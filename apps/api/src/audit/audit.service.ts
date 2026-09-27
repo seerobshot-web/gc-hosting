@@ -108,30 +108,50 @@ export class AuditService {
       cursor = decoded;
     }
 
-    const rows = await prisma.auditLog.findMany({
-      where: {
-        orgId,
-        ...(cursor
-          ? {
-              OR: [
-                { createdAt: { lt: cursor.createdAt } },
-                { createdAt: cursor.createdAt, id: { lt: cursor.id } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: limit + 1,
-      select: {
-        id: true,
-        actor: true,
-        action: true,
-        targetType: true,
-        targetId: true,
-        metadata: true,
-        createdAt: true,
-      },
-    });
+    let rows;
+    try {
+      rows = await prisma.auditLog.findMany({
+        where: {
+          orgId,
+          ...(cursor
+            ? {
+                OR: [
+                  { createdAt: { lt: cursor.createdAt } },
+                  { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: limit + 1,
+        select: {
+          id: true,
+          actor: true,
+          action: true,
+          targetType: true,
+          targetId: true,
+          metadata: true,
+          createdAt: true,
+        },
+      });
+    } catch (err) {
+      // Deployment-sequencing guard: if this build ever ships ahead of
+      // `prisma migrate deploy` for the Phase 5 migration, the generated
+      // client believes `orgId` exists but the real database doesn't have
+      // the column yet. Confirmed empirically (disposable MySQL, column
+      // held back) that Prisma surfaces this as exactly
+      // PrismaClientKnownRequestError code P2022 — fail the same clean way
+      // AUDIT_READ_RESTORATION_ENABLED=false already does, never leak the
+      // raw schema-mismatch error to a caller as an uncaught 500.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2022") {
+        this.logger.error(
+          "AuditLog.orgId column missing from the database — this build shipped ahead of " +
+            "the Phase 5 migration (`prisma migrate deploy`); failing closed instead of 500ing",
+        );
+        throw new ServiceUnavailableException("Tenant-scoped audit history is unavailable");
+      }
+      throw err;
+    }
 
     const hasMore = rows.length > limit;
     const page = hasMore ? rows.slice(0, limit) : rows;
