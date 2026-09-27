@@ -5,7 +5,7 @@
 ## Approval sources and how to read this gate
 
 - [PR #62A](https://github.com/seerobshot-web/gc-hosting/pull/62) is merged, but explicitly calls its design BLOCKED and requests later decisions; a merge is not an approval of DDL.
-- At inspection, PR #62A had no APPROVED review and no issue comments. A COMMENTED bot review identified two necessary corrections: [validate action–target pairs](https://github.com/seerobshot-web/gc-hosting/pull/62#discussion_r4114812189) and [require scoped writer cutover before read rollout](https://github.com/seerobshot-web/gc-hosting/pull/62#discussion_r4114812190). Verify current comment URLs if IDs change. Neither grants permission to generate SQL.
+- At inspection, PR #62A had no APPROVED review and no issue comments. A COMMENTED bot review identified two necessary corrections: [validate action–target pairs](https://github.com/seerobshot-web/gc-hosting/pull/62#discussion_r4114812189) and [require scoped writer cutover before read rollout](https://github.com/seerobshot-web/gc-hosting/pull/62#discussion_r4114812192). Verify current comment URLs if IDs change. Neither grants permission to generate SQL.
 - The current user explicitly requests approving missing decisions *if they align*; this authorizes recording compatible design constraints below, but does not provide missing facts or a choice of delete action. "Approved (design constraint)" is not a passed mandatory migration gate.
 
 | # | Mandatory decision | Evidence location / status | Required resolution |
