@@ -117,13 +117,13 @@ each have two independent producers):
 
 | # | Action → target | Producer (file:line) | PK relation | Special handling | Decision | Owner | Date |
 | - | - | - | - | - | - | - | - |
-| 1 | `org.created` → `Org` | `orgs/orgs.service.ts:40-42` | `Org.id` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
+| 1 | `org.created` → `Org` | `orgs/orgs.service.ts:40-42` | `Org.id` | **Correction**: `create()` takes a bare `callerId`, not a `TenantContext` — no guard runs and no membership exists before this call, since the Org and its first Membership are created together in the same transaction (`orgs.service.ts:31-37`) immediately before this audit write. Principal is `verified_self_membership` (userId + orgId from the just-created Membership row), not `guard_verified_user`; no cross-tenant check applies since there is no prior org to compare against | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 2 | `org.updated` → `Org` | `orgs/orgs.service.ts:89-91` | `Org.id` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 3 | `domain.added` → `OrgDomainVerification` | `orgs/domains.service.ts:54-56` | `OrgDomainVerification.id → orgId` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 4 | `domain.verified` → `OrgDomainVerification` | `orgs/domains.service.ts:88-90` | `OrgDomainVerification.id → orgId` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 5 | `domain.removed` → `OrgDomainVerification` | `orgs/domains.service.ts:108-110` | `OrgDomainVerification.id → orgId` (pre-delete) | Target is deleted by this action; resolve orgId **before** the delete completes, in the same transaction | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 6a | `membership.created` → `Membership` | `memberships/memberships.service.ts:85-87` | `Membership.id → orgId` | Dual producer with 6b; separate fixture required | **Approved** | media@cdoministries.com | 2026-09-27 |
-| 6b | `membership.created` → `Membership` | `auth/auth.service.ts:145-147` | `Membership.id → orgId` | Auto-join path; no guard `TenantContext`, uses server-verified registration + persisted membership row | **Approved** | media@cdoministries.com | 2026-09-27 |
+| 6b | `membership.created` → `Membership` | `auth/auth.service.ts:145-147` | `Membership.id → orgId` | Auto-join path; no guard `TenantContext` exists (same reasoning as row 1). Principal is `verified_self_membership` from the just-created row, not `guard_verified_user` | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 7 | `membership.role_changed` → `Membership` | `memberships/memberships.service.ts:110-112` | `Membership.id → orgId` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 8 | `membership.removed` → `Membership` | `memberships/memberships.service.ts:129-131` | `Membership.id → orgId` (pre-delete) | Target is deleted by this action; resolve orgId before delete completes | **Approved** | media@cdoministries.com | 2026-09-27 |
 | 9 | `invitation.sent` → `Invitation` | `invitations/invitations.service.ts:95-97` | `Invitation.id → orgId` | — | **Approved** | media@cdoministries.com | 2026-09-27 |
