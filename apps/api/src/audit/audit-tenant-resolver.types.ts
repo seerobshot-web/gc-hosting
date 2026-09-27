@@ -28,6 +28,7 @@ const APPROVED_SYSTEM_JOB_NAMES: ReadonlySet<string> = new Set([
   "cron.resellportal_poller",
   "cron.paid_order_recovery",
   "auth.auto_join",
+  "billing.seat_sync",
 ]);
 
 export class InvalidAuditPrincipalError extends Error {}

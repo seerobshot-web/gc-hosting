@@ -19,12 +19,14 @@ function serviceWith(
     webhookSecret: "whsec_test",
   } as unknown as StripeService;
 
-  const audit = { logAction: mock.fn(async () => undefined) } as never;
+  const logAction = mock.fn(async (input: unknown) => input);
+  const audit = { logAction } as never;
   const email = { send: mock.fn(async () => undefined) } as never;
   const events = { emit: mock.fn(emit) } as unknown as EventEmitter2;
   return {
     service: new StripeWebhookService(stripe, audit, email, events),
     emit: events.emit as unknown as ReturnType<typeof mock.fn>,
+    logAction,
   };
 }
 
@@ -175,7 +177,7 @@ describe("StripeWebhookService.handle — idempotent replay", { concurrency: fal
 
   it("processes the first delivery: PENDING->PAID, audits, emits order.paid", async () => {
     const constructEvent = mock.fn(() => checkoutEvent());
-    const { service, emit } = serviceWith(constructEvent);
+    const { service, emit, logAction } = serviceWith(constructEvent);
 
     const result = (await service.handle(rawBody, "sig")) as Record<string, unknown>;
 
@@ -192,6 +194,15 @@ describe("StripeWebhookService.handle — idempotent replay", { concurrency: fal
     // Exactly one order.paid domain event.
     assert.equal(emit.mock.callCount(), 1);
     assert.equal((emit.mock.calls[0]!.arguments as unknown as unknown[])[0], ORDER_PAID);
+    // The audit write for order.paid carries an approved_system_job
+    // principal — webhook signature verification, not a member session,
+    // is this event's authority. Never a caller-suppliable tenant claim.
+    const auditCall = logAction.mock.calls.find(
+      (call) => (call.arguments[0] as { action: string }).action === ORDER_PAID,
+    );
+    const principal = (auditCall!.arguments[0] as { principal: { kind: string; jobName?: string } }).principal;
+    assert.equal(principal.kind, "approved_system_job");
+    assert.equal(principal.jobName, "stripe.webhook");
   });
 
   it("replays the second delivery of the same event id with no duplicate side effects", async () => {

@@ -31,4 +31,16 @@ export const AUDIT_TENANT_RESOLUTION_ENABLED_ACTIONS: ReadonlySet<string> = new 
   // now also covers the auth auto-join producer, which emits the same
   // action string via the verified_self_membership principal kind.
   "invitation.accepted",
+
+  // Family 3: billing and Stripe webhooks. Webhook-derived events use an
+  // approved_system_job principal — signature verification is separate
+  // from, and does not substitute for, tenant-PK resolution.
+  "subscription.seats_synced",
+  "billing.checkout_started",
+  "order.paid",
+  "order.cancelled",
+  "order.transition_rejected",
+  "subscription.status_changed",
+  "invoice.paid",
+  "invoice.payment_failed",
 ]);

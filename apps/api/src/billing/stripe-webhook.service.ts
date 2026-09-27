@@ -4,6 +4,7 @@ import { OrderStatus, Prisma, prisma, Role } from "@gch/database";
 import { createHash } from "node:crypto";
 import type Stripe from "stripe";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 import { EmailService } from "../email/email.service";
 import { paymentFailedEmail } from "../email/templates";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
@@ -198,6 +199,7 @@ export class StripeWebhookService {
         targetType: "Order",
         targetId: order.id,
         metadata: { orgId, before: order.status, after: to, stripePaymentId },
+        principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
       });
       events.push({
         name: ORDER_PAID,
@@ -258,6 +260,7 @@ export class StripeWebhookService {
         targetType: "Subscription",
         targetId: saved.id,
         metadata: { orgId, from: previous?.status ?? null, to: saved.status },
+        principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
       });
     }
 
@@ -281,6 +284,7 @@ export class StripeWebhookService {
           targetType: "Order",
           targetId: activeOrder.id,
           metadata: { orgId, before: activeOrder.status, after: to },
+          principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
         });
         cancelledOrderId = activeOrder.id;
       } catch (err) {
@@ -336,6 +340,7 @@ export class StripeWebhookService {
       targetType: "Invoice",
       targetId: saved.id,
       metadata: { orgId: sub.orgId, amountDueCents: invoice.amount_due },
+      principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
     });
 
     if (type === "invoice.payment_failed") {
@@ -381,6 +386,7 @@ export class StripeWebhookService {
       targetType: "Order",
       targetId: order.id,
       metadata: { from: order.status, transition, reason: err.message },
+      principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
     });
     return { orderId: order.id, transitionRejected: transition, orderStatus: order.status };
   }
