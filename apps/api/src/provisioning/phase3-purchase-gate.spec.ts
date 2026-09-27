@@ -79,8 +79,7 @@ describe("Phase 3 evidence registry and purchase preflight", () => {
   it("blocks unapproved contracts, policy and flag even for synthetic verified observations", () => {
     assert.equal(evaluate(fixtureInput()).reason, "contract_unapproved");
     const approved = Object.fromEntries(Object.entries(phase3Evidence).map(([key, contract]) =>
-      [key, { ...contract, status: "verified", approved: true, enabled: true }]))
-      as unknown as PurchaseGateInput["contracts"];
+      [key, { ...contract, status: "verified", approved: true, enabled: true }])) as unknown as PurchaseGateInput["contracts"];
     assert.equal(evaluate({ ...fixtureInput(), contracts: approved, policyApproved: false }).reason,
       "entitlement_policy_unapproved");
     assert.equal(evaluate({ ...fixtureInput(), contracts: approved }).reason, "feature_disabled");
