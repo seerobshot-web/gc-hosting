@@ -8,6 +8,7 @@ import {
 import { prisma, Role } from "@gch/database";
 import { can } from "@gch/permissions";
 import { AuditService } from "../audit/audit.service";
+import { mintGuardVerifiedAuditPrincipal } from "../audit/audit-tenant-resolver.types";
 import { BillingService } from "../billing/billing.service";
 import type { TenantContext } from "../rbac/tenant.decorator";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
@@ -86,6 +87,7 @@ export class MembershipsService {
       targetType: "Membership",
       targetId: membership.id,
       metadata: { orgId: tenant.orgId, userId: user.id, role },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     await this.billing.syncSeats(tenant.orgId, `user:${tenant.membership.userId}`);
     return membership;
@@ -111,6 +113,7 @@ export class MembershipsService {
       targetType: "Membership",
       targetId: target.id,
       metadata: { orgId: tenant.orgId, from: target.role, to: role },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     return updated;
   }
@@ -123,13 +126,24 @@ export class MembershipsService {
       await this.assertNotLastOwner(tenant.orgId, target.id);
     }
 
-    await prisma.membership.delete({ where: { id: target.id } });
-    await this.audit.logAction({
-      actor: `user:${tenant.membership.userId}`,
-      action: "membership.removed",
-      targetType: "Membership",
-      targetId: target.id,
-      metadata: { orgId: tenant.orgId, userId: target.userId, role: target.role },
+    await prisma.$transaction(async (tx) => {
+      // Audited first, in the same transaction as the deletion: the
+      // resolver's PK lookup runs while the row still exists, and if
+      // anything in this transaction fails, neither the deletion nor a
+      // phantom "removed" audit row for an action that didn't happen
+      // survives.
+      await this.audit.logAction(
+        {
+          actor: `user:${tenant.membership.userId}`,
+          action: "membership.removed",
+          targetType: "Membership",
+          targetId: target.id,
+          metadata: { orgId: tenant.orgId, userId: target.userId, role: target.role },
+          principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
+        },
+        tx,
+      );
+      await tx.membership.delete({ where: { id: target.id } });
     });
     await this.billing.syncSeats(tenant.orgId, `user:${tenant.membership.userId}`);
   }

@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import { mintGuardVerifiedAuditPrincipal } from "../audit/audit-tenant-resolver.types";
 import type { TenantContext } from "../rbac/tenant.decorator";
 
 /** TXT record host prefix; keeps the apex record set untouched. */
@@ -55,6 +56,7 @@ export class DomainsService {
       targetType: "OrgDomainVerification",
       targetId: record.id,
       metadata: { orgId: tenant.orgId, domain },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     return withInstructions(record);
   }
@@ -89,6 +91,7 @@ export class DomainsService {
       targetType: "OrgDomainVerification",
       targetId: id,
       metadata: { orgId: tenant.orgId, domain: record.domain },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     return withInstructions(verified);
   }
@@ -96,19 +99,28 @@ export class DomainsService {
   async remove(tenant: TenantContext, id: string) {
     const record = await this.findInOrg(tenant.orgId, id);
     await prisma.$transaction(async (tx) => {
+      // Audited first, in the same transaction as the deletion: the
+      // resolver's PK lookup runs while the row still exists, and if
+      // anything in this transaction fails, neither the deletion nor a
+      // phantom "removed" audit row for an action that didn't happen
+      // survives.
+      await this.audit.logAction(
+        {
+          actor: `user:${tenant.membership.userId}`,
+          action: "domain.removed",
+          targetType: "OrgDomainVerification",
+          targetId: id,
+          metadata: { orgId: tenant.orgId, domain: record.domain },
+          principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
+        },
+        tx,
+      );
       // Removing the proof must also switch off anything relying on it.
       await tx.org.updateMany({
         where: { id: tenant.orgId, autoJoinDomain: record.domain },
         data: { autoJoinDomain: null },
       });
       await tx.orgDomainVerification.delete({ where: { id } });
-    });
-    await this.audit.logAction({
-      actor: `user:${tenant.membership.userId}`,
-      action: "domain.removed",
-      targetType: "OrgDomainVerification",
-      targetId: id,
-      metadata: { orgId: tenant.orgId, domain: record.domain },
     });
   }
 

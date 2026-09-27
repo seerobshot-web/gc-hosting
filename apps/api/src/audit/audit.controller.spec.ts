@@ -51,7 +51,7 @@ describe("GET /audit tenant isolation", () => {
     const original = prisma.auditLog.findMany;
     prisma.auditLog.findMany = find as never;
     try {
-      const service = new AuditService();
+      const service = new AuditService({} as never);
       const controller = new AuditController(service);
       for (const orgId of ["org-a", "org-b"]) {
         await assert.rejects(async () => controller.recent({
