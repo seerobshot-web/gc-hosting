@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { Prisma, prisma } from "@gch/database";
 
 export interface LogActionInput {
@@ -29,10 +29,13 @@ export class AuditService {
     });
   }
 
-  async recent(limit = 50) {
-    return prisma.auditLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: limit,
-    });
+  /**
+   * Existing AuditLog rows have no authoritative orgId. Target IDs and free-form
+   * metadata cannot be used for tenant isolation; refuse reads until a reviewed
+   * additive migration and backfill establish trustworthy ownership.
+   */
+  recentForOrg(orgId: string): never {
+    void orgId;
+    throw new ServiceUnavailableException("Tenant-scoped audit history is unavailable");
   }
 }
