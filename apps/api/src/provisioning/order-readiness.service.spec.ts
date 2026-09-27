@@ -18,7 +18,7 @@ describe("read-only, tenant-scoped order readiness", { concurrency: false }, () 
   });
 
   it("scopes the database query and withholds readiness even for a locally ACTIVE order", async () => {
-    const find = mock.fn(async () => ({ id: "order-a", orgId: "org-a", status: "ACTIVE" }));
+    const find = mock.fn(async (_args: unknown) => ({ id: "order-a", orgId: "org-a", status: "ACTIVE" }));
     prisma.order.findFirst = find as never;
     const result = await new OrderReadinessService().findForOrg("order-a", "org-a");
     assert.deepEqual(find.mock.calls[0]!.arguments[0], {
@@ -35,7 +35,7 @@ describe("read-only, tenant-scoped order readiness", { concurrency: false }, () 
   });
 
   it("hides a cross-tenant or unknown order with the same not-found response", async () => {
-    const find = mock.fn(async () => null);
+    const find = mock.fn(async (_args: unknown) => null);
     prisma.order.findFirst = find as never;
     const service = new OrderReadinessService();
     await assert.rejects(service.findForOrg("other-order", "org-a"), NotFoundException);
