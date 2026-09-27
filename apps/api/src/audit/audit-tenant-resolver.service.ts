@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { prisma } from "@gch/database";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
+import { RELATION_LOOKUP_BY_TARGET_TYPE } from "./audit-ownership-relations";
 import { auditActionTargetKey } from "./audit-scope.policy";
 import type {
   AuditScopeResolution,
@@ -42,87 +43,6 @@ const APPROVED_AUDIT_PAIRS: ReadonlySet<string> = new Set([
   auditActionTargetKey("order.deployed", "ProvisioningOrder"),
   auditActionTargetKey("order.recovery_review_required", "Order"),
 ]);
-
-interface RelationLookupResult {
-  found: boolean;
-  organizationId?: string;
-  /** Target row exists but its required relation join came back empty —
-   *  a data-integrity anomaly, not an ordinary deletion. */
-  relationUnavailable?: boolean;
-}
-
-type RelationLookup = (targetId: string) => Promise<RelationLookupResult>;
-
-/**
- * One PK-bound lookup per approved target type. Every path here is a single
- * hop (direct id, or one join) to the row that carries orgId — the schema
- * has no target type with more than one independently available relation,
- * which is why `conflict` is not reachable from this map (see
- * audit-tenant-resolver.types.ts).
- */
-const RELATION_LOOKUP_BY_TARGET_TYPE: Readonly<Record<string, RelationLookup>> = {
-  Org: async (targetId) => {
-    const row = await prisma.org.findUnique({ where: { id: targetId }, select: { id: true } });
-    return row ? { found: true, organizationId: row.id } : { found: false };
-  },
-  OrgDomainVerification: async (targetId) => {
-    const row = await prisma.orgDomainVerification.findUnique({
-      where: { id: targetId },
-      select: { orgId: true },
-    });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  Membership: async (targetId) => {
-    const row = await prisma.membership.findUnique({
-      where: { id: targetId },
-      select: { orgId: true },
-    });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  Invitation: async (targetId) => {
-    const row = await prisma.invitation.findUnique({
-      where: { id: targetId },
-      select: { orgId: true },
-    });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  Subscription: async (targetId) => {
-    const row = await prisma.subscription.findUnique({
-      where: { id: targetId },
-      select: { orgId: true },
-    });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  Order: async (targetId) => {
-    const row = await prisma.order.findUnique({ where: { id: targetId }, select: { orgId: true } });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  Invoice: async (targetId) => {
-    const row = await prisma.invoice.findUnique({
-      where: { id: targetId },
-      select: { orgId: true },
-    });
-    return row ? { found: true, organizationId: row.orgId } : { found: false };
-  },
-  ProviderService: async (targetId) => {
-    const row = await prisma.providerService.findUnique({
-      where: { id: targetId },
-      select: { order: { select: { orgId: true } } },
-    });
-    if (!row) return { found: false };
-    if (!row.order) return { found: true, relationUnavailable: true };
-    return { found: true, organizationId: row.order.orgId };
-  },
-  ProvisioningOrder: async (targetId) => {
-    const row = await prisma.provisioningOrder.findUnique({
-      where: { id: targetId },
-      select: { client: { select: { orgId: true } } },
-    });
-    if (!row) return { found: false };
-    if (!row.client) return { found: true, relationUnavailable: true };
-    return { found: true, organizationId: row.client.orgId };
-  },
-};
 
 /**
  * Server-only authoritative resolver. Proves tenant ownership from a

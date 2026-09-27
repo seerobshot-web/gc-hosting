@@ -1,16 +1,17 @@
 import { Module } from "@nestjs/common";
 import { AuditService } from "./audit.service";
 import { AuditController } from "./audit.controller";
+import { AuditOwnershipScanService } from "./audit-ownership-scan.service";
 import { AuditTenantResolverService } from "./audit-tenant-resolver.service";
 
 /**
- * AuditTenantResolverService is registered and tested (Phase 4) but not yet
- * called by any writer or by AuditService — that wiring is Phase 6, one
- * writer family at a time, per AUDIT-PHASE3-APPROVAL-RECORD.md.
+ * AuditOwnershipScanService (Phase 7) is registered and tested but not
+ * scheduled or exposed through any route — invoking it and reviewing its
+ * report is a separate, explicitly gated step before any Phase 8 backfill.
  */
 @Module({
-  providers: [AuditService, AuditTenantResolverService],
+  providers: [AuditService, AuditTenantResolverService, AuditOwnershipScanService],
   controllers: [AuditController],
-  exports: [AuditService, AuditTenantResolverService],
+  exports: [AuditService, AuditTenantResolverService, AuditOwnershipScanService],
 })
 export class AuditModule {}
