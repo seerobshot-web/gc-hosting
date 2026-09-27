@@ -8,7 +8,8 @@
     "check:audit-integrity": "tsx src/audit-integrity-check.ts",
     "build": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/audit-integrity-scan.spec.ts"
   },
   "dependencies": {
     "@gch/database": "workspace:*"
