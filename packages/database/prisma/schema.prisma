@@ -39,6 +39,7 @@ model Org {
   invitations         Invitation[]
   domainVerifications OrgDomainVerification[]
   orders              Order[]
+  auditLogs           AuditLog[]
 }
 
 enum InvitationStatus {
@@ -304,9 +305,18 @@ model AuditLog {
   metadata   String? // JSON-encoded string (SQLite has no native JSON type)
   createdAt  DateTime @default(now())
 
+  /// Tenant-scoping key, populated only by the reviewed AuditTenantResolverService
+  /// (Phase 6), never inferred from actor/metadata. Nullable and additive:
+  /// every historical row stays null until a deterministic Phase 8 backfill
+  /// resolves it. SET NULL (not RESTRICT) so deleting an Org is never
+  /// blocked by its own audit history — see AUDIT-PHASE3-APPROVAL-RECORD.md.
+  orgId      String?
+  org        Org?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
   @@index([targetType, targetId])
   @@index([actor])
   @@index([createdAt])
+  @@index([orgId, createdAt, id])
 }
 
 // ---------------------------------------------------------------------------
