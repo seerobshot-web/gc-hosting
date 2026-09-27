@@ -1,5 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { Prisma, prisma } from "@gch/database";
+import { AUDIT_LIST_DEFAULT_LIMIT, AUDIT_LIST_MAX_LIMIT } from "./dto";
+import { AUDIT_READ_RESTORATION_ENABLED } from "./audit-read-rollout";
+import { decodeAuditReadCursor, encodeAuditReadCursor } from "./audit-read-cursor";
 import { AUDIT_TENANT_RESOLUTION_ENABLED_ACTIONS } from "./audit-tenant-resolution.rollout";
 import { AuditTenantResolverService } from "./audit-tenant-resolver.service";
 import { mintServerBoundAuditTarget, type VerifiedAuditPrincipal } from "./audit-tenant-resolver.types";
@@ -77,12 +80,91 @@ export class AuditService {
   }
 
   /**
-   * Existing AuditLog rows have no authoritative orgId. Target IDs and free-form
-   * metadata cannot be used for tenant isolation; refuse reads until a reviewed
-   * additive migration and backfill establish trustworthy ownership.
+   * Phase 8: tenant-scoped, keyset-paginated read, gated by
+   * AUDIT_READ_RESTORATION_ENABLED (see audit-read-rollout.ts for the
+   * rollback lever). `orgId` comes only from the caller's guard-verified
+   * TenantContext — never from a request body/query — so a row belonging
+   * to another org can never be selected, and a null-orgId row (not yet
+   * resolved or backfilled) is simply excluded, never surfaced as
+   * belonging to the wrong org.
    */
-  recentForOrg(orgId: string): never {
-    void orgId;
-    throw new ServiceUnavailableException("Tenant-scoped audit history is unavailable");
+  async recentForOrg(
+    orgId: string,
+    query: { cursor?: string; limit?: number } = {},
+  ): Promise<AuditListPage> {
+    if (!AUDIT_READ_RESTORATION_ENABLED) {
+      throw new ServiceUnavailableException("Tenant-scoped audit history is unavailable");
+    }
+
+    const limit = Math.min(
+      Math.max(query.limit ?? AUDIT_LIST_DEFAULT_LIMIT, 1),
+      AUDIT_LIST_MAX_LIMIT,
+    );
+
+    let cursor: { createdAt: Date; id: string } | undefined;
+    if (query.cursor !== undefined) {
+      const decoded = decodeAuditReadCursor(query.cursor);
+      if (!decoded) throw new BadRequestException("Invalid cursor");
+      cursor = decoded;
+    }
+
+    const rows = await prisma.auditLog.findMany({
+      where: {
+        orgId,
+        ...(cursor
+          ? {
+              OR: [
+                { createdAt: { lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, id: { lt: cursor.id } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
+      select: {
+        id: true,
+        actor: true,
+        action: true,
+        targetType: true,
+        targetId: true,
+        metadata: true,
+        createdAt: true,
+      },
+    });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const last = page[page.length - 1];
+    const nextCursor =
+      hasMore && last ? encodeAuditReadCursor({ createdAt: last.createdAt, id: last.id }) : null;
+
+    return {
+      items: page.map((row) => ({
+        id: row.id,
+        actor: row.actor,
+        action: row.action,
+        targetType: row.targetType,
+        targetId: row.targetId,
+        metadata: row.metadata ? (JSON.parse(row.metadata) as Record<string, unknown>) : null,
+        createdAt: row.createdAt,
+      })),
+      nextCursor,
+    };
   }
+}
+
+export interface AuditListItem {
+  id: string;
+  actor: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
+export interface AuditListPage {
+  items: AuditListItem[];
+  nextCursor: string | null;
 }
