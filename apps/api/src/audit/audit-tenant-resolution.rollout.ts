@@ -43,4 +43,10 @@ export const AUDIT_TENANT_RESOLUTION_ENABLED_ACTIONS: ReadonlySet<string> = new 
   "subscription.status_changed",
   "invoice.paid",
   "invoice.payment_failed",
+
+  // Family 4: the paid-order recovery cron. A local PAID row is never
+  // tenant proof by itself — the resolver still requires the Order's own
+  // PK-bound relation, independent of this event's payment/fulfillment
+  // observation.
+  "order.recovery_review_required",
 ]);

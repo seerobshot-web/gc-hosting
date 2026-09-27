@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import { OrderStatus, Prisma, prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 import { PaidOrderRecoveryService } from "./paid-order-recovery.service";
 
 describe("PaidOrderRecoveryService", { concurrency: false }, () => {
@@ -62,12 +63,14 @@ describe("PaidOrderRecoveryService", { concurrency: false }, () => {
     assert.equal(query.take, 100);
     const action = audit.logAction.mock.calls[0]!.arguments[0] as unknown as {
       action: string; metadata: { orgId: string; paymentVerified: boolean; fulfillmentVerified: boolean };
+      principal: { kind: string; jobName?: string };
     };
     assert.equal(action.action, "order.recovery_review_required");
     assert.deepEqual(action.metadata, {
       orgId: "org_1", reason: "paid_order_without_provider_service",
       paymentVerified: false, fulfillmentVerified: false,
     });
+    assert.deepEqual(action.principal, mintApprovedSystemJobPrincipal("cron.paid_order_recovery"));
   });
 
   it("does not record a second review on repeated or concurrent sweeps", async () => {

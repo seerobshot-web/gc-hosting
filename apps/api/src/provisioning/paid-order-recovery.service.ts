@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { OrderStatus, Prisma, prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 
 const MINIMUM_AGE_MS = 5 * 60 * 1000;
 const REVIEW_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
@@ -88,6 +89,7 @@ export class PaidOrderRecoveryService {
             paymentVerified: false,
             fulfillmentVerified: false,
           },
+          principal: mintApprovedSystemJobPrincipal("cron.paid_order_recovery"),
         }, tx);
         return true;
       });
