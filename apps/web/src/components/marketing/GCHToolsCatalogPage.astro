@@ -88,7 +88,11 @@ const railItems = categories.map((category) => ({
                   </dl>
                   <div class="gch-tool-card__actions">
                     <a href={tool.detailHref}>View details</a>
-                    <a href={tool.contactHref}>Contact GCH</a>
+                    {tool.purchase.canPurchase ? (
+                      <a href={tool.purchase.storefrontHref}>Purchase</a>
+                    ) : (
+                      <a href={tool.contactHref}>Contact GCH</a>
+                    )}
                   </div>
                 </article>
               ))}
