@@ -176,6 +176,21 @@ describe("AuditTenantResolverService (Phase 4 authoritative resolver)", { concur
     assert.deepEqual(result, { kind: "cross_tenant" });
   });
 
+  it("returns cross_tenant when the resolved org does not match a verified-self-membership principal's org", async () => {
+    // Defense in depth: every current call site mints this principal with
+    // the same orgId the target relation itself resolves to (there is no
+    // pre-existing TenantContext to compare against), but the resolver
+    // should not blindly trust the principal's claimed org either.
+    prisma.org.findUnique = mock.fn(async () => ({ id: "org-b" })) as never;
+
+    const result = await service().resolve({
+      action: "org.created",
+      target: mintServerBoundAuditTarget("Org", "org-b"),
+      principal: mintVerifiedSelfMembershipPrincipal({ userId: "user-a", orgId: "org-a" }),
+    });
+    assert.deepEqual(result, { kind: "cross_tenant" });
+  });
+
   it("fails closed as unavailable/retryable on a database error, without leaking the exception", async () => {
     prisma.membership.findUnique = mock.fn(async () => ({
       id: "m1", userId: "user-a", orgId: "org-a", status: "ACTIVE",

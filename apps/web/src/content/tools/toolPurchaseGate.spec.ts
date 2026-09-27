@@ -52,6 +52,12 @@ test("an unsafe or external storefront path is rejected even when verified and e
     "https://evil.example.com/checkout",
     "//evil.example.com/checkout",
     "javascript:alert(1)",
+    // Backslash is treated as `/` for http(s) URLs by every browser's URL
+    // parser, so these never literally start with `//` yet still resolve
+    // cross-origin — a prefix-only check misses them.
+    "/\\evil.example.com",
+    "/\\\\evil.example.com",
+    "/\\evil.example.com/checkout",
     "",
   ]) {
     const gate = resolvePurchaseGate({

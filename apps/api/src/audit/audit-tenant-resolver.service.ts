@@ -92,7 +92,7 @@ export class AuditTenantResolverService {
     }
 
     if (
-      principal.kind === "guard_verified_user" &&
+      (principal.kind === "guard_verified_user" || principal.kind === "verified_self_membership") &&
       result.organizationId !== principal.organizationId
     ) {
       return { kind: "cross_tenant" };

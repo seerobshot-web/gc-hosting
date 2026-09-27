@@ -219,4 +219,43 @@ describe("StripeWebhookService.handle — idempotent replay", { concurrency: fal
     assert.equal(orderUpdate.mock.callCount(), 1);
     assert.equal(emit.mock.callCount(), 1);
   });
+
+  it("never pays a metadata-supplied orderId belonging to a different org", async () => {
+    // A cross-org id in `session.metadata.orderId` must never be treated as
+    // this org's payable order — it's looked up by PK, but orgId ownership
+    // is re-checked against the session's own (verified) org before use.
+    const orderFindUnique = mock.fn(async () => ({
+      id: "ord_other_org", orgId: "org_OTHER", planId: "plan_x", status: "PENDING",
+    }));
+    prisma.order.findUnique = orderFindUnique as never;
+    // No pending order for org_1 either, so a correctly-scoped fresh order
+    // must be created from metadata.planId instead of reusing the wrong one.
+    prisma.order.create = mock.fn(async () => ({
+      id: "ord_correct_org", orgId: "org_1", planId: "plan_1", status: "PENDING",
+    })) as never;
+
+    const constructEvent = mock.fn(() => ({
+      id: "evt_cross_org",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_1",
+          mode: "subscription",
+          metadata: { orgId: "org_1", planId: "plan_1", orderId: "ord_other_org" },
+          customer: "cus_1",
+          subscription: "sub_1",
+          payment_intent: "pi_1",
+        },
+      },
+    }) as unknown as Stripe.Event);
+    const { service } = serviceWith(constructEvent);
+
+    const result = (await service.handle(rawBody, "sig")) as Record<string, unknown>;
+
+    assert.equal(result.orderId, "ord_correct_org");
+    const updateArg = (orderUpdate.mock.calls[0]!.arguments as unknown as unknown[])[0] as {
+      where: { id: string };
+    };
+    assert.equal(updateArg.where.id, "ord_correct_org");
+  });
 });

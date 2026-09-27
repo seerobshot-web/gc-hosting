@@ -23,14 +23,26 @@ export function resolvePurchaseGate(mapping: ToolMappingRecord): ToolPurchaseGat
 }
 
 /**
- * Only a same-origin relative path is ever an acceptable storefront target
- * — never absolute (`https://...`), protocol-relative (`//...`), or a
- * scheme that isn't a plain path (`javascript:`, `data:`, etc.). This is
+ * Only a same-origin, root-relative path is ever an acceptable storefront
+ * target — never absolute (`https://...`), protocol-relative (`//...`), or
+ * a scheme that isn't a plain path (`javascript:`, `data:`, etc.). This is
  * the allowlist the "unsafe redirect rejection" requirement calls for.
+ *
+ * A literal `//` prefix isn't the only way to end up protocol-relative:
+ * backslash is treated as `/` for http(s) URLs by every browser's URL
+ * parser (WHATWG URL Standard), so `/\evil.example.com` never starts with
+ * `//` as a JS string yet still resolves cross-origin. Resolving through
+ * the platform's own URL parser and comparing the resulting origin closes
+ * that class of bypass in general, rather than trying to enumerate every
+ * normalization quirk in a hand-written prefix check.
  */
 function isSafeStorefrontPath(path: string | null): path is string {
   if (!path) return false;
-  if (!path.startsWith("/")) return false;
-  if (path.startsWith("//")) return false;
-  return true;
+  if (!path.startsWith("/") || path.startsWith("//")) return false;
+  const base = "https://storefront-path-sentinel.invalid";
+  try {
+    return new URL(path, base).origin === base;
+  } catch {
+    return false;
+  }
 }

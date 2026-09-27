@@ -355,11 +355,17 @@ export class StripeWebhookService {
    * most recent PENDING order for the org, else a freshly created PENDING
    * order (only possible when metadata carries a planId FK). Returns null when
    * there is nothing to act on.
+   *
+   * The metadata-supplied orderId is looked up by PK but is never trusted as
+   * proof of ownership by itself — `orgId` here comes from the session's own
+   * metadata/client_reference_id (this event's verified authority), and a
+   * mismatch is treated the same as "no such order" rather than acting on a
+   * different org's row.
    */
   private async resolvePayableOrder(orgId: string, orderId: string | null, planId: string | null) {
     if (orderId) {
       const byId = await prisma.order.findUnique({ where: { id: orderId } });
-      if (byId) return byId;
+      if (byId && byId.orgId === orgId) return byId;
     }
     const pending = await prisma.order.findFirst({
       where: { orgId, status: OrderStatus.PENDING },
