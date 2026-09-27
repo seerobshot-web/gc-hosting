@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import {
-  BadRequestException, NotFoundException,
+  BadRequestException, NotFoundException, ServiceUnavailableException,
   type ExecutionContext,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { prisma } from "@gch/database";
+import { Prisma, prisma } from "@gch/database";
 import { PERMISSION_KEY } from "../rbac/require-permission.decorator";
 import { RolesGuard } from "../rbac/roles.guard";
 import { TenancyService } from "../tenancy/tenancy.service";
@@ -150,6 +150,37 @@ describe("GET /audit tenant isolation", () => {
         { orgId: "org-a", membership: { role: "OWNER" } } as never, {},
       );
       assert.deepEqual(result.items[0]!.metadata, { from: "A", to: "B" });
+    });
+
+    it("fails closed with 503, not a raw 500, if the orgId column is missing (deployed ahead of the migration)", async () => {
+      // Simulates the exact, empirically-confirmed error Prisma throws when
+      // the generated client believes `orgId` exists but the real database
+      // hasn't had the Phase 5 migration applied yet (verified against a
+      // disposable MySQL instance with that column held back).
+      prisma.auditLog.findMany = mock.fn(async () => {
+        throw new Prisma.PrismaClientKnownRequestError(
+          "The column `AuditLog.orgId` does not exist in the current database.",
+          { code: "P2022", clientVersion: "5.22.0" },
+        );
+      }) as never;
+      const controller = new AuditController(new AuditService({} as never));
+
+      await assert.rejects(
+        controller.recent({ orgId: "org-a", membership: { role: "OWNER" } } as never, {}),
+        ServiceUnavailableException,
+      );
+    });
+
+    it("re-throws any other database error unchanged", async () => {
+      prisma.auditLog.findMany = mock.fn(async () => {
+        throw new Error("connection reset by peer");
+      }) as never;
+      const controller = new AuditController(new AuditService({} as never));
+
+      await assert.rejects(
+        controller.recent({ orgId: "org-a", membership: { role: "OWNER" } } as never, {}),
+        (err: unknown) => err instanceof Error && err.message === "connection reset by peer",
+      );
     });
 
     it("round-trips a real encoded cursor unchanged", async () => {
