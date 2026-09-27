@@ -1,6 +1,7 @@
 import { siteRoutes, toolDetailRoute } from "../../config/site-routes";
 import { toolEditorialRecords } from "./toolEditorial";
 import { toolMappings } from "./toolMappings";
+import { resolvePurchaseGate } from "./toolPurchaseGate";
 import type {
   ToolCardProjection,
   ToolCategory,
@@ -75,6 +76,7 @@ function createProjection(record: ToolEditorialRecord): ToolCardProjection {
       note: mapping.statusNote,
     },
     mapping,
+    purchase: resolvePurchaseGate(mapping),
     detailHref: toolDetailRoute(record.slug),
     contactHref: siteRoutes.start,
     sourceLabel: toolsSourceLabel,

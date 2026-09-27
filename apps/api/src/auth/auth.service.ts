@@ -9,6 +9,7 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcryptjs";
 import { prisma, Role } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import { mintVerifiedSelfMembershipPrincipal } from "../audit/audit-tenant-resolver.types";
 import { BillingService } from "../billing/billing.service";
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60; // 15 minutes
@@ -146,6 +147,7 @@ export class AuthService {
       targetType: "Membership",
       targetId: membership.id,
       metadata: { orgId: org.id, userId, role: Role.MEMBER, via: "autoJoinDomain", domain },
+      principal: mintVerifiedSelfMembershipPrincipal({ userId, orgId: org.id }),
     });
     await this.billing.syncSeats(org.id, "system:auto-join");
   }

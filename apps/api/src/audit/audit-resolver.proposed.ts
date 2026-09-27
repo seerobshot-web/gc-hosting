@@ -1,4 +1,9 @@
 /**
+ * SUPERSEDED 2026-09-27: the real Phase 4 contract and implementation are
+ * audit-tenant-resolver.types.ts and audit-tenant-resolver.service.ts. This
+ * file remains only as the design record referenced by
+ * AUDIT-PHASE3-APPROVAL-CLOSURE.md; nothing imports it.
+ *
  * PROPOSED contract only. No factory or production implementation exists.
  * Opaque brands prevent accidental structural construction in TypeScript;
  * they are NOT runtime authentication, and assertions can bypass them.

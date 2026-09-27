@@ -8,6 +8,10 @@ import {
 import { createHash } from "node:crypto";
 import { prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import {
+  mintApprovedSystemJobPrincipal,
+  mintGuardVerifiedAuditPrincipal,
+} from "../audit/audit-tenant-resolver.types";
 import type { TenantContext } from "../rbac/tenant.decorator";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 import { ResellPortalContractGapError } from "../provisioning/resellportal/resellportal-contract-gap.error";
@@ -102,6 +106,11 @@ export class BillingService {
         targetType: "Subscription",
         targetId: sub.id,
         metadata: { orgId, from: sub.seatsPurchased, to: quantity },
+        // No TenantContext reaches this method — it is called from request
+        // and system-actor call sites alike with only an orgId + actor
+        // string. The Subscription's own orgId is the ownership proof,
+        // resolved fresh, never the caller-supplied orgId parameter.
+        principal: mintApprovedSystemJobPrincipal("billing.seat_sync"),
       });
     } catch (err) {
       this.logger.warn(
@@ -154,6 +163,7 @@ export class BillingService {
       targetType: "Org",
       targetId: tenant.orgId,
       metadata: { planId: plan.id, seats, sessionId: session.id },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
 
     return { url: session.url };

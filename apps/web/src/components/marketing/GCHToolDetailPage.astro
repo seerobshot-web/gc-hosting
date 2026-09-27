@@ -133,11 +133,23 @@ const { tool } = Astro.props;
         </div>
         <div class="gch-tool-detail__panel">
           <GCHHudLabel index="NEXT" label="Safe next step" tone="muted" />
-          <p>
-            Public purchase CTAs stay disabled until identifiers and storefront targets are verified.
-            Use the guided starting point to talk with GCH instead.
-          </p>
-          <a href={tool.contactHref}>Contact GCH</a>
+          {tool.purchase.canPurchase ? (
+            <>
+              <p>
+                This product's catalog mapping is verified and ordering is enabled. Continue to the
+                approved storefront to purchase.
+              </p>
+              <a href={tool.purchase.storefrontHref}>Purchase {tool.displayName}</a>
+            </>
+          ) : (
+            <>
+              <p>
+                Public purchase CTAs stay disabled until identifiers and storefront targets are verified.
+                Use the guided starting point to talk with GCH instead.
+              </p>
+              <a href={tool.contactHref}>Contact GCH</a>
+            </>
+          )}
         </div>
       </aside>
     </div>

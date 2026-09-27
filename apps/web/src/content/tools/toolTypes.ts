@@ -37,6 +37,19 @@ export interface ToolField<T> {
   note: string;
 }
 
+export type ToolPurchaseGateReason =
+  | "mapping_not_verified"
+  | "ordering_disabled"
+  | "storefront_path_unsafe_or_missing"
+  | "verified";
+
+/** Whether a catalog entry may render a Purchase CTA — see toolPurchaseGate.ts. */
+export interface ToolPurchaseGate {
+  canPurchase: boolean;
+  storefrontHref: string | null;
+  reason: ToolPurchaseGateReason;
+}
+
 export interface ToolCardProjection {
   slug: string;
   displayName: string;
@@ -50,6 +63,7 @@ export interface ToolCardProjection {
   pricing: ToolField<string>;
   availability: ToolField<"Available" | "Contact us" | "Temporarily unavailable">;
   mapping: ToolMappingRecord;
+  purchase: ToolPurchaseGate;
   detailHref: string;
   contactHref: string;
   sourceLabel: string;

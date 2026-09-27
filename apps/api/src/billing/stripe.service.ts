@@ -47,6 +47,24 @@ export interface CancelSubscriptionResult {
   canceledAt: number | null;
 }
 
+/**
+ * A fresh, server-side read of Stripe's own state for a stored payment
+ * identifier — never a re-statement of anything GCH already believed
+ * locally. `verified` reflects only Stripe's own documented status field
+ * for the object kind actually retrieved:
+ *  - PaymentIntent: `status === "succeeded"` (Stripe's own terminal-success value).
+ *  - Checkout Session: `payment_status === "paid"` (Stripe's own field for
+ *    "the session's payment is confirmed," distinct from session completion).
+ * `unrecognized_id`/`not_found`/`unavailable` all mean "cannot verify" —
+ * never "verified" by default.
+ */
+export type StripePaymentState =
+  | { kind: "payment_intent"; verified: boolean; rawStatus: string }
+  | { kind: "checkout_session"; verified: boolean; rawStatus: string }
+  | { kind: "not_found" }
+  | { kind: "unrecognized_id" }
+  | { kind: "unavailable" };
+
 @Injectable()
 export class StripeService {
   private instance?: Stripe;
@@ -134,6 +152,37 @@ export class StripeService {
       cancelAtPeriodEnd: sub.cancel_at_period_end,
       canceledAt: sub.canceled_at ?? null,
     };
+  }
+
+  /**
+   * Read-only, server-side re-read of a stored payment identifier's actual
+   * Stripe state. `stripePaymentId` (see Order.stripePaymentId) is either a
+   * PaymentIntent id (`pi_...`) or, for the sessions where Stripe doesn't
+   * attach one, a Checkout Session id (`cs_...`) — dispatched by prefix,
+   * never assumed. Any error (not found, network, unexpected shape) is
+   * `unavailable`/`not_found`, never treated as verified.
+   */
+  async retrievePaymentState(stripePaymentId: string): Promise<StripePaymentState> {
+    try {
+      if (stripePaymentId.startsWith("pi_")) {
+        const intent = await this.client.paymentIntents.retrieve(stripePaymentId);
+        return { kind: "payment_intent", verified: intent.status === "succeeded", rawStatus: intent.status };
+      }
+      if (stripePaymentId.startsWith("cs_")) {
+        const session = await this.client.checkout.sessions.retrieve(stripePaymentId);
+        return {
+          kind: "checkout_session",
+          verified: session.payment_status === "paid",
+          rawStatus: session.payment_status,
+        };
+      }
+      return { kind: "unrecognized_id" };
+    } catch (err) {
+      if (err instanceof Stripe.errors.StripeError && err.statusCode === 404) {
+        return { kind: "not_found" };
+      }
+      return { kind: "unavailable" };
+    }
   }
 }
 

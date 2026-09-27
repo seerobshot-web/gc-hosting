@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import { toolCatalog } from "./toolCatalog";
+import { primaryNavItems, siteRoutes } from "../../config/site-routes";
+
+const SECRET_PATTERNS = [
+  /sk_live_[a-zA-Z0-9]+/, /sk_test_[a-zA-Z0-9]+/, /pk_live_[a-zA-Z0-9]+/,
+  /whsec_[a-zA-Z0-9]+/, /AKIA[0-9A-Z]{16}/, /Bearer [A-Za-z0-9._-]{10,}/,
+  /RESELLPORTAL_API_(KEY|SECRET)\s*=\s*['"][^'"]+['"]/,
+];
+
+const CATALOG_SOURCE_FILES = [
+  "toolCatalog.ts", "toolEditorial.ts", "toolMappings.ts", "toolPurchaseGate.ts", "toolTypes.ts",
+].map((name) => readFileSync(new URL(name, import.meta.url), "utf8"));
+
+const COMPONENT_FILES = [
+  "../../components/marketing/GCHToolsCatalogPage.astro",
+  "../../components/marketing/GCHToolDetailPage.astro",
+  "../../components/marketing/GCHToolsTeaser.astro",
+].map((rel) => readFileSync(new URL(rel, import.meta.url), "utf8"));
+
+test("no secret-shaped value appears in the serialized catalog or its source", () => {
+  const serialized = JSON.stringify(toolCatalog);
+  for (const pattern of SECRET_PATTERNS) {
+    assert.doesNotMatch(serialized, pattern);
+  }
+  for (const source of [...CATALOG_SOURCE_FILES, ...COMPONENT_FILES]) {
+    for (const pattern of SECRET_PATTERNS) {
+      assert.doesNotMatch(source, pattern);
+    }
+    // No process.env read anywhere in the catalog/component chain — this
+    // data is fully static, and reading env at build time would risk
+    // leaking a server-only value into the static bundle.
+    assert.doesNotMatch(source, /process\.env/);
+  }
+});
+
+test("no provider call, fetch, or HTTP client is reachable from the static catalog build", () => {
+  for (const source of CATALOG_SOURCE_FILES) {
+    assert.doesNotMatch(source, /\bfetch\(/);
+    assert.doesNotMatch(source, /ResellPortal.*Adapter/);
+    assert.doesNotMatch(source, /axios|node-fetch|undici/);
+  }
+});
+
+test("the homepage Tools journey and primary navigation are unchanged", () => {
+  const homepage = readFileSync(new URL("../../pages/index.astro", import.meta.url), "utf8");
+  assert.match(homepage, /GCHToolsTeaser/);
+
+  const nav = readFileSync(
+    new URL("../../components/marketing/GCHPrimaryNav.astro", import.meta.url), "utf8",
+  );
+  assert.match(nav, /primaryNavItems/);
+  assert.ok(primaryNavItems.some((item) => item.label === "Tools" && item.href === siteRoutes.tools));
+});

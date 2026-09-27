@@ -5,6 +5,7 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { OrderStatus, Prisma, ProviderStatus, prisma } from "@gch/database";
 import { ResellPortalClient } from "./resellportal.client";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 import { PlaceOrderDto } from "./provisioning.dto";
 import {
   ORDER_PAID,
@@ -235,6 +236,7 @@ export class ProvisioningService {
             targetType: "ProviderService",
             targetId: svc.id,
             metadata: { orderId: order.id, resellPortalId: created.service_id },
+            principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
           },
           tx,
         );
@@ -270,6 +272,7 @@ export class ProvisioningService {
               targetType: "ProviderService",
               targetId: providerService.id,
               metadata: { orderId: order.id, reason },
+              principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
             },
             tx,
           );
@@ -359,6 +362,7 @@ export class ProvisioningService {
           targetType: "ProviderService",
           targetId: svc.id,
           metadata: { orderId, providerStatus: opts.providerStatus },
+          principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
         },
         tx,
       );
@@ -401,6 +405,7 @@ export class ProvisioningService {
             targetType: "ProvisioningOrder",
             targetId: order.id,
             metadata: { resellPortalOrderId: result.order_id },
+            principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
           },
           tx,
         );
@@ -418,6 +423,7 @@ export class ProvisioningService {
         targetType: "ProvisioningOrder",
         targetId: order.id,
         metadata: { error: err instanceof Error ? err.message : String(err) },
+        principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
       });
       throw err;
     }
@@ -460,6 +466,7 @@ export class ProvisioningService {
             action: "order.deployed",
             targetType: "ProvisioningOrder",
             targetId: order.id,
+            principal: mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
           });
           // Welcome-email flow hook: emit/handle here once the mail
           // provider integration exists.

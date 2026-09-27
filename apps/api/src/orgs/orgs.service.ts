@@ -2,6 +2,10 @@ import { BadRequestException, ConflictException, Injectable } from "@nestjs/comm
 import { randomBytes } from "crypto";
 import { prisma, Role } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import {
+  mintGuardVerifiedAuditPrincipal,
+  mintVerifiedSelfMembershipPrincipal,
+} from "../audit/audit-tenant-resolver.types";
 import type { TenantContext } from "../rbac/tenant.decorator";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
 import { DomainsService, normalize } from "./domains.service";
@@ -41,6 +45,7 @@ export class OrgsService {
       targetType: "Org",
       targetId: org.id,
       metadata: { slug },
+      principal: mintVerifiedSelfMembershipPrincipal({ userId: callerId, orgId: org.id }),
     });
     return org;
   }
@@ -89,6 +94,7 @@ export class OrgsService {
       action: "org.updated",
       targetType: "Org",
       targetId: org.id,
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
       metadata: {
         ...(data.name !== undefined ? { name: { from: before.name, to: org.name } } : {}),
         ...(data.autoJoinDomain !== undefined

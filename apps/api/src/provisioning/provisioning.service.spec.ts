@@ -3,6 +3,7 @@ import { afterEach, describe, it, mock } from "node:test";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { OrderStatus, ProviderStatus, prisma } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 import { ProvisioningService } from "./provisioning.service";
 import { ResellPortalClient } from "./resellportal.client";
 import {
@@ -110,6 +111,13 @@ describe("ProvisioningService.provisionService", { concurrency: false }, () => {
       (c) => (c.arguments[0] as { action: string }).action,
     );
     assert.ok(auditActions.includes(SERVICE_PROVISIONED));
+    const provisionedCall = audit.logAction.mock.calls.find(
+      (c) => (c.arguments[0] as { action: string }).action === SERVICE_PROVISIONED,
+    );
+    assert.deepEqual(
+      (provisionedCall!.arguments[0] as { principal: unknown }).principal,
+      mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
+    );
   });
 
   it("is an idempotent no-op when an ACTIVE ProviderService already exists", async () => {
@@ -214,6 +222,13 @@ describe("ProvisioningService.provisionService", { concurrency: false }, () => {
       (c) => (c.arguments[0] as { action: string }).action,
     );
     assert.ok(failAudits.includes(SERVICE_PROVISIONING_FAILED));
+    const failCall = audit.logAction.mock.calls.find(
+      (c) => (c.arguments[0] as { action: string }).action === SERVICE_PROVISIONING_FAILED,
+    );
+    assert.deepEqual(
+      (failCall!.arguments[0] as { principal: unknown }).principal,
+      mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
+    );
   });
 });
 
@@ -281,6 +296,10 @@ describe("ProvisioningService cancellation path", { concurrency: false }, () => 
     assert.equal(
       (audit.logAction.mock.calls[0]!.arguments[0] as { action: string }).action,
       "service.terminated",
+    );
+    assert.deepEqual(
+      (audit.logAction.mock.calls[0]!.arguments[0] as { principal: unknown }).principal,
+      mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
     );
   });
 
@@ -435,6 +454,14 @@ describe("ProvisioningService.placeOrder (legacy)", { concurrency: false }, () =
     assert.equal(result.resellPortalOrderId, "rp-order-42");
     assert.equal(transactionOrderUpdate.mock.callCount(), 1);
     assert.equal(logAction.mock.callCount(), 1);
+    assert.equal(
+      (logAction.mock.calls[0]!.arguments[0] as { action: string }).action,
+      "order.placed",
+    );
+    assert.deepEqual(
+      (logAction.mock.calls[0]!.arguments[0] as { principal: unknown }).principal,
+      mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
+    );
   });
 
   it("records the failed status before returning a placement error", async () => {
@@ -464,5 +491,13 @@ describe("ProvisioningService.placeOrder (legacy)", { concurrency: false }, () =
       data: { status: "failed" },
     });
     assert.equal(logAction.mock.callCount(), 1);
+    assert.equal(
+      (logAction.mock.calls[0]!.arguments[0] as { action: string }).action,
+      "order.failed",
+    );
+    assert.deepEqual(
+      (logAction.mock.calls[0]!.arguments[0] as { principal: unknown }).principal,
+      mintApprovedSystemJobPrincipal("provisioning.orchestrator"),
+    );
   });
 });

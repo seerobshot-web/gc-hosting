@@ -1,5 +1,11 @@
 # Phase 3 — approval closure before audit production refactoring
 
+> **Superseded 2026-09-27**: every decision this document lists as
+> "unassigned" is now recorded as approved, with a named owner, in
+> [`AUDIT-PHASE3-APPROVAL-RECORD.md`](./AUDIT-PHASE3-APPROVAL-RECORD.md).
+> This document remains as the evidence and design history behind those
+> decisions.
+
 **Status: BLOCKED.** This package is stacked on draft PRs #64 and #65; neither is merged at writing. It adds proposed types and decision documentation only. It does **not** mint verified principals, approve any action–target pair, connect to audit writers, create a resolver, query a database or enable reads.
 
 ## Verified context and branch dependency

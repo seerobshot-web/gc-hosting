@@ -11,6 +11,10 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { InvitationStatus, prisma, Role } from "@gch/database";
 import { AuditService } from "../audit/audit.service";
+import {
+  mintGuardVerifiedAuditPrincipal,
+  mintVerifiedInvitationTokenPrincipal,
+} from "../audit/audit-tenant-resolver.types";
 import { AuthService } from "../auth/auth.service";
 import { BillingService } from "../billing/billing.service";
 import { EmailService } from "../email/email.service";
@@ -96,6 +100,7 @@ export class InvitationsService {
       targetType: "Invitation",
       targetId: invitation.id,
       metadata: { orgId: tenant.orgId, email, role },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     return invitation;
   }
@@ -123,6 +128,7 @@ export class InvitationsService {
       targetType: "Invitation",
       targetId: id,
       metadata: { orgId: tenant.orgId },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
     return updated;
   }
@@ -142,6 +148,7 @@ export class InvitationsService {
       targetType: "Invitation",
       targetId: id,
       metadata: { orgId: tenant.orgId, email: invitation.email },
+      principal: mintGuardVerifiedAuditPrincipal(tenant, tenant.membership.userId),
     });
   }
 
@@ -213,6 +220,7 @@ export class InvitationsService {
       targetType: "Invitation",
       targetId: invitation.id,
       metadata: { orgId: invitation.orgId, role: invitation.role },
+      principal: mintVerifiedInvitationTokenPrincipal(invitation.id),
     });
     await this.billing.syncSeats(invitation.orgId, `user:${userId}`);
 

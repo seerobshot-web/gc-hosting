@@ -4,6 +4,7 @@ import { OrderStatus, Prisma, prisma, Role } from "@gch/database";
 import { createHash } from "node:crypto";
 import type Stripe from "stripe";
 import { AuditService } from "../audit/audit.service";
+import { mintApprovedSystemJobPrincipal } from "../audit/audit-tenant-resolver.types";
 import { EmailService } from "../email/email.service";
 import { paymentFailedEmail } from "../email/templates";
 import { MEMBERSHIP_ACTIVE } from "../tenancy/tenancy.service";
@@ -198,6 +199,7 @@ export class StripeWebhookService {
         targetType: "Order",
         targetId: order.id,
         metadata: { orgId, before: order.status, after: to, stripePaymentId },
+        principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
       });
       events.push({
         name: ORDER_PAID,
@@ -258,6 +260,7 @@ export class StripeWebhookService {
         targetType: "Subscription",
         targetId: saved.id,
         metadata: { orgId, from: previous?.status ?? null, to: saved.status },
+        principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
       });
     }
 
@@ -281,6 +284,7 @@ export class StripeWebhookService {
           targetType: "Order",
           targetId: activeOrder.id,
           metadata: { orgId, before: activeOrder.status, after: to },
+          principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
         });
         cancelledOrderId = activeOrder.id;
       } catch (err) {
@@ -336,6 +340,7 @@ export class StripeWebhookService {
       targetType: "Invoice",
       targetId: saved.id,
       metadata: { orgId: sub.orgId, amountDueCents: invoice.amount_due },
+      principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
     });
 
     if (type === "invoice.payment_failed") {
@@ -350,11 +355,17 @@ export class StripeWebhookService {
    * most recent PENDING order for the org, else a freshly created PENDING
    * order (only possible when metadata carries a planId FK). Returns null when
    * there is nothing to act on.
+   *
+   * The metadata-supplied orderId is looked up by PK but is never trusted as
+   * proof of ownership by itself — `orgId` here comes from the session's own
+   * metadata/client_reference_id (this event's verified authority), and a
+   * mismatch is treated the same as "no such order" rather than acting on a
+   * different org's row.
    */
   private async resolvePayableOrder(orgId: string, orderId: string | null, planId: string | null) {
     if (orderId) {
       const byId = await prisma.order.findUnique({ where: { id: orderId } });
-      if (byId) return byId;
+      if (byId && byId.orgId === orgId) return byId;
     }
     const pending = await prisma.order.findFirst({
       where: { orgId, status: OrderStatus.PENDING },
@@ -381,6 +392,7 @@ export class StripeWebhookService {
       targetType: "Order",
       targetId: order.id,
       metadata: { from: order.status, transition, reason: err.message },
+      principal: mintApprovedSystemJobPrincipal("stripe.webhook"),
     });
     return { orderId: order.id, transitionRejected: transition, orderStatus: order.status };
   }
