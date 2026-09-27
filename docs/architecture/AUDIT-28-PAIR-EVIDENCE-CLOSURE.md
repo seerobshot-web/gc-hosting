@@ -1,5 +1,11 @@
 # Audit ownership: action–target evidence and reviewer decisions
 
+> **Superseded 2026-09-27**: all 28 pairs (30 producer occurrences) are now
+> recorded as approved, with file:line evidence and a named owner, in
+> [`AUDIT-PHASE3-APPROVAL-RECORD.md`](./AUDIT-PHASE3-APPROVAL-RECORD.md).
+> This document remains as the evidence and design history behind those
+> decisions.
+
 **State: 28 pending decisions.** This register supplements `AUDIT-PHASE3-APPROVAL-CLOSURE.md`; neither observed source code nor a merged PR approves historical attribution, a production allowlist, or a write path. The scope policy is pure and unconnected. No schema, audit writer, resolver, database scanner, or read route changes accompany this document.
 
 ## Observed producer inventory
