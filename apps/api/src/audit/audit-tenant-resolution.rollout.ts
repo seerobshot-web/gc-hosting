@@ -25,4 +25,10 @@ export const AUDIT_TENANT_RESOLUTION_ENABLED_ACTIONS: ReadonlySet<string> = new 
   "invitation.sent",
   "invitation.resent",
   "invitation.revoked",
+
+  // Family 2: invitation acceptance (a verified invitation token, not a
+  // member session). "membership.created" is already enabled above and
+  // now also covers the auth auto-join producer, which emits the same
+  // action string via the verified_self_membership principal kind.
+  "invitation.accepted",
 ]);
