@@ -26,6 +26,7 @@ describe("read-only, tenant-scoped order readiness", { concurrency: false }, () 
       select: { id: true, orgId: true, status: true },
     });
     assert.equal(result.ready, false);
+    assert.equal(result.status, "blocked");
     assert.equal(result.reason, "product_unapproved");
     assert.equal(result.paymentVerified, false);
     assert.equal(result.fulfillmentVerified, false);
