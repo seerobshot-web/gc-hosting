@@ -86,6 +86,15 @@ async function main() {
               action: "order.deployed",
               targetType: "ProvisioningOrder",
               targetId: order.id,
+              // Phase 6 tenant resolution (AUDIT-PHASE3-APPROVAL-RECORD.md,
+              // row 27b): this script deliberately does not import
+              // apps/api's AuditTenantResolverService (NestJS DI has no
+              // place in a one-shot CLI script — see this file's own
+              // top-of-file note). The equivalent PK-bound proof is
+              // `client`, fetched by its own id moments ago in this same
+              // sweep — the same single-hop relation the resolver would
+              // use, not a caller-supplied or cached value.
+              orgId: client.orgId,
             },
           });
 

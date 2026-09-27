@@ -49,4 +49,16 @@ export const AUDIT_TENANT_RESOLUTION_ENABLED_ACTIONS: ReadonlySet<string> = new 
   // PK-bound relation, independent of this event's payment/fulfillment
   // observation.
   "order.recovery_review_required",
+
+  // Family 5: the provisioning orchestrator (event-driven and its own
+  // internal poller) and the standalone cron poller
+  // (workers/cron-jobs/src/resellportal-poller.ts, wired separately since
+  // it cannot import this NestJS service — see that file's own comment).
+  "service.provisioned",
+  "service.provisioning_failed",
+  "service.suspended",
+  "service.terminated",
+  "order.placed",
+  "order.failed",
+  "order.deployed",
 ]);
