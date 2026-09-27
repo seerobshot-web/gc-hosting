@@ -74,3 +74,16 @@ test("catalog placeholders never expose guessed prices or enabled order links", 
     ),
   );
 });
+
+test("public purchase path stays blocked across every mapped catalog entry", () => {
+  for (const tool of toolCatalog) {
+    assert.equal(tool.mapping.mappingStatus, "pending-contract", tool.slug);
+    assert.equal(tool.mapping.upstreamProductKey, null, tool.slug);
+    assert.equal(tool.mapping.upstreamProductId, null, tool.slug);
+    assert.equal(tool.mapping.storefrontPath, null, tool.slug);
+    assert.equal(tool.mapping.orderEnabled, false, tool.slug);
+    assert.equal(tool.pricing.state, "missing", tool.slug);
+    assert.match(tool.contactHref, /^\/(?!\/)/, tool.slug);
+    assert.match(tool.detailHref, /^\/tools\/[a-z0-9-]+$/, tool.slug);
+  }
+});
