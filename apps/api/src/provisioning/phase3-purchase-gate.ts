@@ -1,3 +1,4 @@
+import type { ProductMappingRecord } from "./resellportal/resellportal-contract.types";
 import {
   assessEntitlementReadiness, correlationKey,
   type FulfillmentObservation, type PaymentObservation, type ProductEligibility,
@@ -39,7 +40,10 @@ export interface PurchaseDecision {
 }
 
 /** Pure defensive preflight. It cannot authorize a purchase or grant an entitlement. */
-export function assessPurchaseGate(input: PurchaseGateInput): PurchaseDecision {
+export function assessPurchaseGate(
+  input: PurchaseGateInput,
+  mappings?: readonly ProductMappingRecord[],
+): PurchaseDecision {
   const blocked = (reason: PurchaseBlockReason): PurchaseDecision => ({
     ready: false, status: "blocked", reason,
     correlationKey: correlationKey(input.orderId, input.orgId),
@@ -48,7 +52,7 @@ export function assessPurchaseGate(input: PurchaseGateInput): PurchaseDecision {
     (item) => item.orgId !== input.orgId || item.orderId !== input.orderId,
   )) return blocked("scope_mismatch");
 
-  const mapping = productEvidence().find((item) => item.slug === input.slug);
+  const mapping = productEvidence(mappings).find((item) => item.slug === input.slug);
   if (!mapping || mapping.status !== "verified" || !mapping.enabled || !input.product.approved) {
     return blocked("product_mapping_unapproved");
   }
