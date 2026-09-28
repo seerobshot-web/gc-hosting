@@ -235,32 +235,27 @@ export const updateMe = (body: { name?: string }, t: string) =>
 
 export const getDomains = (orgId: string, t: string) =>
   apiGet<DomainVerification[]>(`${org(orgId)}/domains`, t);
-export const createDomain = (orgId: string, domain: string, t: string) =>
+export const addDomain = (orgId: string, domain: string, t: string) =>
   api<DomainVerification>("POST", `${org(orgId)}/domains`, t, { domain });
 export const verifyDomain = (orgId: string, id: string, t: string) =>
   api<DomainVerification>("POST", `${org(orgId)}/domains/${id}/verify`, t);
+export const removeDomain = (orgId: string, id: string, t: string) =>
+  api<void>("DELETE", `${org(orgId)}/domains/${id}`, t);
 
-// ---- public/auth helpers ----------------------------------------------------
-
+/** Routes that don't require a session (the invite link is the credential). */
 async function apiPublic<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST",
   path: string,
-  bodyOrAccessToken?: unknown,
-  maybeAccessToken?: string,
+  body?: unknown,
+  accessToken?: string,
 ): Promise<T> {
-  const hasBody = method !== "GET" && bodyOrAccessToken !== undefined && typeof bodyOrAccessToken !== "string";
-  const accessToken = hasBody ? maybeAccessToken : typeof bodyOrAccessToken === "string" ? bodyOrAccessToken : undefined;
-  const body = hasBody ? bodyOrAccessToken : undefined;
-  const headers: Record<string, string> = {
-    ...(DASHBOARD_API_KEY ? { "x-dashboard-key": DASHBOARD_API_KEY } : {}),
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-  };
-
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     cache: "no-store",
-    headers,
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
@@ -273,6 +268,80 @@ async function apiPublic<T>(
     }
     throw new ApiError(res.status, message);
   }
-  if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+export async function getDashboardOverview(): Promise<DashboardOverview> {
+  const res = await fetch(`${API_BASE_URL}/dashboard/overview`, {
+    cache: "no-store",
+    headers: DASHBOARD_API_KEY
+      ? { "x-dashboard-key": DASHBOARD_API_KEY }
+      : undefined,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to load dashboard overview: ${res.status}`);
+  }
+  return res.json();
+}
+
+export function getPlans(accessToken: string): Promise<Plan[]> {
+  return apiGet("/billing/plans", accessToken);
+}
+
+export function getBillingSubscription(
+  orgId: string,
+  accessToken: string,
+): Promise<{ subscription: Subscription | null; seatsUsed: number }> {
+  return apiGet(`/orgs/${encodeURIComponent(orgId)}/billing/subscription`, accessToken);
+}
+
+export function getInvoices(orgId: string, accessToken: string): Promise<Invoice[]> {
+  return apiGet(`/orgs/${encodeURIComponent(orgId)}/billing/invoices`, accessToken);
+}
+
+export function createCheckoutSession(
+  orgId: string,
+  planId: string,
+  accessToken: string,
+): Promise<{ url: string | null }> {
+  return api("POST", `/orgs/${encodeURIComponent(orgId)}/billing/checkout-session`, accessToken, {
+    planId,
+  });
+}
+
+export function createPortalSession(
+  orgId: string,
+  accessToken: string,
+): Promise<{ url: string }> {
+  return api("POST", `/orgs/${encodeURIComponent(orgId)}/billing/portal-session`, accessToken);
+}
+
+export function getMe(accessToken: string): Promise<Me> {
+  return apiGet("/users/me", accessToken);
+}
+
+export interface ProvisioningOrder {
+  id: string;
+  clientId: string;
+  cpanelUsername: string;
+  primaryDomain: string;
+  resellPortalOrderId: string | null;
+  status: "provisioning" | "deployed" | "failed" | (string & {});
+  nextBillingDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function getProvisioningOrders(
+  clientId: string,
+  accessToken: string,
+): Promise<ProvisioningOrder[]> {
+  return apiGet(`/provisioning/orders/${encodeURIComponent(clientId)}`, accessToken);
+}
+
+export function getClientsForOrg(orgId: string, accessToken: string): Promise<Client[]> {
+  return apiGet(`/clients?orgId=${encodeURIComponent(orgId)}`, accessToken);
+}
+export function getGLinksForClient(clientId: string, accessToken: string): Promise<GLink[]> {
+  return apiGet(`/glinks?clientId=${encodeURIComponent(clientId)}`, accessToken);
 }
