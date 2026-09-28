@@ -143,7 +143,7 @@ export class AuditService {
       // PrismaClientKnownRequestError code P2022 — fail the same clean way
       // AUDIT_READ_RESTORATION_ENABLED=false already does, never leak the
       // raw schema-mismatch error to a caller as an uncaught 500.
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2022") {
+      if (isMissingAuditOrgIdColumn(err)) {
         this.logger.error(
           "AuditLog.orgId column missing from the database — this build shipped ahead of " +
             "the Phase 5 migration (`prisma migrate deploy`); failing closed instead of 500ing",
@@ -187,4 +187,26 @@ export interface AuditListItem {
 export interface AuditListPage {
   items: AuditListItem[];
   nextCursor: string | null;
+}
+
+
+/**
+ * P2022 is Prisma's generic "column does not exist" error. Only the Phase 5
+ * AuditLog.orgId sequencing case is intentionally translated to a 503 here.
+ * Any other missing-column error must propagate so unrelated schema drift is
+ * visible to operators instead of being misdiagnosed as the audit migration.
+ */
+function isMissingAuditOrgIdColumn(err: unknown): err is Prisma.PrismaClientKnownRequestError {
+  if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2022") {
+    return false;
+  }
+
+  const rawColumn = err.meta?.column;
+  if (typeof rawColumn !== "string") return false;
+
+  const normalizedColumn = rawColumn.replaceAll("`", "");
+  return (
+    normalizedColumn === "AuditLog.orgId" ||
+    normalizedColumn.endsWith(".AuditLog.orgId")
+  );
 }
