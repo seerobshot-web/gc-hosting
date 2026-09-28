@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "pnpm run generate && tsc",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "generate": "CHECKPOINT_DISABLE=1 prisma generate",
