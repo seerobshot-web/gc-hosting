@@ -38,7 +38,7 @@ async function bootstrap() {
 
   const allowedOrigins = parseAllowedOrigins();
   app.enableCors({ origin: allowedOrigins, credentials: true });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 
   const config = new DocumentBuilder()
     .setTitle("GCH Operations & GloryLink Core API")

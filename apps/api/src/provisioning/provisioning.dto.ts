@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class PlaceOrderDto {
   @ApiProperty()
@@ -21,11 +21,6 @@ export class PlaceOrderDto {
   @IsString()
   @IsNotEmpty()
   primaryDomain!: string;
-
-  @ApiPropertyOptional({ description: "Place a non-billable test order" })
-  @IsOptional()
-  @IsBoolean()
-  testMode?: boolean;
 }
 
 export class ProvisioningClientParamsDto {

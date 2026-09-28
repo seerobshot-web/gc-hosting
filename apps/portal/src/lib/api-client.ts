@@ -5,6 +5,8 @@
  * stabilizes.
  */
 
+import type { GLinkModuleType } from "@gch/database";
+
 const API_BASE_URL = process.env.GCH_API_URL ?? "http://localhost:3333";
 const DASHBOARD_API_KEY = process.env.DASHBOARD_API_KEY;
 
@@ -32,13 +34,7 @@ export interface Client {
 export interface GLink {
   id: string;
   clientId: string;
-  moduleType:
-    | "LINK"
-    | "GIVING_EXTERNAL"
-    | "EVENT"
-    | "SERMON_SERIES"
-    | "ANNOUNCEMENT"
-    | "SOCIAL_EMBED";
+  moduleType: GLinkModuleType;
   label: string;
   url: string | null;
   position: number;

@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3001",
-    "build": "pnpm --filter @gch/permissions run build && next build",
+    "build": "pnpm --filter @gch/database run build && pnpm --filter @gch/permissions run build && next build",
     "start": "next start --port 3001",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@gch/database": "workspace:*",
     "@gch/permissions": "workspace:*",
     "@gch/ui": "workspace:*",
     "next": "^15.5.7",
