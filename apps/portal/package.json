@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@gch/database": "workspace:*",
     "@gch/permissions": "workspace:*",
     "@gch/ui": "workspace:*",
     "next": "^15.5.7",
