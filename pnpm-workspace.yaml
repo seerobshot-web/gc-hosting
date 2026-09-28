@@ -2,3 +2,36 @@ packages:
   - "apps/*"
   - "packages/*"
   - "workers/*"
+
+overrides:
+  js-yaml: "^4.3.2"
+  lodash: "^4.18.1"
+  postcss: "^8.5.18"
+  sharp: "^0.35.4"
+  fastify: "^5.12.5"
+  "@astrojs/react>vite": "^6.4.3"
+  "@vitejs/plugin-react>vite": "^6.4.3"
+
+onlyBuiltDependencies:
+  - "@nestjs/core"
+
+# Explicit per-package install-script decisions pnpm now requires (pnpm 10+
+# default-denies build scripts for every dependency). Curated deliberately,
+# not blanket-approved: only packages whose script is actually load-bearing
+# for this workspace to build/run correctly are allowed.
+allowBuilds:
+  # Prisma's own official packages — their postinstall fetches the query
+  # engine binaries; without it Prisma cannot connect to a database at all.
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+  # Fetches esbuild's native binary; required by every Vite/Astro build step
+  # in this workspace that goes through esbuild.
+  esbuild: true
+  # Telemetry-only postinstall (pings the maintainer's analytics endpoint on
+  # install) — not required for anything this workspace does. Left blocked.
+  '@scarf/scarf': false
+  # Native binary for eslint-import-resolver-typescript's resolver only
+  # (lint-time tooling, not build/runtime); falls back to its JS
+  # implementation when blocked. Left blocked — not load-bearing.
+  unrs-resolver: false
