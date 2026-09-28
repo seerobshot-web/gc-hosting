@@ -19,6 +19,8 @@ import { MembershipsModule } from "./memberships/memberships.module";
 import { BillingModule } from "./billing/billing.module";
 import { EmailModule } from "./email/email.module";
 import { InvitationsModule } from "./invitations/invitations.module";
+import { ToolsModule } from "./tools/tools.module";
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { InvitationsModule } from "./invitations/invitations.module";
     AuditModule,
     ProvisioningModule,
     DashboardModule,
+    ToolsModule,
+    HealthModule,
   ],
   // Order matters: ThrottlerGuard rejects abusive traffic before auth work;
   // JwtAuthGuard then sets req.user, and RolesGuard reads it.
