@@ -160,7 +160,11 @@ describe("GET /audit tenant isolation", () => {
       prisma.auditLog.findMany = mock.fn(async () => {
         throw new Prisma.PrismaClientKnownRequestError(
           "The column `AuditLog.orgId` does not exist in the current database.",
-          { code: "P2022", clientVersion: "5.22.0" },
+          {
+            code: "P2022",
+            clientVersion: "5.22.0",
+            meta: { modelName: "AuditLog", column: "AuditLog.orgId" },
+          },
         );
       }) as never;
       const controller = new AuditController(new AuditService({} as never));
@@ -168,6 +172,26 @@ describe("GET /audit tenant isolation", () => {
       await assert.rejects(
         controller.recent({ orgId: "org-a", membership: { role: "OWNER" } } as never, {}),
         ServiceUnavailableException,
+      );
+    });
+
+    it("re-throws an unrelated P2022 missing-column error unchanged", async () => {
+      const schemaDrift = new Prisma.PrismaClientKnownRequestError(
+        "The column `AuditLog.createdAt` does not exist in the current database.",
+        {
+          code: "P2022",
+          clientVersion: "5.22.0",
+          meta: { modelName: "AuditLog", column: "AuditLog.createdAt" },
+        },
+      );
+      prisma.auditLog.findMany = mock.fn(async () => {
+        throw schemaDrift;
+      }) as never;
+      const controller = new AuditController(new AuditService({} as never));
+
+      await assert.rejects(
+        controller.recent({ orgId: "org-a", membership: { role: "OWNER" } } as never, {}),
+        (err: unknown) => err === schemaDrift,
       );
     });
 
