@@ -17,7 +17,7 @@ Native Prisma engine downloads still return HTTP 403 in this workspace. The loca
 
 [Commerce MySQL workflow](https://github.com/seerobshot-web/gc-hosting/actions/runs/37572071240) passed at commit `61cfce4`: native Prisma generated successfully, `prisma migrate deploy` applied all eight migrations, integration types passed, and all seven transaction tests passed with zero failures. Twelve concurrent deliveries of the same signed event produced one permanent claim, one paid audit and one durable job. A forced database write failure rolled back the claim and transition, and retrying the same event ID succeeded.
 
-[PR #87 workspace CI](https://github.com/seerobshot-web/gc-hosting/actions/runs/37572071265) also passed native Prisma generation, the full workspace build, lint, typecheck and tests at `61cfce4`. Its final result remains failure because the production dependency audit failed; no green overall-CI claim is made.
+[PR #87 workspace CI](https://github.com/seerobshot-web/gc-hosting/actions/runs/37572071265) also passed native Prisma generation, the full workspace build, lint, typecheck and tests at `61cfce4`. That initial run failed its production dependency audit before the subsequent patch below.
 
 The integration suite uses real MySQL transactions and real Stripe SDK signatures. Stripe payment reads and checkout identifiers are synthetic; SMTP is an in-memory recorder and guides/intake are generated fixtures. No RP adapter is called. Synthetic fixture policy flags are test inputs, not owner approval.
 
@@ -29,8 +29,12 @@ The integration suite uses real MySQL transactions and real Stripe SDK signature
 - Malformed/truncated or unauthenticated intake ciphertext produces a controlled error without crypto exception details.
 - Invalid checkout redirect URLs return to the unavailable page; unknown/unverified prices are omitted from Offer JSON-LD.
 
+## Dependency correction
+
+The current registry/advisory identifies `http-cache-semantics@4.3.0` as the patched release. It was verified as available, pinned through a workspace override, and installed. The local production audit now reports zero advisories. The full-scope audit reports one high and one moderate development advisory. Astro check/build and all eighteen web tests passed after the update. [Native workspace CI](https://github.com/seerobshot-web/gc-hosting/actions/runs/37572533889) passed at commit `fd40c41`, including installation, native Prisma generation, build, lint, typecheck, tests and production dependency audit. [MySQL verification](https://github.com/seerobshot-web/gc-hosting/actions/runs/37572533940) passed again after this patch, including all seven integration tests and all eight migrations. This is the final verified code commit; subsequent documentation-only edits do not change the implementation.
+
 ## Still required for the real staging purchase
 
-The actual Stripe-test/RP-test paid-to-active purchase remains blocked by provider reference/mappings, per-item wholesale costs and billing cycles, the wallet/funds contract, staging credentials and approved policies. The MySQL suite does not validate RP price assertions, wallet holds, provider reconciliation, deployment polling, access links, credential reveal or renewal behavior. Those implementations still require verified provider evidence. Hostinger deployment/rollback and real SMTP delivery have not been exercised. The previously recorded two high and one moderate dependency advisories remain unresolved.
+The actual Stripe-test/RP-test paid-to-active purchase remains blocked by provider reference/mappings, per-item wholesale costs and billing cycles, the wallet/funds contract, staging credentials and approved policies. The MySQL suite does not validate RP price assertions, wallet holds, provider reconciliation, deployment polling, access links, credential reveal or renewal behavior. Those implementations still require verified provider evidence. Hostinger deployment/rollback and real SMTP delivery have not been exercised. After the dependency patch below, the full-scope audit retains one high (`braces`) and one moderate (`postcss-selector-parser`) in development dependencies. These remain open; production-audit success is not a claim that all dependencies are advisory-free. The registry still lists no `braces@3.0.4`; the selector-parser fix would cross an existing major-version dependency contract and was not forced without its own compatibility review.
 
 No live charges, RP orders, production migrations or deployments were performed. No launch gates were waived.
