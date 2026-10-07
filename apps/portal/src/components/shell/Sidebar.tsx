@@ -75,6 +75,7 @@ const icons = {
 
 const MAIN: NavItem[] = [
   { href: "/dashboard/products", label: "Products", icon: icons.box },
+  { href: "/dashboard/orders", label: "Prepaid orders", icon: icons.box },
   { href: "/dashboard/billing", label: "Billing", icon: icons.card },
   { href: "/dashboard/glinks", label: "GloryLink", icon: icons.link, badge: "Soon" },
 ];

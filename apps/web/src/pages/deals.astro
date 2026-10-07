@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { siteRoutes, toolDetailRoute } from "../config/site-routes";
+import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
+import { structuredData, toolLinks } from "../content/deals";
+import { deals } from "@gch/commerce";
+const portal = import.meta.env.PUBLIC_COMMERCE_PORTAL_ORIGIN;
+
+---
+<Layout title="New Customer Deals | Glory Cloud Hosts" description="Seed, Fruit and Harvest packages, plus Brand Identity Development." canonicalPath={siteRoutes.deals}>
+  <script type="application/ld+json" set:html={structuredData}></script>
+  <GCHPrimaryNav />
+  <main class="deals">
+    <h1>New Customer Deals</h1>
+    <p>Seed, Fruit and Harvest packages cover 12 months from activation. Contact us to discuss your needs and renewal options.</p>
+    <div class="grid">
+      {deals.map(deal => <article>
+        <h2>{deal.name}</h2>
+        {deal.price.verified && deal.price.cents !== null
+          ? <p class="price">{new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(deal.price.cents / 100)} one-time</p>
+          : <p>Pricing available after confirmation.</p>}
+        <ul>{deal.items.map(item => <li>{toolLinks[item] ? <a href={toolDetailRoute(toolLinks[item]!)}>{item}</a> : item}</li>)}</ul>
+        {deal.fulfillment === "human" && portal
+          ? <a href={`${portal}/dashboard/orders`}>View availability in your portal</a>
+          : <a href={siteRoutes.contact}>Contact us about this package</a>}
+      </article>)}
+    </div>
+    <p><a href={siteRoutes.tools}>Explore Tools</a> · <a href={siteRoutes.terms}>Terms</a> · <a href={siteRoutes.privacy}>Privacy</a> · <a href={siteRoutes.refunds}>Refunds</a></p>
+  </main>
+</Layout>
+<style>
+.deals { max-width: 76rem; margin: auto; padding: 4rem 1.5rem; color: #2C231C; background: #F6F2E7; }
+h1 { font-size: 2.5rem; margin-bottom: 1rem; } h2 { font-size: 1.4rem; } p { margin: 1rem 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+article { padding: 1.5rem; border: 1px solid #C9C0AF; border-radius: 1rem; } a { color: #A83E1B; text-decoration: underline; }
+ul { padding-left: 1.25rem; list-style: disc; margin: 1rem 0; } .price { font-weight: bold; }
+</style>
