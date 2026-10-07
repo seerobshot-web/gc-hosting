@@ -182,6 +182,16 @@ describe("prepaid webhook authority boundary", { concurrency: false }, () => {
   });
 });
 describe("private delivery tokens", () => {
+  it("the kill switch revokes an otherwise valid guide before reading its PDF", async () => {
+    const { service, delivery } = fixture({ COMMERCE_ENABLED: "false" });
+    mock.method(prisma.commerceOrder, "findUnique", async () => ({
+      id: "order1",
+      status: "ACTIVE",
+      dealId: "brand-identity-development",
+    }));
+    await assert.rejects(service.guide("order1", Math.floor(Date.now() / 1000) + 3600, "valid"));
+    assert.equal(delivery.guide.mock.callCount(), 0);
+  });
   it("rejects altered, expired, malformed and cross-order tokens", () => {
     const adapter = new DeliveryAdapter(
       new ConfigService({
