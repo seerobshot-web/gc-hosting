@@ -2,7 +2,11 @@ import "reflect-metadata";
 import assert from "node:assert/strict";
 import { describe, it, mock, afterEach } from "node:test";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { prisma, Prisma } from "@gch/database";
 import Stripe from "stripe";
 import { CommerceService } from "./commerce.service";
@@ -30,6 +34,7 @@ function fixture(overrides: Record<string, string> = {}) {
   const delivery = {
     guide: mock.fn(async () => Buffer.from("%PDF-fixture")),
     link: mock.fn(() => "https://example.invalid/guide"),
+    valid: mock.fn(() => true),
   };
   const email = { isConfigured: true, sendRequired: mock.fn(async () => undefined) };
   const service = new CommerceService(
@@ -184,13 +189,21 @@ describe("prepaid webhook authority boundary", { concurrency: false }, () => {
 describe("private delivery tokens", () => {
   it("the kill switch revokes an otherwise valid guide before reading its PDF", async () => {
     const { service, delivery } = fixture({ COMMERCE_ENABLED: "false" });
-    mock.method(prisma.commerceOrder, "findUnique", async () => ({
-      id: "order1",
-      status: "ACTIVE",
-      dealId: "brand-identity-development",
-    }));
-    await assert.rejects(service.guide("order1", Math.floor(Date.now() / 1000) + 3600, "valid"));
-    assert.equal(delivery.guide.mock.callCount(), 0);
+    const original = prisma.commerceOrder.findUnique;
+    try {
+      prisma.commerceOrder.findUnique = mock.fn(async () => ({
+        id: "order1",
+        status: "ACTIVE",
+        dealId: "brand-identity-development",
+      })) as never;
+      await assert.rejects(
+        service.guide("order1", Math.floor(Date.now() / 1000) + 3600, "valid"),
+        NotFoundException,
+      );
+      assert.equal(delivery.guide.mock.callCount(), 0);
+    } finally {
+      prisma.commerceOrder.findUnique = original;
+    }
   });
   it("rejects altered, expired, malformed and cross-order tokens", () => {
     const adapter = new DeliveryAdapter(
