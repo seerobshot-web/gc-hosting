@@ -1,0 +1,59 @@
+name: Commerce MySQL verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commerce-mysql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commerce-mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: gch_commerce_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      CI: true
+      CHECKPOINT_DISABLE: "1"
+      DATABASE_URL: mysql://root@127.0.0.1:3306/gch_commerce_test
+      COMMERCE_MYSQL_TEST: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.5.1
+          run_install: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Generate native Prisma client and build shared dependencies
+        run: |
+          pnpm --filter @gch/database build
+          pnpm --filter @gch/commerce build
+      - name: Apply complete migration history to disposable MySQL
+        run: pnpm --filter @gch/database exec prisma migrate deploy
+      - name: Typecheck integration fixtures
+        run: pnpm --filter @gch/api typecheck:commerce:mysql
+      - name: Verify concurrent webhooks and persisted commerce boundaries
+        run: pnpm --filter @gch/api test:commerce:mysql

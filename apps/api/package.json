@@ -8,6 +8,8 @@
     "deploy-copy": "node scripts/deploy-copy.js",
     "start": "node dist/main.js",
     "test": "pnpm --filter @gch/database run generate && node scripts/test.mjs",
+    "test:commerce:mysql": "node --import tsx --test test/commerce.mysql.integration.ts",
+    "typecheck:commerce:mysql": "tsc -p test/tsconfig.json",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
