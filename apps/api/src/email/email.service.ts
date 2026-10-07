@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import nodemailer, { type Transporter } from "nodemailer";
 
@@ -40,6 +40,19 @@ export class EmailService {
     } else {
       this.transporter = null;
       this.logger.warn("SMTP_USER/SMTP_PASS not set — emails will be logged, not sent");
+    }
+  }
+
+  get isConfigured(): boolean { return this.transporter !== null; }
+
+  /** Commerce delivery must never log signed links or claim log-only delivery succeeded. */
+  async sendRequired(mail: Mail): Promise<void> {
+    if (!this.transporter) throw new ServiceUnavailableException("smtp_not_configured");
+    try {
+      await this.transporter.sendMail({ from: this.from, ...mail });
+    } catch {
+      // SMTP replies must not leak mail bodies, signed links or credentials into API logs.
+      throw new ServiceUnavailableException("mail_delivery_failed");
     }
   }
 
