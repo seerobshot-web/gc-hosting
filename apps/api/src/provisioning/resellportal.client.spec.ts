@@ -403,3 +403,36 @@ describe("credential literal regression", () => {
     }
   });
 });
+
+// Provider bodies can contain customer credentials even when the API key is redacted.
+describe("provider errors omit upstream bodies", () => {
+  it("does not expose credentials returned in a failed response", async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async () => new Response('{"password":"customer-secret"}', { status: 502 });
+    try {
+      const client = new ResellPortalClient(new ConfigService({ RESELLPORTAL_API_KEY: "test-key", RESELLPORTAL_API_SECRET: "test-secret" }));
+      await assert.rejects(client.findOrCreateClient({ email: "test@example.invalid", name: "Test" }), (err: unknown) => {
+        assert.ok(err instanceof Error);
+        assert.match(err.message, /failed: 502/);
+        assert.equal(err.message.includes("customer-secret"), false);
+        return true;
+      });
+    } finally { globalThis.fetch = original; }
+  });
+});
+
+describe("malformed provider JSON omits response content", () => {
+  it("does not copy JSON parser excerpts into logs", async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async () => new Response('{"password":"customer-secret", broken', { status: 200 });
+    try {
+      const client = new ResellPortalClient(new ConfigService({ RESELLPORTAL_API_KEY: "test-key", RESELLPORTAL_API_SECRET: "test-secret" }));
+      await assert.rejects(client.findOrCreateClient({ email: "test@example.invalid", name: "Test" }), (err: unknown) => {
+        assert.ok(err instanceof Error);
+        assert.match(err.message, /returned invalid JSON/);
+        assert.equal(err.message.includes("customer-secret"), false);
+        return true;
+      });
+    } finally { globalThis.fetch = original; }
+  });
+});

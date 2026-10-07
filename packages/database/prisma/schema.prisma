@@ -405,3 +405,54 @@ model IdempotencyRecord {
 
   @@index([expiresAt])
 }
+
+// Prepaid commerce is isolated from workspace subscriptions and legacy RP orders.
+enum CommerceOrderStatus {
+  CREATED
+  PAID
+  PROVISIONING
+  PROVISIONED
+  ACTIVE
+  HELD
+  FAILED
+}
+model CommerceOrder {
+  id String @id @default(cuid())
+  userId String
+  customerEmail String
+  requestKey String
+  dealId String
+  catalogVersion String
+  amountCents Int
+  currency String @default("usd")
+  status CommerceOrderStatus @default(CREATED)
+  stripeSessionId String? @unique
+  stripePaymentId String? @unique
+  holdReason String?
+  primaryDomain String? @db.VarChar(253)
+  cpanelUsername String?
+  brandIntakeEncrypted Bytes? @db.MediumBlob
+  brandIntakeMime String?
+  paidAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  job CommerceJob?
+  @@unique([userId, requestKey])
+  @@index([userId, createdAt])
+  @@index([status])
+}
+// Created in the same transaction as payment. No volatile event-bus dependency.
+model CommerceJob {
+  orderId String @id
+  order CommerceOrder @relation(fields: [orderId], references: [id])
+  state String @default("PENDING")
+  alertSentAt DateTime?
+  deliverySentAt DateTime?
+  updatedAt DateTime @updatedAt
+}
+// Retained permanently; no TTL cleanup can allow a paid event to run again.
+model CommerceStripeEvent {
+  id String @id
+  type String
+  processedAt DateTime @default(now())
+}

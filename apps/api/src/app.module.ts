@@ -1,3 +1,4 @@
+import { CommerceModule } from "./commerce/commerce.module";
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
@@ -47,6 +48,7 @@ import { HealthModule } from "./health/health.module";
     DashboardModule,
     ToolsModule,
     HealthModule,
+    CommerceModule,
   ],
   // Order matters: ThrottlerGuard rejects abusive traffic before auth work;
   // JwtAuthGuard then sets req.user, and RolesGuard reads it.

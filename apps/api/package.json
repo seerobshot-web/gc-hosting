@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "pnpm --filter @gch/commerce run build && pnpm --filter @gch/database run build && pnpm --filter @gch/permissions run build && tsc -p tsconfig.json",
     "deploy-copy": "node scripts/deploy-copy.js",
     "start": "node dist/main.js",
     "test": "pnpm --filter @gch/database run generate && node --import tsx --test src/**/*.spec.ts",
@@ -35,7 +35,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "stripe": "^22.6.2",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@gch/commerce": "workspace:*"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
