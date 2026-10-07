@@ -406,6 +406,7 @@ export class CommerceService {
     if (
       !order ||
       !["PROVISIONING", "PROVISIONED", "ACTIVE"].includes(order.status) ||
+      this.blockers(order.dealId).length > 0 ||
       !this.delivery.valid(id, order.dealId, expires, signature)
     )
       throw new NotFoundException();
