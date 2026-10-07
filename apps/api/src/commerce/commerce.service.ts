@@ -22,6 +22,16 @@ export class CommerceService {
     private readonly delivery: DeliveryAdapter,
     private readonly email: EmailService,
   ) {}
+  private operatorIds(): string[] {
+    return (this.config.get<string>("COMMERCE_OPS_USER_IDS") ?? "")
+      .split(",").map((id) => id.trim()).filter(Boolean);
+  }
+  private async operatorExists(): Promise<boolean> {
+    const ids = this.operatorIds();
+    return ids.length > 0 && Boolean(await prisma.user.findFirst({
+      where: { id: { in: ids } }, select: { id: true },
+    }));
+  }
   private blockers(dealId: string): string[] {
     const reasons = checkoutBlockers(
       findDeal(dealId),
@@ -31,6 +41,7 @@ export class CommerceService {
     if (this.config.get("COMMERCE_POLICIES_APPROVED") !== "true")
       reasons.push("policies_unapproved");
     if (!this.config.get<string>("COMMERCE_OPS_EMAIL")) reasons.push("ops_contact_missing");
+    if (!this.operatorIds().length) reasons.push("ops_operator_missing");
     if (!this.config.get<string>("COMMERCE_STRIPE_WEBHOOK_SECRET"))
       reasons.push("webhook_secret_missing");
     if (
@@ -45,7 +56,9 @@ export class CommerceService {
       reasons.push("test_key_required");
     return reasons;
   }
-  catalog() {
+  async catalog() {
+    const operator = deals.some((deal) => this.blockers(deal.id).length === 0)
+      && await this.operatorExists();
     return {
       version: catalogVersion,
       items: deals.map((deal) => ({
@@ -54,7 +67,7 @@ export class CommerceService {
         priceCents: deal.price.cents,
         verified: deal.price.verified,
         termMonths: deal.termMonths,
-        available: this.blockers(deal.id).length === 0,
+        available: this.blockers(deal.id).length === 0 && operator,
       })),
     };
   }
@@ -62,6 +75,8 @@ export class CommerceService {
     const deal = findDeal(dealId);
     const blockers = this.blockers(dealId);
     if (!deal || blockers.length) throw new ServiceUnavailableException({ reasons: blockers });
+    if (!(await this.operatorExists()))
+      throw new ServiceUnavailableException({ reasons: ["ops_operator_missing"] });
     // Pre-charge validation of the actual private PDF, signing key, origins and mail configuration.
     await this.delivery.guide(dealId);
     this.delivery.link("preflight", dealId);
@@ -318,6 +333,7 @@ export class CommerceService {
         }
         if (order.catalogVersion !== catalogVersion) reason = "catalog_version_mismatch";
         if (findDeal(order.dealId)?.fulfillment !== "human") reason = "rp_contract_unresolved";
+        if (!reason && !(await this.operatorExists())) reason = "ops_operator_missing";
         await prisma.$transaction(async (tx) => {
           await this.transition(tx, order.id, "PAID", reason ? "HELD" : "PROVISIONING", reason);
         });
@@ -370,7 +386,11 @@ export class CommerceService {
   @Cron("* * * * *")
   async deliver() {
     const jobs = await prisma.commerceJob.findMany({
-      where: { state: { in: ["DELIVERY_PENDING", "AWAITING_REVIEW"] } },
+      where: { OR: [
+        { state: "DELIVERY_PENDING", order: { status: "ACTIVE" } },
+        { state: "AWAITING_REVIEW", deliverySentAt: null, order: { status: "PROVISIONING" } },
+      ] },
+      orderBy: [{ updatedAt: "asc" }, { orderId: "asc" }],
       include: { order: true },
       take: 50,
     });

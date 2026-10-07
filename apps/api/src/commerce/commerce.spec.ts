@@ -23,6 +23,7 @@ function fixture(overrides: Record<string, string> = {}) {
     COMMERCE_INTAKE_KEY: "11".repeat(32),
     COMMERCE_TAX_MODE: "none",
     COMMERCE_OPS_EMAIL: "ops@example.invalid",
+    COMMERCE_OPS_USER_IDS: "ops-fixture",
     STRIPE_SECRET_KEY: "sk_test_fixture",
     ...overrides,
   });
@@ -184,6 +185,38 @@ describe("prepaid webhook authority boundary", { concurrency: false }, () => {
     );
     assert.equal(stripe.create.mock.callCount(), 0);
     assert.equal(delivery.guide.mock.callCount(), 0);
+  });
+  it("an empty operator allowlist disables catalog availability and checkout", async () => {
+    const { service, stripe, delivery } = fixture({ COMMERCE_OPS_USER_IDS: " , " });
+    assert.equal(
+      (await service.catalog()).items.some((item) => item.available),
+      false,
+    );
+    await assert.rejects(
+      service.checkout("user1", "brand-identity-development", "requestkey1234567"),
+      ServiceUnavailableException,
+    );
+    assert.equal(stripe.create.mock.callCount(), 0);
+    assert.equal(delivery.guide.mock.callCount(), 0);
+  });
+  it("a nonexistent operator blocks payment before any checkout side effects", async () => {
+    const { service, stripe, delivery } = fixture();
+    const original = prisma.user.findFirst;
+    try {
+      prisma.user.findFirst = mock.fn(async () => null) as never;
+      assert.equal(
+        (await service.catalog()).items.some((item) => item.available),
+        false,
+      );
+      await assert.rejects(
+        service.checkout("user1", "brand-identity-development", "requestkey1234567"),
+        ServiceUnavailableException,
+      );
+      assert.equal(stripe.create.mock.callCount(), 0);
+      assert.equal(delivery.guide.mock.callCount(), 0);
+    } finally {
+      prisma.user.findFirst = original;
+    }
   });
 });
 describe("private delivery tokens", () => {

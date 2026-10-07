@@ -26,12 +26,14 @@ if (
 
 const orderIds: string[] = [];
 const eventIds: string[] = [];
+const operatorId = `ops-${randomUUID()}`;
 let guideDirectory: string;
 const secret = `whsec_${randomUUID()}`;
 const signatureSdk = new Stripe("sk_test_local_fixture");
 
 before(async () => {
   await prisma.$connect();
+  await prisma.user.create({ data: { id: operatorId, email: `${operatorId}@example.invalid` } });
   guideDirectory = await mkdtemp(join(tmpdir(), "gch-commerce-mysql-"));
   await writeFile(
     join(guideDirectory, findDeal("brand-identity-development")!.guide!),
@@ -47,6 +49,7 @@ after(async () => {
     });
     await prisma.commerceOrder.deleteMany({ where: { id: { in: orderIds } } });
     await prisma.commerceStripeEvent.deleteMany({ where: { id: { in: eventIds } } });
+    await prisma.user.deleteMany({ where: { id: operatorId } });
   } finally {
     await prisma.$disconnect();
     if (guideDirectory) await rm(guideDirectory, { recursive: true });
@@ -62,6 +65,7 @@ function service(overrides: Record<string, string> = {}) {
     COMMERCE_INTAKE_KEY: "11".repeat(32),
     COMMERCE_TAX_MODE: "none",
     COMMERCE_OPS_EMAIL: "ops@example.invalid",
+    COMMERCE_OPS_USER_IDS: operatorId,
     COMMERCE_GUIDE_DIRECTORY: guideDirectory,
     COMMERCE_DELIVERY_SECRET: "local-fixture-delivery-secret-at-least-32-characters",
     COMMERCE_API_ORIGIN: "https://ops.example.invalid",
@@ -146,6 +150,20 @@ function signedEvent(
 }
 
 describe("commerce transactions against MySQL", { concurrency: false }, () => {
+  it("checkout stays unavailable when the operator allowlist has no live user", async () => {
+    const { api } = service({ COMMERCE_OPS_USER_IDS: "missing-operator" });
+    assert.equal(
+      (await api.catalog()).items.some((item) => item.available),
+      false,
+    );
+    await assert.rejects(
+      api.checkout("customer", "brand-identity-development", "requestkey1234567"),
+    );
+    assert.equal(
+      await prisma.commerceOrder.count({ where: { requestKey: "requestkey1234567" } }),
+      0,
+    );
+  });
   it("concurrent signed event replays persist exactly one paid transition and job", async () => {
     const purchase = await order();
     const { api } = service();
@@ -269,5 +287,29 @@ describe("commerce transactions against MySQL", { concurrency: false }, () => {
       "HELD",
     );
     await assert.rejects(api.guide(purchase.id, expires, signature));
+  });
+  it("more than fifty completed review jobs cannot starve a new customer's guide", async () => {
+    for (let i = 0; i < 55; i++) {
+      const older = await order();
+      const status = i % 2 === 0 ? "HELD" : "PROVISIONING";
+      await prisma.commerceOrder.update({ where: { id: older.id }, data: { status } });
+      await prisma.commerceJob.create({
+        data: {
+          orderId: older.id,
+          state: "AWAITING_REVIEW",
+          alertSentAt: new Date(),
+          deliverySentAt: status === "PROVISIONING" ? new Date() : null,
+        },
+      });
+    }
+    const purchase = await order();
+    const { api, mail } = service();
+    const event = signedEvent(purchase);
+    await api.webhook(event.body, event.signature);
+    await api.process();
+    await api.deliver();
+    const job = await prisma.commerceJob.findUniqueOrThrow({ where: { orderId: purchase.id } });
+    assert.ok(job.deliverySentAt);
+    assert.equal(mail.filter((message) => message.to === "customer@example.invalid").length, 1);
   });
 });
