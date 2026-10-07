@@ -2,7 +2,11 @@ import "reflect-metadata";
 import assert from "node:assert/strict";
 import { describe, it, mock, afterEach } from "node:test";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestException, ServiceUnavailableException } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { prisma, Prisma } from "@gch/database";
 import Stripe from "stripe";
 import { CommerceService } from "./commerce.service";
@@ -19,6 +23,7 @@ function fixture(overrides: Record<string, string> = {}) {
     COMMERCE_INTAKE_KEY: "11".repeat(32),
     COMMERCE_TAX_MODE: "none",
     COMMERCE_OPS_EMAIL: "ops@example.invalid",
+    COMMERCE_OPS_USER_IDS: "ops-fixture",
     STRIPE_SECRET_KEY: "sk_test_fixture",
     ...overrides,
   });
@@ -30,6 +35,7 @@ function fixture(overrides: Record<string, string> = {}) {
   const delivery = {
     guide: mock.fn(async () => Buffer.from("%PDF-fixture")),
     link: mock.fn(() => "https://example.invalid/guide"),
+    valid: mock.fn(() => true),
   };
   const email = { isConfigured: true, sendRequired: mock.fn(async () => undefined) };
   const service = new CommerceService(
@@ -180,8 +186,58 @@ describe("prepaid webhook authority boundary", { concurrency: false }, () => {
     assert.equal(stripe.create.mock.callCount(), 0);
     assert.equal(delivery.guide.mock.callCount(), 0);
   });
+  it("an empty operator allowlist disables catalog availability and checkout", async () => {
+    const { service, stripe, delivery } = fixture({ COMMERCE_OPS_USER_IDS: " , " });
+    assert.equal(
+      (await service.catalog()).items.some((item) => item.available),
+      false,
+    );
+    await assert.rejects(
+      service.checkout("user1", "brand-identity-development", "requestkey1234567"),
+      ServiceUnavailableException,
+    );
+    assert.equal(stripe.create.mock.callCount(), 0);
+    assert.equal(delivery.guide.mock.callCount(), 0);
+  });
+  it("a nonexistent operator blocks payment before any checkout side effects", async () => {
+    const { service, stripe, delivery } = fixture();
+    const original = prisma.user.findFirst;
+    try {
+      prisma.user.findFirst = mock.fn(async () => null) as never;
+      assert.equal(
+        (await service.catalog()).items.some((item) => item.available),
+        false,
+      );
+      await assert.rejects(
+        service.checkout("user1", "brand-identity-development", "requestkey1234567"),
+        ServiceUnavailableException,
+      );
+      assert.equal(stripe.create.mock.callCount(), 0);
+      assert.equal(delivery.guide.mock.callCount(), 0);
+    } finally {
+      prisma.user.findFirst = original;
+    }
+  });
 });
 describe("private delivery tokens", () => {
+  it("the kill switch revokes an otherwise valid guide before reading its PDF", async () => {
+    const { service, delivery } = fixture({ COMMERCE_ENABLED: "false" });
+    const original = prisma.commerceOrder.findUnique;
+    try {
+      prisma.commerceOrder.findUnique = mock.fn(async () => ({
+        id: "order1",
+        status: "ACTIVE",
+        dealId: "brand-identity-development",
+      })) as never;
+      await assert.rejects(
+        service.guide("order1", Math.floor(Date.now() / 1000) + 3600, "valid"),
+        NotFoundException,
+      );
+      assert.equal(delivery.guide.mock.callCount(), 0);
+    } finally {
+      prisma.commerceOrder.findUnique = original;
+    }
+  });
   it("rejects altered, expired, malformed and cross-order tokens", () => {
     const adapter = new DeliveryAdapter(
       new ConfigService({
@@ -233,7 +289,11 @@ describe("encrypted brand intake", () => {
     assert.throws(() => decryptIntake(first.encrypted, "order1:user2", key));
     const modified = Buffer.from(first.encrypted);
     modified[modified.length - 1]! ^= 1;
-    assert.throws(() => decryptIntake(modified, "order1:user1", key));
+    assert.throws(() => decryptIntake(modified, "order1:user1", key), /invalid_intake_file/);
+    assert.throws(
+      () => decryptIntake(Buffer.alloc(27), "order1:user1", key),
+      /invalid_intake_file/,
+    );
     assert.throws(
       () =>
         encryptIntake(Buffer.from("<script>bad</script>").toString("base64"), "order1:user1", key),

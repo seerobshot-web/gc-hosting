@@ -7,7 +7,9 @@
     "build": "pnpm --filter @gch/commerce run build && pnpm --filter @gch/database run build && pnpm --filter @gch/permissions run build && tsc -p tsconfig.json",
     "deploy-copy": "node scripts/deploy-copy.js",
     "start": "node dist/main.js",
-    "test": "pnpm --filter @gch/database run generate && node --import tsx --test src/**/*.spec.ts",
+    "test": "pnpm --filter @gch/database run generate && node scripts/test.mjs",
+    "test:commerce:mysql": "node --import tsx --test test/commerce.mysql.integration.ts",
+    "typecheck:commerce:mysql": "tsc -p test/tsconfig.json",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },

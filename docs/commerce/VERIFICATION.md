@@ -1,5 +1,7 @@
 # Prepaid commerce verification — 2026-10-06
 
+This records the original implementation checks. Subsequent native CI and MySQL evidence is tracked in [PHASE-2-VERIFICATION.md](PHASE-2-VERIFICATION.md); its results supersede the original environment limitations below where explicitly stated.
+
 ## Source and local checks
 
 The shared catalog contains the owner's confirmed yearly retail totals and the ten uploaded guides' product lists. The nine RP deals remain source-disabled; no retail discount schedule is used. Uploaded PDFs are private local assets, excluded from Git and public builds.
