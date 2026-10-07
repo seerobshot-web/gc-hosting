@@ -6,11 +6,13 @@ import path from "node:path";
 const root = fileURLToPath(new URL("../", import.meta.url));
 async function specs(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
-  const files = await Promise.all(entries.map(async (entry) => {
-    const filename = path.join(directory, entry.name);
-    if (entry.isDirectory()) return specs(filename);
-    return entry.isFile() && entry.name.endsWith(".spec.ts") ? [filename] : [];
-  }));
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const filename = path.join(directory, entry.name);
+      if (entry.isDirectory()) return specs(filename);
+      return entry.isFile() && entry.name.endsWith(".spec.ts") ? [filename] : [];
+    }),
+  );
   return files.flat().sort();
 }
 const files = await specs(path.join(root, "src"));
