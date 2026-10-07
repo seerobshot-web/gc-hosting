@@ -1,6 +1,7 @@
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Stripe from "stripe";
+import { createHash } from "node:crypto";
 
 @Injectable()
 export class CommerceStripeAdapter {
@@ -53,7 +54,11 @@ export class CommerceStripeAdapter {
         success_url: input.successUrl,
         cancel_url: input.cancelUrl,
       },
-      { idempotencyKey: `CommerceOrder:${input.orderId}:checkout` },
+      {
+        idempotencyKey: createHash("sha256")
+          .update(`CommerceOrder:${input.orderId}:checkout`)
+          .digest("hex"),
+      },
     );
     return { id: session.id, url: session.url };
   }
