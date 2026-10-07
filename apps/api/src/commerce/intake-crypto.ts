@@ -27,8 +27,14 @@ export function decryptIntake(
   binding: string,
   hexKey: string | undefined,
 ): Buffer {
-  const decipher = createDecipheriv("aes-256-gcm", key(hexKey), encrypted.subarray(0, 12));
-  decipher.setAAD(Buffer.from(binding));
-  decipher.setAuthTag(encrypted.subarray(12, 28));
-  return Buffer.concat([decipher.update(encrypted.subarray(28)), decipher.final()]);
+  const material = key(hexKey);
+  if (encrypted.length <= 28) throw new BadRequestException("invalid_intake_file");
+  try {
+    const decipher = createDecipheriv("aes-256-gcm", material, encrypted.subarray(0, 12));
+    decipher.setAAD(Buffer.from(binding));
+    decipher.setAuthTag(encrypted.subarray(12, 28));
+    return Buffer.concat([decipher.update(encrypted.subarray(28)), decipher.final()]);
+  } catch {
+    throw new BadRequestException("invalid_intake_file");
+  }
 }

@@ -289,7 +289,11 @@ describe("encrypted brand intake", () => {
     assert.throws(() => decryptIntake(first.encrypted, "order1:user2", key));
     const modified = Buffer.from(first.encrypted);
     modified[modified.length - 1]! ^= 1;
-    assert.throws(() => decryptIntake(modified, "order1:user1", key));
+    assert.throws(() => decryptIntake(modified, "order1:user1", key), /invalid_intake_file/);
+    assert.throws(
+      () => decryptIntake(Buffer.alloc(27), "order1:user1", key),
+      /invalid_intake_file/,
+    );
     assert.throws(
       () =>
         encryptIntake(Buffer.from("<script>bad</script>").toString("base64"), "order1:user1", key),
