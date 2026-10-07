@@ -3,12 +3,16 @@ const products = deals.map((deal) => ({
   "@type": "Product",
   name: deal.name,
   description: deal.items.join(", "),
-  offers: {
-    "@type": "Offer",
-    price: (deal.price.cents! / 100).toFixed(2),
-    priceCurrency: "USD",
-    availability: "https://schema.org/OutOfStock",
-  },
+  ...(deal.price.cents !== null && deal.price.verified
+    ? {
+        offers: {
+          "@type": "Offer",
+          price: (deal.price.cents / 100).toFixed(2),
+          priceCurrency: "USD",
+          availability: "https://schema.org/OutOfStock",
+        },
+      }
+    : {}),
 }));
 export const structuredData = JSON.stringify({
   "@context": "https://schema.org",

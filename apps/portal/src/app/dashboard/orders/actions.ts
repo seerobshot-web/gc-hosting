@@ -22,9 +22,15 @@ export async function startPrepaidCheckout(form: FormData) {
   if (!response.ok) redirect("/dashboard/orders?error=unavailable");
   const result = (await response.json()) as { url?: string };
   // Never send the browser to an arbitrary URL returned by an upstream service.
-  if (!result.url || new URL(result.url).origin !== "https://checkout.stripe.com")
+  let checkoutUrl: URL;
+  try {
+    checkoutUrl = new URL(result.url ?? "");
+  } catch {
     redirect("/dashboard/orders?error=unavailable");
-  redirect(result.url);
+  }
+  if (checkoutUrl.origin !== "https://checkout.stripe.com")
+    redirect("/dashboard/orders?error=unavailable");
+  redirect(checkoutUrl.href);
 }
 export async function savePrepaidIntake(form: FormData) {
   const session = await getSession();
