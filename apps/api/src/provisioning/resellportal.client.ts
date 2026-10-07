@@ -169,15 +169,16 @@ export class ResellPortalClient {
     });
 
     if (!res.ok) {
-      const body = this.redactSecrets(await res.text());
-      throw new Error(`ResellPortal ${path} failed: ${res.status} ${body}`);
+      throw new Error(`ResellPortal ${path} failed: ${res.status}`);
     }
 
-    const json: unknown = await res.json();
+    let json: unknown;
+    try { json = await res.json(); }
+    catch { throw new Error(`ResellPortal ${path} returned invalid JSON`); }
     const parsed = schema.safeParse(json);
     if (!parsed.success) {
       throw new Error(
-        `ResellPortal ${path} returned an unexpected shape: ${parsed.error.message}`,
+        `ResellPortal ${path} returned an unexpected shape`,
       );
     }
     return parsed.data;
@@ -320,12 +321,12 @@ export class ResellPortalClient {
     }
 
     if (!response.ok) {
-      throw new Error(`ResellPortal /orders failed: ${response.status} ${response.bodyText}`);
+      throw new Error(`ResellPortal /orders failed: ${response.status}`);
     }
 
     const parsed = orderResponseSchema.safeParse(response.bodyJson);
     if (!parsed.success) {
-      throw new Error(`ResellPortal /orders returned an unexpected shape: ${parsed.error.message}`);
+      throw new Error(`ResellPortal /orders returned an unexpected shape`);
     }
 
     return { kind: "placed", order: parsed.data };
