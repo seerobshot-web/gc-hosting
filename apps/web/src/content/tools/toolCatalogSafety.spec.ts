@@ -54,3 +54,48 @@ test("the homepage Tools journey and primary navigation are unchanged", () => {
   assert.match(nav, /primaryNavItems/);
   assert.ok(primaryNavItems.some((item) => item.label === "Tools" && item.href === siteRoutes.tools));
 });
+
+test("shared interaction layer 02 and 03 keeps the locked navigation and audience contracts", () => {
+  const homepage = readFileSync(new URL("../../pages/index.astro", import.meta.url), "utf8");
+  const nav = readFileSync(
+    new URL("../../components/marketing/GCHPrimaryNav.astro", import.meta.url), "utf8",
+  );
+  const audience = readFileSync(
+    new URL("../../components/marketing/GCHAudienceSwitcher.astro", import.meta.url), "utf8",
+  );
+  const audienceData = readFileSync(
+    new URL("../../components/marketing/audienceData.ts", import.meta.url), "utf8",
+  );
+
+  assert.deepEqual(
+    primaryNavItems.map(({ index, label, href }) => ({ index, label, href })),
+    [
+      { index: "01", label: "Marketing", href: siteRoutes.marketing },
+      { index: "02", label: "Ministry", href: siteRoutes.ministry },
+      { index: "03", label: "Hosting", href: siteRoutes.hosting },
+      { index: "04", label: "Tools", href: siteRoutes.tools },
+      { index: "05", label: "Deals", href: siteRoutes.deals },
+      { index: "06", label: "Resources", href: siteRoutes.resources },
+    ],
+  );
+
+  assert.match(nav, /data-gch-nav-surface="light"/);
+  assert.match(nav, /data-gch-nav-surface = surface === "dark" \? "dark" : "light"/);
+  assert.match(nav, /<details class="gch-nav__mobile">/);
+  assert.match(nav, />Portal<\/a>/);
+  assert.match(nav, />Get started<\/a>/);
+  assert.doesNotMatch(nav, />Search<\/a>|>Search<\/button>/);
+  assert.match(nav, /prefers-reduced-motion/);
+
+  assert.match(homepage, /GCHAudienceSwitcher/);
+  assert.match(audience, /role="tablist"/);
+  assert.match(audience, /role="tabpanel"/);
+  assert.match(audience, /ArrowRight/);
+  assert.match(audience, /ArrowLeft/);
+  assert.match(audience, /scroll-snap-type: x proximity/);
+  assert.match(audience, /prefers-reduced-motion/);
+
+  for (const label of ["Church", "Ministry", "Nonprofit", "Coach", "Creator", "Christian Business"]) {
+    assert.match(audienceData, new RegExp(`label: "${label}"`));
+  }
+});

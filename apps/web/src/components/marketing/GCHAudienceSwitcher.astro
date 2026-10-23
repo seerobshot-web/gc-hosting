@@ -1,0 +1,354 @@
+---
+import GCHHudLabel from "./GCHHudLabel.astro";
+import { audienceJourneys } from "./audienceData";
+
+const [initial] = audienceJourneys;
+---
+
+<section class="gch-audience" aria-labelledby="gch-audience-title" data-gch-surface="light" data-audience-switcher>
+  <div class="gch-audience__inner">
+    <div class="gch-audience__heading">
+      <GCHHudLabel index="03" label="Who we build with" />
+      <h2 id="gch-audience-title">Your technology should support the mission—not compete with it.</h2>
+    </div>
+
+    <div
+      class="gch-audience__tabs"
+      role="tablist"
+      aria-label="Choose your organization type"
+      data-audience-tabs
+    >
+      {audienceJourneys.map((audience, index) => (
+        <button
+          class="gch-audience__tab"
+          type="button"
+          role="tab"
+          id={`audience-tab-${audience.id}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          aria-controls="gch-audience-panel"
+          tabindex={index === 0 ? "0" : "-1"}
+          data-audience-id={audience.id}
+        >
+          <span>{audience.code}</span>
+          {audience.label}
+        </button>
+      ))}
+    </div>
+
+    <div
+      class="gch-audience__stage"
+      id="gch-audience-panel"
+      role="tabpanel"
+      aria-labelledby={`audience-tab-${initial.id}`}
+      tabindex="0"
+      data-audience-panel
+    >
+      <div class="gch-audience__copy">
+        <p class="gch-audience__statement" data-audience-statement>{initial.statement}</p>
+        <a class="gch-audience__cta" href={initial.href} data-audience-cta>
+          {initial.cta} <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div
+        class={`gch-audience__media gch-audience__media--${initial.scene}`}
+        data-audience-media
+        data-active="true"
+        aria-hidden="true"
+      >
+        <span class="gch-audience__media-label" data-audience-media-label>{initial.label}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ audienceJourneys }}>
+  document.querySelectorAll("[data-audience-switcher]").forEach((root) => {
+    const tabs = [...root.querySelectorAll("[role='tab'][data-audience-id]")];
+    const panel = root.querySelector("[data-audience-panel]");
+    const statement = root.querySelector("[data-audience-statement]");
+    const cta = root.querySelector("[data-audience-cta]");
+    const media = root.querySelector("[data-audience-media]");
+    const mediaLabel = root.querySelector("[data-audience-media-label]");
+
+    const activate = (tab, moveFocus = false) => {
+      const selected = audienceJourneys.find((item) => item.id === tab.dataset.audienceId);
+      if (!selected || !panel || !statement || !cta || !media) return;
+
+      tabs.forEach((candidate) => {
+        const active = candidate === tab;
+        candidate.setAttribute("aria-selected", String(active));
+        candidate.setAttribute("tabindex", active ? "0" : "-1");
+      });
+
+      panel.setAttribute("aria-labelledby", tab.id);
+      statement.textContent = selected.statement;
+      cta.textContent = `${selected.cta} →`;
+      cta.setAttribute("href", selected.href);
+      media.className = `gch-audience__media gch-audience__media--${selected.scene}`;
+      media.dataset.active = "true";
+      if (mediaLabel) mediaLabel.textContent = selected.label;
+      if (moveFocus) tab.focus();
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => activate(tab));
+      tab.addEventListener("focus", () => activate(tab));
+      tab.addEventListener("keydown", (event) => {
+        let nextIndex = null;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+        if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = tabs.length - 1;
+        if (nextIndex === null) return;
+        event.preventDefault();
+        activate(tabs[nextIndex], true);
+      });
+    });
+  });
+</script>
+
+<style>
+  .gch-audience {
+    background: var(--gch-cream);
+    color: var(--gch-text-primary);
+    border-top: 1px solid var(--gch-border-light);
+    border-bottom: 1px solid var(--gch-border-light);
+  }
+
+  .gch-audience__inner {
+    width: min(100% - 2rem, 1180px);
+    margin-inline: auto;
+    padding: clamp(4rem, 8vw, 7rem) 0;
+  }
+
+  .gch-audience__heading {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+    margin-bottom: 2rem;
+  }
+
+  .gch-audience__heading h2 {
+    max-width: 17ch;
+    margin: 0;
+    font: 800 clamp(2rem, 4.8vw, 4.8rem)/0.98 "Outfit", system-ui, sans-serif;
+    letter-spacing: -0.05em;
+  }
+
+  .gch-audience__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 1.25rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid var(--gch-border-light);
+  }
+
+  .gch-audience__tab {
+    position: relative;
+    min-height: 44px;
+    padding: 0.8rem 0 0.95rem;
+    border: 0;
+    background: transparent;
+    color: var(--gch-text-muted);
+    font: 700 0.74rem/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .gch-audience__tab span {
+    margin-right: 0.35rem;
+    color: color-mix(in srgb, var(--gch-gold-text) 72%, transparent);
+    font-size: 0.54rem;
+  }
+
+  .gch-audience__tab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 2.2rem;
+    height: 2px;
+    background: var(--gch-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 160ms ease;
+  }
+
+  .gch-audience__tab[aria-selected="true"] {
+    color: var(--gch-text-primary);
+    letter-spacing: 0.075em;
+  }
+
+  .gch-audience__tab[aria-selected="true"]::after {
+    transform: scaleX(1);
+  }
+
+  .gch-audience__tab:focus-visible {
+    outline: 2px solid var(--gch-blue);
+    outline-offset: 4px;
+  }
+
+  .gch-audience__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+    min-height: clamp(28rem, 54vw, 39rem);
+    border: 1px solid var(--gch-border-light);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: var(--gch-white);
+  }
+
+  .gch-audience__copy {
+    align-self: end;
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .gch-audience__statement {
+    max-width: 28ch;
+    margin: 0;
+    color: var(--gch-text-secondary);
+    font: 600 clamp(1.15rem, 2.2vw, 1.8rem)/1.25 "Outfit", system-ui, sans-serif;
+  }
+
+  .gch-audience__cta {
+    width: fit-content;
+    color: var(--gch-text-primary);
+    text-decoration: none;
+    font: 700 0.86rem/1.2 "JetBrains Mono", ui-monospace, monospace;
+    border-bottom: 1px solid var(--gch-gold);
+    padding-bottom: 0.3rem;
+  }
+
+  .gch-audience__cta:focus-visible {
+    outline: 2px solid var(--gch-blue);
+    outline-offset: 4px;
+  }
+
+  .gch-audience__media {
+    position: relative;
+    min-height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 68% 32%, rgba(232, 160, 32, 0.26), transparent 34%),
+      linear-gradient(145deg, #102238 0%, #1a334c 48%, #0b0d12 100%);
+    transform: scale(1);
+    transition: opacity 420ms ease, transform 900ms cubic-bezier(.2,.7,.2,1);
+    isolation: isolate;
+  }
+
+  .gch-audience__media::before,
+  .gch-audience__media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .gch-audience__media::before {
+    background: linear-gradient(90deg, rgba(8,13,15,.28), transparent 45%);
+  }
+
+  .gch-audience__media::after {
+    background:
+      linear-gradient(115deg, transparent 62%, rgba(212,144,12,.22)),
+      radial-gradient(circle at 18% 78%, rgba(72,114,184,.22), transparent 36%);
+  }
+
+  .gch-audience__media[data-active="true"] {
+    transform: scale(1.04);
+  }
+
+  .gch-audience__media--ministry {
+    background:
+      radial-gradient(circle at 40% 35%, rgba(147,180,223,.2), transparent 32%),
+      linear-gradient(150deg, #142337 0%, #2c3540 44%, #151a20 100%);
+  }
+
+  .gch-audience__media--nonprofit {
+    background:
+      radial-gradient(circle at 72% 28%, rgba(212,144,12,.24), transparent 30%),
+      linear-gradient(150deg, #26313d 0%, #5d4b38 52%, #16181d 100%);
+  }
+
+  .gch-audience__media--coach {
+    background:
+      radial-gradient(circle at 28% 65%, rgba(232,160,32,.18), transparent 28%),
+      linear-gradient(145deg, #252526 0%, #4d3c31 48%, #121316 100%);
+  }
+
+  .gch-audience__media--creator {
+    background:
+      radial-gradient(circle at 70% 26%, rgba(72,114,184,.32), transparent 28%),
+      linear-gradient(145deg, #111725 0%, #243752 52%, #080d0f 100%);
+  }
+
+  .gch-audience__media--christian-business {
+    background:
+      radial-gradient(circle at 76% 40%, rgba(212,144,12,.22), transparent 34%),
+      linear-gradient(145deg, #20242b 0%, #354353 50%, #0b0d12 100%);
+  }
+
+  .gch-audience__media-label {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    z-index: 2;
+    color: rgba(245,240,230,.84);
+    font: 700 0.62rem/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 760px) {
+    .gch-audience__heading {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .gch-audience__tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      padding-bottom: 0.15rem;
+      mask-image: linear-gradient(90deg, #000 0%, #000 92%, transparent 100%);
+    }
+
+    .gch-audience__tab {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      white-space: nowrap;
+    }
+
+    .gch-audience__stage {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .gch-audience__media {
+      grid-row: 1;
+      min-height: 18rem;
+    }
+
+    .gch-audience__copy {
+      grid-row: 2;
+      padding: 1.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gch-audience__tab::after,
+    .gch-audience__media {
+      transition: none;
+      transform: none;
+    }
+
+    .gch-audience__media[data-active="true"] {
+      transform: none;
+    }
+  }
+</style>
