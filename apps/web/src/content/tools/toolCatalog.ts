@@ -106,7 +106,15 @@ export function getHomepageToolTeasers(limit = 8) {
 }
 
 export function getDemoRunwayTools(limit = 6) {
-  const verified = toolCatalog.filter((tool) => tool.demo.status === "verified");
+  const priority = ["business-phone", "web-builder", "link-in-bio"];
+  const verified = toolCatalog
+    .filter((tool) => tool.demo.status === "verified")
+    .sort((a, b) => {
+      const ai = priority.indexOf(a.slug);
+      const bi = priority.indexOf(b.slug);
+      return (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) -
+        (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
+    });
   const featured = toolCatalog.filter(
     (tool) =>
       editorialBySlug.get(tool.slug)?.homepageFeatured &&
