@@ -6,6 +6,19 @@ export type ToolCategory =
   | "business-operations"
   | "infrastructure-advanced";
 
+export type ToolDemoStatus = "verified" | "unverified" | "unavailable";
+export type ToolPreviewMode = "workstation" | "device" | "infrastructure" | "service";
+
+export interface ToolDemoRecord {
+  slug: string;
+  code: string;
+  status: ToolDemoStatus;
+  demoUrl: string | null;
+  previewMode: ToolPreviewMode;
+  previewLabel: string;
+  audience: readonly string[];
+}
+
 export interface ToolEditorialRecord {
   slug: string;
   displayName: string;
@@ -64,6 +77,7 @@ export interface ToolCardProjection {
   availability: ToolField<"Available" | "Contact us" | "Temporarily unavailable">;
   mapping: ToolMappingRecord;
   purchase: ToolPurchaseGate;
+  demo: ToolDemoRecord;
   detailHref: string;
   contactHref: string;
   sourceLabel: string;
