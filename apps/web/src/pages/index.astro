@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import GCHPrimaryNav from "../components/marketing/GCHPrimaryNav.astro";
 import GCHHudLabel from "../components/marketing/GCHHudLabel.astro";
+import GCHAudienceSwitcher from "../components/marketing/GCHAudienceSwitcher.astro";
 import GCHToolsTeaser from "../components/marketing/GCHToolsTeaser.astro";
 import { primaryNavItems, siteRoutes } from "../config/site-routes";
 ---
@@ -25,7 +26,9 @@ import { primaryNavItems, siteRoutes } from "../config/site-routes";
       </div>
     </section>
 
-    <section class="home-safe__routes" aria-labelledby="home-routes-title">
+    <GCHAudienceSwitcher />
+
+    <section class="home-safe__routes" aria-labelledby="home-routes-title" data-gch-surface="light">
       <GCHHudLabel index="ROUTES" label="Validated public paths" />
       <h2 id="home-routes-title">Choose a path.</h2>
       <div class="home-safe__grid">
