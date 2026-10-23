@@ -104,3 +104,13 @@ export function getToolsByCategory() {
 export function getHomepageToolTeasers(limit = 8) {
   return toolCatalog.filter((tool) => editorialBySlug.get(tool.slug)?.homepageFeatured).slice(0, limit);
 }
+
+export function getDemoRunwayTools(limit = 6) {
+  const verified = toolCatalog.filter((tool) => tool.demo.status === "verified");
+  const featured = toolCatalog.filter(
+    (tool) =>
+      editorialBySlug.get(tool.slug)?.homepageFeatured &&
+      !verified.some((verifiedTool) => verifiedTool.slug === tool.slug),
+  );
+  return [...verified, ...featured].slice(0, limit);
+}
