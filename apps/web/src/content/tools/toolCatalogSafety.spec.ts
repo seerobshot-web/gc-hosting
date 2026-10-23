@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { toolCatalog } from "./toolCatalog";
+import { toolCatalog, getDemoRunwayTools } from "./toolCatalog";
+import { toolDemoRecords } from "./toolDemos";
 import { primaryNavItems, siteRoutes } from "../../config/site-routes";
 
 const SECRET_PATTERNS = [
@@ -98,4 +99,39 @@ test("shared interaction layer 02 and 03 keeps the locked navigation and audienc
   for (const label of ["Church", "Ministry", "Nonprofit", "Coach", "Creator", "Christian Business"]) {
     assert.match(audienceData, new RegExp(`label: "${label}"`));
   }
+});
+
+
+test("SaaS demo proof layer exposes only explicitly verified demo URLs", () => {
+  const live = toolDemoRecords.filter((demo) => demo.status === "verified");
+  assert.deepEqual(live.map((demo) => demo.slug), ["business-phone"]);
+  assert.equal(
+    live[0]?.demoUrl,
+    "https://shop.gloryhost.cloud/phone-manager/?page=demo",
+  );
+
+  for (const demo of toolDemoRecords.filter((item) => item.status !== "verified")) {
+    assert.equal(demo.demoUrl, null);
+  }
+
+  const runway = getDemoRunwayTools(6);
+  assert.equal(runway[0]?.slug, "business-phone");
+});
+
+test("public SaaS demo components do not expose wholesale cost or reseller profit", () => {
+  const demoCard = readFileSync(
+    new URL("../../components/marketing/GCHSaaSDemoCard.astro", import.meta.url), "utf8",
+  );
+  const teaser = readFileSync(
+    new URL("../../components/marketing/GCHToolsTeaser.astro", import.meta.url), "utf8",
+  );
+  const demoSource = readFileSync(new URL("./toolDemos.ts", import.meta.url), "utf8");
+
+  for (const source of [demoCard, teaser, demoSource]) {
+    assert.doesNotMatch(source, /suggested retail|your profit|wholesale|provider cost/i);
+  }
+
+  assert.match(demoCard, /Open live demo/);
+  assert.match(demoCard, /View product/);
+  assert.match(teaser, /scroll-snap-type:x mandatory/);
 });
