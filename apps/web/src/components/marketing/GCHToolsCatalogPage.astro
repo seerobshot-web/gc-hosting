@@ -3,6 +3,7 @@ import GCHHudLabel from "./GCHHudLabel.astro";
 import GCHPrimaryNav from "./GCHPrimaryNav.astro";
 import GCHCategoryRail from "./GCHCategoryRail.astro";
 import GCHFinalConversion from "./GCHFinalConversion.astro";
+import GCHSaaSDemoCard from "./GCHSaaSDemoCard.astro";
 import {
   getToolsByCategory,
   toolsContractStatus,
@@ -69,32 +70,7 @@ const railItems = categories.map((category) => ({
 
             <div class="gch-tools-page__grid">
               {category.tools.map((tool) => (
-                <article class="gch-tool-card">
-                  <div class="gch-tool-card__meta">
-                    <span>{tool.availability.value}</span>
-                    <small>{tool.pricing.value}</small>
-                  </div>
-                  <h4>{tool.displayName}</h4>
-                  <p>{tool.teaser}</p>
-                  <dl>
-                    <div>
-                      <dt>Audience</dt>
-                      <dd>{tool.audience}</dd>
-                    </div>
-                    <div>
-                      <dt>Catalog status</dt>
-                      <dd>{tool.mapping.statusNote}</dd>
-                    </div>
-                  </dl>
-                  <div class="gch-tool-card__actions">
-                    <a href={tool.detailHref}>View details</a>
-                    {tool.purchase.canPurchase ? (
-                      <a href={tool.purchase.storefrontHref}>Purchase</a>
-                    ) : (
-                      <a href={tool.contactHref}>Contact GCH</a>
-                    )}
-                  </div>
-                </article>
+                <GCHSaaSDemoCard tool={tool} />
               ))}
             </div>
           </section>
@@ -129,15 +105,5 @@ const railItems = categories.map((category) => ({
   .gch-tools-page__jump a:focus-visible,.gch-tool-card__actions a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
   .gch-tools-page__group{display:grid;gap:1.2rem}
   .gch-tools-page__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
-  .gch-tool-card{display:grid;gap:.9rem;padding:1rem;border:1px solid var(--gch-border-light);border-radius:1rem;background:var(--gch-white)}
-  .gch-tool-card__meta{display:flex;justify-content:space-between;gap:1rem;align-items:start}
-  .gch-tool-card__meta span,.gch-tool-card__meta small,.gch-tool-card dt{font:700 .62rem/1.35 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
-  .gch-tool-card__meta span{color:var(--gch-gold-text)}
-  .gch-tool-card__meta small,.gch-tool-card dt{color:var(--gch-text-muted)}
-  .gch-tool-card h4{margin:0;font:800 1.15rem/1.08 "Outfit",system-ui,sans-serif}
-  .gch-tool-card p,.gch-tool-card dd{margin:0;color:var(--gch-text-secondary);font:400 .95rem/1.6 "Outfit",system-ui,sans-serif}
-  .gch-tool-card dl{display:grid;gap:.7rem;margin:0}
-  .gch-tool-card dl div{display:grid;gap:.25rem}
-  .gch-tool-card__actions{display:flex;flex-wrap:wrap;gap:.7rem}
-  @media(max-width:960px){.gch-tools-page__hero-inner,.gch-tools-page__content-inner{grid-template-columns:1fr}.gch-tools-page__grid{grid-template-columns:1fr}}
+    @media(max-width:960px){.gch-tools-page__hero-inner,.gch-tools-page__content-inner{grid-template-columns:1fr}.gch-tools-page__grid{grid-template-columns:1fr}}
 </style>

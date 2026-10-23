@@ -1,0 +1,104 @@
+---
+import type { ToolCardProjection } from "../../content/tools/toolTypes";
+
+interface Props {
+  tool: ToolCardProjection;
+  compact?: boolean;
+}
+
+const { tool, compact = false } = Astro.props;
+const demoAvailable = tool.demo.status === "verified" && Boolean(tool.demo.demoUrl);
+const previewClass = `gch-demo-card__preview gch-demo-card__preview--${tool.demo.previewMode}`;
+---
+
+<article class:list={["gch-demo-card", { "gch-demo-card--compact": compact }]} data-demo-status={tool.demo.status}>
+  <div class="gch-demo-card__topline">
+    <span>{tool.demo.code} / {tool.category.replaceAll("-", " ")}</span>
+    <span class:list={["gch-demo-card__status", { "is-live": demoAvailable }]}>
+      {demoAvailable ? "Demo available" : "Demo pending"}
+    </span>
+  </div>
+
+  <div class="gch-demo-card__body">
+    <div>
+      <h3>{tool.displayName}</h3>
+      <p>{tool.teaser}</p>
+    </div>
+
+    <div class={previewClass} aria-hidden="true">
+      <div class="gch-demo-card__preview-chrome">
+        <span>GCH LAB</span>
+        <span>{tool.demo.previewLabel}</span>
+      </div>
+
+      <div class="gch-demo-card__preview-stage">
+        {tool.demo.previewMode === "workstation" && (
+          <>
+            <span class="gch-demo-card__ui-line"></span>
+            <span class="gch-demo-card__ui-line is-short"></span>
+            <span class="gch-demo-card__ui-grid"></span>
+          </>
+        )}
+        {tool.demo.previewMode === "device" && <span class="gch-demo-card__device"></span>}
+        {tool.demo.previewMode === "infrastructure" && (
+          <span class="gch-demo-card__nodes">
+            <i></i><i></i><i></i><i></i>
+          </span>
+        )}
+        {tool.demo.previewMode === "service" && (
+          <span class="gch-demo-card__service-graph">
+            <i></i><i></i><i></i>
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div class="gch-demo-card__meta">
+    <span>Mode <strong>{tool.demo.previewMode}</strong></span>
+    <span>Audience <strong>{tool.audience}</strong></span>
+  </div>
+
+  <div class="gch-demo-card__actions">
+    {demoAvailable ? (
+      <a class="gch-demo-card__primary" href={tool.demo.demoUrl} target="_blank" rel="noopener noreferrer">
+        Open live demo <span aria-hidden="true">↗</span>
+      </a>
+    ) : (
+      <a class="gch-demo-card__primary" href={tool.detailHref}>View product <span aria-hidden="true">→</span></a>
+    )}
+    <a class="gch-demo-card__secondary" href={tool.detailHref}>Product details</a>
+  </div>
+</article>
+
+<style>
+  .gch-demo-card{display:grid;gap:1rem;padding:1.1rem;border:1px solid var(--gch-border-light);border-radius:1.15rem;background:var(--gch-white);overflow:hidden;transition:transform 220ms cubic-bezier(.2,.7,.2,1),border-color 220ms ease}
+  .gch-demo-card:hover,.gch-demo-card:focus-within{transform:translateY(-6px);border-color:var(--gch-gold)}
+  .gch-demo-card__topline,.gch-demo-card__meta{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;color:var(--gch-text-muted);font:700 .58rem/1.4 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+  .gch-demo-card__status.is-live{color:var(--gch-gold-text)}
+  .gch-demo-card__body{display:grid;grid-template-columns:minmax(0,.9fr) minmax(13rem,1.1fr);gap:1rem;align-items:stretch}
+  .gch-demo-card h3{margin:0 0 .65rem;font:800 1.25rem/1.05 "Outfit",system-ui,sans-serif}
+  .gch-demo-card p{margin:0;color:var(--gch-text-secondary);font:400 .92rem/1.55 "Outfit",system-ui,sans-serif}
+  .gch-demo-card__preview{min-height:12rem;border:1px solid var(--gch-border-dark);border-radius:.85rem;background:var(--gch-brand-dark);color:var(--gch-text-primary-dark);overflow:hidden;transform:translateY(8px);transition:transform 260ms cubic-bezier(.2,.7,.2,1)}
+  .gch-demo-card:hover .gch-demo-card__preview,.gch-demo-card:focus-within .gch-demo-card__preview{transform:translateY(0)}
+  .gch-demo-card__preview-chrome{display:flex;justify-content:space-between;padding:.65rem .75rem;border-bottom:1px solid var(--gch-border-dark);font:700 .52rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--gch-text-secondary-dark)}
+  .gch-demo-card__preview-stage{position:relative;min-height:9rem;padding:1rem;background:radial-gradient(circle at 78% 18%,rgba(232,160,32,.14),transparent 30%)}
+  .gch-demo-card__ui-line{display:block;width:72%;height:.5rem;margin:.5rem 0;border-radius:999px;background:rgba(245,240,230,.18)}
+  .gch-demo-card__ui-line.is-short{width:46%}
+  .gch-demo-card__ui-grid{display:block;width:100%;height:4.5rem;margin-top:1.2rem;border:1px solid rgba(147,180,223,.24);background:linear-gradient(90deg,rgba(72,114,184,.08) 1px,transparent 1px),linear-gradient(rgba(72,114,184,.08) 1px,transparent 1px);background-size:1.1rem 1.1rem}
+  .gch-demo-card__device{display:block;width:4.7rem;height:8rem;margin:auto;border:1px solid rgba(245,240,230,.42);border-radius:1rem;background:linear-gradient(180deg,rgba(72,114,184,.28),rgba(212,144,12,.12))}
+  .gch-demo-card__nodes{position:absolute;inset:1rem;display:grid;grid-template-columns:repeat(2,1fr);gap:2rem}
+  .gch-demo-card__nodes i{display:block;width:1rem;height:1rem;border-radius:50%;background:var(--gch-gold);box-shadow:3rem 1.5rem 0 rgba(72,114,184,.55)}
+  .gch-demo-card__service-graph{display:flex;align-items:end;gap:.65rem;height:7rem}
+  .gch-demo-card__service-graph i{display:block;width:1.4rem;background:linear-gradient(var(--gch-gold),var(--gch-blue));border-radius:.25rem .25rem 0 0}
+  .gch-demo-card__service-graph i:nth-child(1){height:35%}.gch-demo-card__service-graph i:nth-child(2){height:70%}.gch-demo-card__service-graph i:nth-child(3){height:52%}
+  .gch-demo-card__meta strong{color:var(--gch-text-primary)}
+  .gch-demo-card__actions{display:flex;gap:.65rem;flex-wrap:wrap}
+  .gch-demo-card__actions a{min-height:2.6rem;display:inline-flex;align-items:center;justify-content:center;padding:0 .9rem;border-radius:999px;text-decoration:none;font:700 .78rem/1 "Outfit",system-ui,sans-serif}
+  .gch-demo-card__primary{background:var(--gch-brand-dark);color:var(--gch-text-primary-dark)}
+  .gch-demo-card__secondary{border:1px solid var(--gch-border-light);color:var(--gch-text-primary);background:var(--gch-white)}
+  .gch-demo-card__actions a:focus-visible{outline:2px solid var(--gch-blue);outline-offset:4px}
+  .gch-demo-card--compact .gch-demo-card__body{grid-template-columns:1fr}.gch-demo-card--compact .gch-demo-card__preview{min-height:10rem}
+  @media(max-width:760px){.gch-demo-card__body{grid-template-columns:1fr}.gch-demo-card__preview{min-height:11rem}}
+  @media(prefers-reduced-motion:reduce){.gch-demo-card,.gch-demo-card__preview{transition:none}.gch-demo-card:hover,.gch-demo-card:focus-within,.gch-demo-card:hover .gch-demo-card__preview,.gch-demo-card:focus-within .gch-demo-card__preview{transform:none}}
+</style>

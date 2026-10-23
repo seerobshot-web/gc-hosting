@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { toolCatalog } from "./toolCatalog";
+import { toolCatalog, getDemoRunwayTools } from "./toolCatalog";
+import { toolDemoRecords } from "./toolDemos";
 import { primaryNavItems, siteRoutes } from "../../config/site-routes";
 
 const SECRET_PATTERNS = [
@@ -98,4 +99,60 @@ test("shared interaction layer 02 and 03 keeps the locked navigation and audienc
   for (const label of ["Church", "Ministry", "Nonprofit", "Coach", "Creator", "Christian Business"]) {
     assert.match(audienceData, new RegExp(`label: "${label}"`));
   }
+});
+
+
+test("SaaS demo registry separates public allowlist, verified demos, and hidden confirmed records", () => {
+  const publicLive = toolDemoRecords
+    .filter((demo) => demo.status === "verified" && demo.publicAllowlisted)
+    .map((demo) => demo.slug)
+    .sort();
+
+  assert.deepEqual(publicLive, ["business-phone", "link-in-bio", "web-builder"]);
+
+  const confirmedHidden = toolDemoRecords
+    .filter((demo) => demo.status === "verified" && !demo.publicAllowlisted)
+    .map((demo) => demo.slug)
+    .sort();
+
+  assert.deepEqual(
+    confirmedHidden,
+    ["ai-seo-autopilot", "ai-smart-invoicing", "cloud-storage", "digital-gift-cards", "email-marketing"],
+  );
+
+  const businessPhone = toolDemoRecords.find((demo) => demo.slug === "business-phone");
+  assert.equal(businessPhone?.demoUrl, "https://shop.gloryhost.cloud/phone-manager/?page=demo");
+
+  const privateAi = toolDemoRecords.find((demo) => demo.slug === "private-ai-box");
+  assert.equal(privateAi?.status, "mapping-pending");
+  assert.equal(privateAi?.demoUrl, null);
+  assert.equal(privateAi?.externalDemoUrl, "https://demo.privateofficeai.com/setup");
+
+  for (const demo of toolDemoRecords.filter((item) => item.fulfillmentOnly)) {
+    assert.equal(demo.demoUrl, null);
+    assert.equal(demo.clientAccessPath, null);
+  }
+
+  const runway = getDemoRunwayTools(6);
+  assert.equal(runway[0]?.slug, "business-phone");
+  assert.ok(runway.some((tool) => tool.slug === "web-builder"));
+  assert.ok(runway.some((tool) => tool.slug === "link-in-bio"));
+});
+
+test("public SaaS demo components do not expose wholesale cost or reseller profit", () => {
+  const demoCard = readFileSync(
+    new URL("../../components/marketing/GCHSaaSDemoCard.astro", import.meta.url), "utf8",
+  );
+  const teaser = readFileSync(
+    new URL("../../components/marketing/GCHToolsTeaser.astro", import.meta.url), "utf8",
+  );
+  const demoSource = readFileSync(new URL("./toolDemos.ts", import.meta.url), "utf8");
+
+  for (const source of [demoCard, teaser, demoSource]) {
+    assert.doesNotMatch(source, /suggested retail|your profit|wholesale|provider cost/i);
+  }
+
+  assert.match(demoCard, /Open live demo/);
+  assert.match(demoCard, /View product/);
+  assert.match(teaser, /scroll-snap-type:x mandatory/);
 });
