@@ -1,6 +1,216 @@
 import type { ToolDemoRecord, ToolPreviewMode } from "./toolTypes";
 
 const demoHost = "https://shop.gloryhost.cloud";
+const apiDocs = "https://resellportal.com/api/";
+
+const labels: Record<ToolPreviewMode, string> = {
+  workstation: "Workspace preview",
+  device: "Device preview",
+  infrastructure: "Infrastructure preview",
+  service: "Service proof",
+};
+
+const records: ToolDemoRecord[] = [
+  {
+    slug: "business-phone",
+    code: "SAA-12",
+    status: "verified",
+    demoUrl: `${demoHost}/phone-manager/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/phone-manager/`,
+    documentationUrl: "https://resellportal.com/phone-number-api/",
+    productDocumentationUrl: "https://resellportal.com/products/business-phone-number/",
+    fulfillmentOnly: false,
+    publicAllowlisted: true,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: ["business", "ministry", "nonprofit"],
+  },
+  {
+    slug: "web-builder",
+    code: "SAA-04",
+    status: "verified",
+    demoUrl: `${demoHost}/sites/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/sites/`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/website-builder/",
+    fulfillmentOnly: false,
+    publicAllowlisted: true,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: ["business", "ministry", "nonprofit", "creator"],
+  },
+  {
+    slug: "link-in-bio",
+    code: "SAA-11",
+    status: "verified",
+    demoUrl: `${demoHost}/link-bio/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/link-bio/`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/link-in-bio/",
+    fulfillmentOnly: false,
+    publicAllowlisted: true,
+    previewMode: "device",
+    previewLabel: labels.device,
+    audience: ["creator", "ministry", "business"],
+  },
+  {
+    slug: "private-ai-box",
+    code: "SAA-18",
+    status: "mapping-pending",
+    demoUrl: null,
+    externalDemoUrl: "https://demo.privateofficeai.com/setup",
+    clientAccessPath: null,
+    documentationUrl: null,
+    productDocumentationUrl: null,
+    fulfillmentOnly: false,
+    publicAllowlisted: true,
+    previewMode: "infrastructure",
+    previewLabel: labels.infrastructure,
+    audience: ["business", "ministry", "nonprofit"],
+  },
+
+  // Confirmed demo/access records that are not yet projected into the public GCH allowlist.
+  {
+    slug: "cloud-storage",
+    code: "SAA-X01",
+    status: "verified",
+    demoUrl: `${demoHost}/storage/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/storage/`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/cloud-storage/",
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "infrastructure",
+    previewLabel: labels.infrastructure,
+    audience: [],
+  },
+  {
+    slug: "ai-seo-autopilot",
+    code: "SAA-X02",
+    status: "verified",
+    demoUrl: `${demoHost}/seo-autopilot?page=demo&tab=dashboard`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/seo-autopilot`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: null,
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: [],
+  },
+  {
+    slug: "ai-smart-invoicing",
+    code: "SAA-X03",
+    status: "verified",
+    demoUrl: `${demoHost}/invoice/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/invoice/`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/ai-invoicing/",
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: [],
+  },
+  {
+    slug: "email-marketing",
+    code: "SAA-X04",
+    status: "verified",
+    demoUrl: `${demoHost}/email/?page=demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/email/`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/email-marketing/",
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: [],
+  },
+  {
+    slug: "digital-gift-cards",
+    code: "SAA-X05",
+    status: "verified",
+    demoUrl: `${demoHost}/gc/demo`,
+    externalDemoUrl: null,
+    clientAccessPath: `${demoHost}/giftcards`,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/digital-gift-cards/",
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "device",
+    previewLabel: labels.device,
+    audience: [],
+  },
+
+  // Fulfilment-only products never receive a storefront app login/client_access_url.
+  {
+    slug: "domain-registration",
+    code: "FUL-01",
+    status: "unavailable",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/",
+    fulfillmentOnly: true,
+    publicAllowlisted: true,
+    previewMode: "infrastructure",
+    previewLabel: labels.infrastructure,
+    audience: [],
+  },
+  {
+    slug: "esim-packages",
+    code: "FUL-02",
+    status: "unavailable",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/",
+    fulfillmentOnly: true,
+    publicAllowlisted: true,
+    previewMode: "device",
+    previewLabel: labels.device,
+    audience: [],
+  },
+  {
+    slug: "plugin-theme-white-label",
+    code: "FUL-03",
+    status: "unavailable",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/",
+    fulfillmentOnly: true,
+    publicAllowlisted: true,
+    previewMode: "workstation",
+    previewLabel: labels.workstation,
+    audience: [],
+  },
+  {
+    slug: "smm",
+    code: "FUL-04",
+    status: "unavailable",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: apiDocs,
+    productDocumentationUrl: "https://resellportal.com/products/",
+    fulfillmentOnly: true,
+    publicAllowlisted: false,
+    previewMode: "service",
+    previewLabel: labels.service,
+    audience: [],
+  },
+];
 
 const previewModes: Record<string, ToolPreviewMode> = {
   "business-website": "workstation",
@@ -23,43 +233,46 @@ const previewModes: Record<string, ToolPreviewMode> = {
   "private-ai-box": "infrastructure",
 };
 
-const labels: Record<ToolPreviewMode, string> = {
-  workstation: "Workspace preview",
-  device: "Device preview",
-  infrastructure: "Infrastructure preview",
-  service: "Service proof",
-};
+const recordedSlugs = new Set(records.map((record) => record.slug));
 
-export const toolDemoRecords: readonly ToolDemoRecord[] = Object.entries(previewModes).map(
-  ([slug, previewMode], index) => ({
+for (const [slug, previewMode] of Object.entries(previewModes)) {
+  if (recordedSlugs.has(slug)) continue;
+  records.push({
     slug,
-    code: `SAA-${String(index + 1).padStart(2, "0")}`,
-    status: slug === "business-phone" ? "verified" : "unverified",
-    demoUrl:
-      slug === "business-phone"
-        ? `${demoHost}/phone-manager/?page=demo`
-        : null,
+    code: `SAA-${String(records.length + 1).padStart(2, "0")}`,
+    status: "unverified",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: null,
+    productDocumentationUrl: null,
+    fulfillmentOnly: false,
+    publicAllowlisted: true,
     previewMode,
     previewLabel: labels[previewMode],
-    audience:
-      slug === "business-phone"
-        ? ["business", "ministry", "nonprofit"]
-        : [],
-  }),
-);
+    audience: [],
+  });
+}
+
+export const toolDemoRecords: readonly ToolDemoRecord[] = records;
 
 export function getToolDemo(slug: string): ToolDemoRecord {
   const record = toolDemoRecords.find((item) => item.slug === slug);
-  if (!record) {
-    return {
-      slug,
-      code: "SAA-00",
-      status: "unavailable",
-      demoUrl: null,
-      previewMode: "service",
-      previewLabel: labels.service,
-      audience: [],
-    };
-  }
-  return record;
+  if (record) return record;
+
+  return {
+    slug,
+    code: "SAA-00",
+    status: "unavailable",
+    demoUrl: null,
+    externalDemoUrl: null,
+    clientAccessPath: null,
+    documentationUrl: null,
+    productDocumentationUrl: null,
+    fulfillmentOnly: false,
+    publicAllowlisted: false,
+    previewMode: "service",
+    previewLabel: labels.service,
+    audience: [],
+  };
 }
