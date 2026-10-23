@@ -102,20 +102,41 @@ test("shared interaction layer 02 and 03 keeps the locked navigation and audienc
 });
 
 
-test("SaaS demo proof layer exposes only explicitly verified demo URLs", () => {
-  const live = toolDemoRecords.filter((demo) => demo.status === "verified");
-  assert.deepEqual(live.map((demo) => demo.slug), ["business-phone"]);
-  assert.equal(
-    live[0]?.demoUrl,
-    "https://shop.gloryhost.cloud/phone-manager/?page=demo",
+test("SaaS demo registry separates public allowlist, verified demos, and hidden confirmed records", () => {
+  const publicLive = toolDemoRecords
+    .filter((demo) => demo.status === "verified" && demo.publicAllowlisted)
+    .map((demo) => demo.slug)
+    .sort();
+
+  assert.deepEqual(publicLive, ["business-phone", "link-in-bio", "web-builder"]);
+
+  const confirmedHidden = toolDemoRecords
+    .filter((demo) => demo.status === "verified" && !demo.publicAllowlisted)
+    .map((demo) => demo.slug)
+    .sort();
+
+  assert.deepEqual(
+    confirmedHidden,
+    ["ai-seo-autopilot", "ai-smart-invoicing", "cloud-storage", "digital-gift-cards", "email-marketing"],
   );
 
-  for (const demo of toolDemoRecords.filter((item) => item.status !== "verified")) {
+  const businessPhone = toolDemoRecords.find((demo) => demo.slug === "business-phone");
+  assert.equal(businessPhone?.demoUrl, "https://shop.gloryhost.cloud/phone-manager/?page=demo");
+
+  const privateAi = toolDemoRecords.find((demo) => demo.slug === "private-ai-box");
+  assert.equal(privateAi?.status, "mapping-pending");
+  assert.equal(privateAi?.demoUrl, null);
+  assert.equal(privateAi?.externalDemoUrl, "https://demo.privateofficeai.com/setup");
+
+  for (const demo of toolDemoRecords.filter((item) => item.fulfillmentOnly)) {
     assert.equal(demo.demoUrl, null);
+    assert.equal(demo.clientAccessPath, null);
   }
 
   const runway = getDemoRunwayTools(6);
   assert.equal(runway[0]?.slug, "business-phone");
+  assert.ok(runway.some((tool) => tool.slug === "web-builder"));
+  assert.ok(runway.some((tool) => tool.slug === "link-in-bio"));
 });
 
 test("public SaaS demo components do not expose wholesale cost or reseller profit", () => {
