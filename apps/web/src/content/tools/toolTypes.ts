@@ -6,6 +6,25 @@ export type ToolCategory =
   | "business-operations"
   | "infrastructure-advanced";
 
+export type ToolDemoStatus = "verified" | "unverified" | "unavailable" | "mapping-pending";
+export type ToolPreviewMode = "workstation" | "device" | "infrastructure" | "service";
+
+export interface ToolDemoRecord {
+  slug: string;
+  code: string;
+  status: ToolDemoStatus;
+  demoUrl: string | null;
+  externalDemoUrl: string | null;
+  clientAccessPath: string | null;
+  documentationUrl: string | null;
+  productDocumentationUrl: string | null;
+  fulfillmentOnly: boolean;
+  publicAllowlisted: boolean;
+  previewMode: ToolPreviewMode;
+  previewLabel: string;
+  audience: readonly string[];
+}
+
 export interface ToolEditorialRecord {
   slug: string;
   displayName: string;
@@ -43,7 +62,6 @@ export type ToolPurchaseGateReason =
   | "storefront_path_unsafe_or_missing"
   | "verified";
 
-/** Whether a catalog entry may render a Purchase CTA — see toolPurchaseGate.ts. */
 export interface ToolPurchaseGate {
   canPurchase: boolean;
   storefrontHref: string | null;
@@ -64,6 +82,7 @@ export interface ToolCardProjection {
   availability: ToolField<"Available" | "Contact us" | "Temporarily unavailable">;
   mapping: ToolMappingRecord;
   purchase: ToolPurchaseGate;
+  demo: ToolDemoRecord;
   detailHref: string;
   contactHref: string;
   sourceLabel: string;

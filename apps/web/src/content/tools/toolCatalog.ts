@@ -1,6 +1,7 @@
 import { siteRoutes, toolDetailRoute } from "../../config/site-routes";
 import { toolEditorialRecords } from "./toolEditorial";
 import { toolMappings } from "./toolMappings";
+import { getToolDemo } from "./toolDemos";
 import { resolvePurchaseGate } from "./toolPurchaseGate";
 import type {
   ToolCardProjection,
@@ -77,6 +78,7 @@ function createProjection(record: ToolEditorialRecord): ToolCardProjection {
     },
     mapping,
     purchase: resolvePurchaseGate(mapping),
+    demo: getToolDemo(record.slug),
     detailHref: toolDetailRoute(record.slug),
     contactHref: siteRoutes.start,
     sourceLabel: toolsSourceLabel,
@@ -101,4 +103,22 @@ export function getToolsByCategory() {
 
 export function getHomepageToolTeasers(limit = 8) {
   return toolCatalog.filter((tool) => editorialBySlug.get(tool.slug)?.homepageFeatured).slice(0, limit);
+}
+
+export function getDemoRunwayTools(limit = 6) {
+  const priority = ["business-phone", "web-builder", "link-in-bio"];
+  const verified = toolCatalog
+    .filter((tool) => tool.demo.status === "verified")
+    .sort((a, b) => {
+      const ai = priority.indexOf(a.slug);
+      const bi = priority.indexOf(b.slug);
+      return (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) -
+        (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
+    });
+  const featured = toolCatalog.filter(
+    (tool) =>
+      editorialBySlug.get(tool.slug)?.homepageFeatured &&
+      !verified.some((verifiedTool) => verifiedTool.slug === tool.slug),
+  );
+  return [...verified, ...featured].slice(0, limit);
 }
